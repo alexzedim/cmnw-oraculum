@@ -1,8 +1,8 @@
-import { SUBJECT_VECTOR } from '@cmnw/shared';
 import {
   ChannelsEntity,
   RolesEntity,
   ENTITY_ENUM,
+  SUBJECT_VECTOR,
   UserPermissionsEntity,
   UsersEntity,
 } from '@cmnw/pg';

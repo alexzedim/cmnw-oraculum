@@ -29,6 +29,12 @@
       ],
       "@cmnw/shared/*": [
         "libs/shared/src/*"
+      ],
+      "@cmnw/config": [
+        "libs/config/src"
+      ],
+      "@cmnw/config/*": [
+        "libs/config/src/*"
       ]
     }
   }

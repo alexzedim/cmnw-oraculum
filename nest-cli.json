@@ -36,6 +36,15 @@
       "compilerOptions": {
         "tsConfigPath": "libs/shared/tsconfig.lib.json"
       }
+    },
+    "fefenya": {
+      "type": "application",
+      "root": "apps/fefenya",
+      "entryFile": "main",
+      "sourceRoot": "apps/fefenya/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/fefenya/tsconfig.app.json"
+      }
     }
   }
 }

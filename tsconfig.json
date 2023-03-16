@@ -17,6 +17,19 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
-    "paths": {}
+    "paths": {
+      "@cmnw/pg": [
+        "libs/pg/src"
+      ],
+      "@cmnw/pg/*": [
+        "libs/pg/src/*"
+      ],
+      "@cmnw/shared": [
+        "libs/shared/src"
+      ],
+      "@cmnw/shared/*": [
+        "libs/shared/src/*"
+      ]
+    }
   }
 }

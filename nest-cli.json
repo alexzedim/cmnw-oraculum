@@ -18,6 +18,24 @@
       "compilerOptions": {
         "tsConfigPath": "apps/rainy/tsconfig.app.json"
       }
+    },
+    "pg": {
+      "type": "library",
+      "root": "libs/pg",
+      "entryFile": "index",
+      "sourceRoot": "libs/pg/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/pg/tsconfig.lib.json"
+      }
+    },
+    "shared": {
+      "type": "library",
+      "root": "libs/shared",
+      "entryFile": "index",
+      "sourceRoot": "libs/shared/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/shared/tsconfig.lib.json"
+      }
     }
   }
 }

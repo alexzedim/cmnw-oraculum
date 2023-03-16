@@ -66,7 +66,12 @@
     "coverageDirectory": "./coverage",
     "testEnvironment": "node",
     "roots": [
-      "<rootDir>/apps/"
-    ]
+      "<rootDir>/apps/",
+      "<rootDir>/libs/"
+    ],
+    "moduleNameMapper": {
+      "^@cmnw/pg(|/.*)$": "<rootDir>/libs/pg/src/$1",
+      "^@cmnw/shared(|/.*)$": "<rootDir>/libs/shared/src/$1"
+    }
   }
 }

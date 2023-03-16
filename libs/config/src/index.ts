@@ -1,4 +1,4 @@
 export * from './redis.config';
-export * from './interfaces';
+export * from './types';
 export * from './postgres.config';
 export * from './yandex.config';

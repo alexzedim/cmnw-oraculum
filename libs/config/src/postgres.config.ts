@@ -2,24 +2,16 @@ import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { util } from 'config';
-import { PostgresInterface } from '@app/configuration/interfaces';
+import { PostgresInterface } from '@cmnw/config/types';
 import {
   ChannelsEntity,
-  CoreChannelsEntity,
-  CoreGuildsEntity,
-  CoreRolesEntity,
   CoreUsersEntity,
   GuildsEntity,
-  MessagesEntity,
-  NerEntity,
-  NerMessagesEntity,
   PermissionsEntity,
   RolesEntity,
   UserPermissionsEntity,
   UsersEntity,
-  InvitesEntity,
-  TrafficEntity,
-} from '@app/pg';
+} from '@cmnw/pg';
 
 const configDir = join(__dirname, '..', '..', '..', 'config');
 const { postgres }: PostgresInterface = util.loadFileConfigs(configDir);
@@ -36,18 +28,10 @@ export const postgresConfig: TypeOrmModuleOptions = {
     ChannelsEntity,
     GuildsEntity,
     UsersEntity,
-    MessagesEntity,
-    NerEntity,
     PermissionsEntity,
     RolesEntity,
-    CoreChannelsEntity,
-    CoreGuildsEntity,
-    CoreRolesEntity,
     CoreUsersEntity,
     UserPermissionsEntity,
-    NerMessagesEntity,
-    InvitesEntity,
-    TrafficEntity,
   ],
   synchronize: false,
   keepConnectionAlive: true,

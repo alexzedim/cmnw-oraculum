@@ -1,7 +1,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { ISlashCommand, ISlashCommandArgs } from '@app/shared/interface';
+import { ISlashCommand, ISlashCommandArgs } from '@cmnw/shared';
 import { PermissionsBitField, Snowflake } from 'discord.js';
-import { DISCORD_BAN_REASON_ENUM } from '@app/shared/enums';
+import { DISCORD_BAN_REASON_ENUM } from '@cmnw/shared';
 
 export const Ban: ISlashCommand = {
   name: 'ban',

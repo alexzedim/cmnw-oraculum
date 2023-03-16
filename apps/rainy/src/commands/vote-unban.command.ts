@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { ISlashCommandArgs } from '@app/shared/interface';
+import { ISlashCommandArgs } from '@cmnw/shared';
 
 export const VoteUnban = {
   name: 'vote_unban',

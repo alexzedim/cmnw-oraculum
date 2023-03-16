@@ -1,8 +1,23 @@
 {
   "$schema": "https://json.schemastore.org/nest-cli",
   "collection": "@nestjs/schematics",
-  "sourceRoot": "src",
+  "sourceRoot": "apps/cmnw-oraculum/src",
   "compilerOptions": {
-    "deleteOutDir": true
+    "deleteOutDir": true,
+    "webpack": true,
+    "tsConfigPath": "apps/cmnw-oraculum/tsconfig.app.json"
+  },
+  "monorepo": true,
+  "root": "apps/cmnw-oraculum",
+  "projects": {
+    "rainy": {
+      "type": "application",
+      "root": "apps/rainy",
+      "entryFile": "main",
+      "sourceRoot": "apps/rainy/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/rainy/tsconfig.app.json"
+      }
+    }
   }
 }

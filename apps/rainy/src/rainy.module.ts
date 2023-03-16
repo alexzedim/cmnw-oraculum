@@ -1,10 +1,9 @@
 import { Module } from '@nestjs/common';
-import { RainyController } from './rainy.controller';
 import { RainyService } from './rainy.service';
 
 @Module({
   imports: [],
-  controllers: [RainyController],
+  controllers: [],
   providers: [RainyService],
 })
 export class RainyModule {}

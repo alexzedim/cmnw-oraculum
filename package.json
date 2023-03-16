@@ -25,6 +25,7 @@
     "@nestjs/common": "^9.0.0",
     "@nestjs/core": "^9.0.0",
     "@nestjs/platform-express": "^9.0.0",
+    "@nestjs/schedule": "2.2.0",
     "discord-api-types": "0.37.36",
     "discord.js": "14.8.0",
     "octokit": "2.0.14",
@@ -77,7 +78,8 @@
     ],
     "moduleNameMapper": {
       "^@cmnw/pg(|/.*)$": "<rootDir>/libs/pg/src/$1",
-      "^@cmnw/shared(|/.*)$": "<rootDir>/libs/shared/src/$1"
+      "^@cmnw/shared(|/.*)$": "<rootDir>/libs/shared/src/$1",
+      "^@cmnw/config(|/.*)$": "<rootDir>/libs/config/src/$1"
     }
   }
 }

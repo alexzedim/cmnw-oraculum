@@ -2,6 +2,19 @@
 /dist
 /node_modules
 
+# DotEnv
+!/.env
+.env
+
+# Docker data
+/volumes
+
+# Files
+/files/*
+
+# Config
+/config
+
 # Logs
 logs
 *.log

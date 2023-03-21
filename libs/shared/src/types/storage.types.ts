@@ -1,6 +1,7 @@
 import { Collection } from 'discord.js';
 import {
   ChannelsEntity,
+  FefenyaEntity,
   GuildsEntity,
   RolesEntity,
   UserPermissionsEntity,
@@ -13,4 +14,5 @@ export interface StorageTypes {
   userStorage: Collection<string, UsersEntity>;
   roleStorage: Collection<string, RolesEntity>;
   userPermissionStorage: Collection<string, UserPermissionsEntity>;
+  fefenyaStorage: Collection<string, FefenyaEntity>;
 }

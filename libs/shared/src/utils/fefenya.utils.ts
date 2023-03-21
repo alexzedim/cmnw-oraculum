@@ -17,4 +17,5 @@ export const gotdGreeter = (greeting: string, userId: string) =>
 export const gotdSelected = (greeting: string, username: string) =>
   `${greeting} ${username}`;
 
-export const fefenyaKeyFormatter = (key: string) => `FEFENYA:${key}`;
+export const fefenyaRedisKey = (key: string, formatter = 'FEFENYA') =>
+  `${formatter}:${key}`;

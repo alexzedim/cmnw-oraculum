@@ -3,10 +3,13 @@ import { Redis } from '@nestjs-modules/ioredis';
 import { Interaction } from 'discord.js';
 import { Logger } from '@nestjs/common';
 import { StorageTypes } from '@cmnw/shared/types/storage.types';
+import { Repository } from 'typeorm';
+import { FefenyaEntity } from '@cmnw/pg';
 
 export interface ISlashCommandArgs {
   readonly interaction: Interaction;
-  readonly localStorage: StorageTypes;
+  readonly repository?: Repository<FefenyaEntity>; // TODO as repo storage
+  readonly localStorage?: StorageTypes;
   readonly logger: Logger;
   readonly redis?: Redis;
 }

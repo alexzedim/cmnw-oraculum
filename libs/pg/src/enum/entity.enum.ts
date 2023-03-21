@@ -6,6 +6,7 @@ export enum ENTITY_ENUM {
   USER_PERMISSIONS = 'user_permissions',
   PERMISSIONS = 'permissions',
   ROLES = 'roles',
+  FEFENYA = 'fefenya',
 }
 
 export enum SUBJECT_VECTOR {

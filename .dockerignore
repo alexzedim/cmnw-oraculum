@@ -1,6 +1,5 @@
 .git*
-dist
 node_modules
 config/default.yml
 Dockerfile
-docker-compose*
+docker-compose.oraculum.yaml

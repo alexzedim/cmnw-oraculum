@@ -1,4 +1,4 @@
-FROM node:lts-alpine AS development
+FROM node:lts AS development
 
 ARG CR_PAT
 ENV CR_PAT=$CR_PAT

@@ -4,15 +4,15 @@ services:
     image: ghcr.io/alexzedim/rainy:latest
     container_name: rainy
     restart: always
-    command: [ 'node', 'dist/main.js' ]
+    command: [ 'node', 'dist/apps/rainy/main.js' ]
     environment:
       - NODE_ENV=${NODE_ENV}
 
   pepa-chatgpt:
-    image: ghcr.io/alexzedim/pepa-chatgpt:latest
+    image: ghcr.io/alexzedim/pepa-chat-gpt:latest
     container_name: pepa-chatgpt
     restart: always
-    command: [ 'node', 'dist/main.js' ]
+    command: [ 'node', 'dist/apps/pepa-chat-gpt/main.js' ]
     environment:
       - NODE_ENV=${NODE_ENV}
 
@@ -20,6 +20,6 @@ services:
     image: ghcr.io/alexzedim/fefenya:latest
     container_name: fefenya
     restart: always
-    command: [ 'node', 'dist/main.js' ]
+    command: [ 'node', 'dist/apps/fefenya/main.js' ]
     environment:
-      - NODE_ENV=${NODE_ENV}
+      - NODE_ENV=production

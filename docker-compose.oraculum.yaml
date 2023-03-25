@@ -1,0 +1,25 @@
+version: '3.8'
+services:
+  rainy:
+    image: ghcr.io/alexzedim/rainy:latest
+    container_name: rainy
+    restart: always
+    command: [ 'node', 'dist/main.js' ]
+    environment:
+      - NODE_ENV=${NODE_ENV}
+
+  pepa-chatgpt:
+    image: ghcr.io/alexzedim/pepa-chatgpt:latest
+    container_name: pepa-chatgpt
+    restart: always
+    command: [ 'node', 'dist/main.js' ]
+    environment:
+      - NODE_ENV=${NODE_ENV}
+
+  fefenya:
+    image: ghcr.io/alexzedim/fefenya:latest
+    container_name: fefenya
+    restart: always
+    command: [ 'node', 'dist/main.js' ]
+    environment:
+      - NODE_ENV=${NODE_ENV}

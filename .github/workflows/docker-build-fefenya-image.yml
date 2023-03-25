@@ -1,8 +1,11 @@
 name: Create Fefenya Release Image
 
+# build image only on push to master & specific app directory
 on:
   push:
     branches: [ master ]
+    paths:
+      - 'apps/fefenya/**'
 
 jobs:
   # define job to build and publish docker image

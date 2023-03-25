@@ -32,7 +32,7 @@ COPY . .
 
 RUN nest build rainy
 
-CMD wait && ["node"]
+CMD wait && ["node", "dist/apps/rainy/main.js"]
 
 
 

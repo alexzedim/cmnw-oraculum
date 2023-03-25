@@ -1,33 +1,38 @@
-FROM node:lts-alpine AS development
+FROM node:lts
+
+ARG CR_PAT
+ENV CR_PAT=$CR_PAT
+
+LABEL org.opencontainers.image.title = "Rainy"
+LABEL org.opencontainers.image.vendor = "AlexZeDim"
+LABEL org.opencontainers.image.url = "https://i.imgur.com/CY0Kqy3.png"
+LABEL org.opencontainers.image.source = "https://github.com/AlexZeDim/cmnw-oraculum"
+
+RUN apt-get update
+
+RUN apt-get install -y git
 
 WORKDIR /usr/src/app
 
-COPY package*.json ./
+RUN npm install -g @nestjs/cli
 
-RUN yarn add glob rimraf webpack
+RUN git config --global url."https://alexzedim:${CR_PAT}@github.com/".insteadOf "https://github.com/"
 
-RUN yarn --only=development
+RUN git clone https://github.com/AlexZeDim/oraculum-secrets.git
 
-COPY . .
+RUN mv oraculum-secrets/* oraculum-secrets/.[^.]* . && rmdir oraculum-secrets/
 
-RUN yarn run build
+COPY package.json ./
 
-FROM node:lts-alpine as production
+COPY package.json ./
 
-ARG NODE_ENV=production
-ENV NODE_ENV=${NODE_ENV}
-
-WORKDIR /usr/src/app
-
-COPY package*.json ./
-
-RUN yarn --only=production
+RUN yarn install
 
 COPY . .
 
-COPY --from=development /usr/src/app/dist ./dist
+RUN nest build rainy
 
-CMD ["node", "dist/main"]
+CMD wait && ["node"]
 
 
 

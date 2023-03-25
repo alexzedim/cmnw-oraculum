@@ -1,8 +1,17 @@
 import { gotdCommand, GotsStatsCommand } from './commands';
-import { fefenyaRedisKey, ISlashCommand } from '@cmnw/shared';
 import { InjectRedis, Redis } from '@nestjs-modules/ioredis';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+
+import {
+  FEFENYA_STORAGE_KEYS,
+  fefenyaRedisKey,
+  GOTD_GREETING_FLOW,
+  gotdGreeter,
+  ISlashCommand,
+  randInBetweenInt,
+} from '@cmnw/shared';
 
 import {
   Injectable,
@@ -12,6 +21,7 @@ import {
 } from '@nestjs/common';
 
 import {
+  ChannelType,
   Client,
   Collection,
   Events,
@@ -19,6 +29,7 @@ import {
   Partials,
   REST,
   Routes,
+  TextChannel,
 } from 'discord.js';
 
 import {
@@ -166,6 +177,66 @@ export class FefenyaService implements OnApplicationBootstrap {
       );
     } catch (errorOrException) {
       this.logger.error(`Fefenya: ${errorOrException}`);
+    }
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_10PM)
+  async idleReaction() {
+    try {
+      const isGotdTriggered = !!(await this.redisService.exists(
+        FEFENYA_STORAGE_KEYS.GOTD_TOD_STATUS,
+      ));
+
+      const [channel, guild] = await Promise.all([
+        this.client.channels.fetch(
+          '881965561892974672',
+        ) as Promise<TextChannel>,
+        this.client.guilds.fetch('881954435662766150'),
+      ]);
+
+      this.logger.debug(`isGotdTriggered: ${isGotdTriggered}`);
+      // TODO 882360954980012082 ROLE
+      if (!isGotdTriggered) {
+        if (!channel || !guild) return;
+
+        const guildUserIdRandom = await this.redisService.srandmember(
+          fefenyaRedisKey('881954435662766150'),
+        );
+
+        const guildMember = guild.members.cache.get(guildUserIdRandom);
+        if (!guildMember) return;
+
+        await this.redisService.set(
+          FEFENYA_STORAGE_KEYS.GOTD_TOD_STATUS,
+          guildMember.displayName,
+        );
+
+        const randIndex = randInBetweenInt(1, GOTD_GREETING_FLOW.size);
+        const greetingFlow = GOTD_GREETING_FLOW.get(randIndex);
+        const arrLength = greetingFlow.length;
+        let content: string;
+
+        if (channel.type === ChannelType.GuildText) {
+          for (let i = 0; i < arrLength; i++) {
+            content =
+              arrLength - 1 === i
+                ? gotdGreeter(greetingFlow[i], guildUserIdRandom)
+                : greetingFlow[i];
+
+            if (i === 0) {
+              await channel.send({ content });
+            } else {
+              await channel.send({ content });
+            }
+          }
+        }
+      } else {
+        await this.redisService.del(FEFENYA_STORAGE_KEYS.GOTD_TOD_STATUS);
+      }
+      await this.redisService.del(fefenyaRedisKey(guild.id));
+      return isGotdTriggered;
+    } catch (e) {
+      console.error(e);
     }
   }
 }

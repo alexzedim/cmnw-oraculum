@@ -180,24 +180,7 @@ export class RainyService implements OnApplicationBootstrap {
 
       this.client.on(Events.GuildCreate, async (guild) => {
         try {
-          let guildEntity = await this.guildsRepository.findOneBy({
-            id: guild.id,
-          });
-
-          if (!guildEntity) {
-            guildEntity = this.guildsRepository.create({
-              id: guild.id,
-              name: guild.name,
-              icon: guild.icon,
-              ownerId: guild.ownerId,
-              membersNumber: guild.memberCount,
-              vector: SUBJECT_VECTOR.CLASS_HALL,
-              isWatch: false,
-              scannedBy: this.client.user.id,
-            });
-
-            await this.guildsRepository.save(guildEntity);
-          }
+          await this.seederService.createGuildDiscordProfile(guild);
         } catch (errorOrException) {
           this.logger.error(`${Events.GuildCreate}: ${errorOrException}`);
         }

@@ -54,6 +54,15 @@
       "compilerOptions": {
         "tsConfigPath": "libs/config/tsconfig.lib.json"
       }
+    },
+    "pepa-chat-gpt": {
+      "type": "application",
+      "root": "apps/pepa-chat-gpt",
+      "entryFile": "main",
+      "sourceRoot": "apps/pepa-chat-gpt/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/pepa-chat-gpt/tsconfig.app.json"
+      }
     }
   }
 }

@@ -1,3 +1,15 @@
+export enum DISCORD_PERMISSION_ENUM {
+  COMMAND = 'COMMAND',
+  TEXT_READ_ONLY = 'TEXT_READ_ONLY',
+  TEXT_WRITE = 'TEXT_WRITE',
+  CONTROL = 'CONTROL',
+  CAN_BOUND = 'CAN_BOUND',
+  RED = 'RED',
+  AMBER = 'AMBER',
+  GREEN = 'GREEN',
+  WHITE = 'WHITE',
+}
+
 export enum DISCORD_GUILDS_ENUM {
   TempleOfFiveDawns = 'Храм Пяти Рассветов',
   ModerChat = 'Moder Chat',

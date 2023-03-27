@@ -1,6 +1,6 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Client, Collection } from 'discord.js';
+import { Client, Collection, Guild } from 'discord.js';
 import { InjectRedis, Redis } from '@nestjs-modules/ioredis';
 import {
   Injectable,
@@ -12,6 +12,7 @@ import {
   DISCORD_CHANNELS_ENUM,
   DISCORD_GUILDS_ENUM,
   DISCORD_MONK_ROLES_BOOST_TITLES,
+  DISCORD_PERMISSION_ENUM,
   DISCORD_RELATIONS,
   DISCORD_SERVERS_ENUM,
   StorageTypes,
@@ -270,5 +271,74 @@ export class SeederService {
       );
     }
     this.logger.log(`initUserPermissions finished!`);
+  }
+
+  async createGuildDiscordProfile(guild: Guild) {
+    let guildEntity = await this.guildsRepository.findOneBy({
+      id: guild.id,
+    });
+
+    if (!guildEntity) {
+      guildEntity = this.guildsRepository.create({
+        id: guild.id,
+        name: guild.name,
+        icon: guild.icon,
+        ownerId: guild.ownerId,
+        membersNumber: guild.memberCount,
+        vector: SUBJECT_VECTOR.CLASS_HALL,
+        isWatch: false,
+        scannedBy: this.client.user.id,
+      });
+
+      guildEntity = await this.guildsRepository.save(guildEntity);
+    }
+
+    let ownerUserEntity = await this.usersRepository.findOneBy({
+      id: guild.ownerId,
+    });
+
+    if (!ownerUserEntity) {
+      const discordUser = await this.client.users.fetch(ownerUserEntity.id);
+      if (!discordUser) {
+        this.logger.log(
+          `Guild owner: ${ownerUserEntity.id} is out of our reach index, skipping...`,
+        );
+        return;
+      }
+
+      ownerUserEntity = this.usersRepository.create({
+        id: discordUser.id,
+        name: discordUser.username,
+        discriminator: Number(discordUser.discriminator),
+        username: `${discordUser.username}#${discordUser.discriminator}`,
+        avatar: discordUser.avatar,
+        scannedBy: this.client.user.id,
+      });
+
+      ownerUserEntity = await this.usersRepository.save(ownerUserEntity);
+    }
+
+    const commandPermissionEntity = await this.permissionsRepository.findOneBy({
+      name: DISCORD_PERMISSION_ENUM.COMMAND,
+    });
+
+    let userPermissionEntity = await this.userPermissionsRepository.findOneBy({
+      userId: ownerUserEntity.id,
+      permissionUuid: commandPermissionEntity.uuid,
+      guildId: guildEntity.id,
+      subjectUserId: this.client.user.id,
+    });
+
+    if (!userPermissionEntity) {
+      userPermissionEntity = this.userPermissionsRepository.create({
+        userId: ownerUserEntity.id,
+        permissionUuid: commandPermissionEntity.uuid,
+        guildId: guildEntity.id,
+        subjectUserId: this.client.user.id,
+        isApplied: true,
+      });
+
+      await this.userPermissionsRepository.save(userPermissionEntity);
+    }
   }
 }

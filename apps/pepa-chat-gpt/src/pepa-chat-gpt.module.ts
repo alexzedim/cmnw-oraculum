@@ -4,6 +4,8 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { postgresConfig, redisConfig } from '@cmnw/config';
 import { RedisModule } from '@nestjs-modules/ioredis';
+import { BullModule } from '@anchan828/nest-bullmq';
+import { chatQueue } from '@cmnw/shared';
 import {
   ChannelsEntity,
   CoreUsersEntity,
@@ -14,8 +16,6 @@ import {
   UserPermissionsEntity,
   UsersEntity,
 } from '@cmnw/pg';
-import { BullModule } from '@anchan828/nest-bullmq';
-import { chatQueue } from '@cmnw/shared';
 
 @Module({
   imports: [

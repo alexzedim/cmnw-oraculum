@@ -6,11 +6,11 @@ import { Repository } from 'typeorm';
 
 import {
   FEFENYA_STORAGE_KEYS,
-  fefenyaRedisKey,
+  formatRedisKey,
   GOTD_GREETING_FLOW,
   gotdGreeter,
   ISlashCommand,
-  randInBetweenInt,
+  cryptoRandomIntBetween,
 } from '@cmnw/shared';
 
 import {
@@ -132,7 +132,7 @@ export class FefenyaService implements OnApplicationBootstrap {
         try {
           for (const [userId, GuildMember] of guild.members.cache.entries()) {
             if (!GuildMember.user.bot)
-              this.redisService.sadd(fefenyaRedisKey(guild.id), userId);
+              this.redisService.sadd(formatRedisKey(guild.id), userId);
           }
         } catch (errorException) {
           this.logger.error(errorException);
@@ -144,7 +144,7 @@ export class FefenyaService implements OnApplicationBootstrap {
           if (message.author.bot) return;
 
           await this.redisService.sadd(
-            fefenyaRedisKey(message.guildId),
+            formatRedisKey(message.guildId),
             message.member.user.id,
           );
         } catch (errorException) {
@@ -200,7 +200,7 @@ export class FefenyaService implements OnApplicationBootstrap {
         if (!channel || !guild) return;
 
         const guildUserIdRandom = await this.redisService.srandmember(
-          fefenyaRedisKey('881954435662766150'),
+          formatRedisKey('881954435662766150'),
         );
 
         const guildMember = guild.members.cache.get(guildUserIdRandom);
@@ -211,7 +211,7 @@ export class FefenyaService implements OnApplicationBootstrap {
           guildMember.displayName,
         );
 
-        const randIndex = randInBetweenInt(1, GOTD_GREETING_FLOW.size);
+        const randIndex = cryptoRandomIntBetween(1, GOTD_GREETING_FLOW.size);
         const greetingFlow = GOTD_GREETING_FLOW.get(randIndex);
         const arrLength = greetingFlow.length;
         let content: string;
@@ -233,7 +233,7 @@ export class FefenyaService implements OnApplicationBootstrap {
       } else {
         await this.redisService.del(FEFENYA_STORAGE_KEYS.GOTD_TOD_STATUS);
       }
-      await this.redisService.del(fefenyaRedisKey(guild.id));
+      await this.redisService.del(formatRedisKey(guild.id));
       return isGotdTriggered;
     } catch (e) {
       console.error(e);

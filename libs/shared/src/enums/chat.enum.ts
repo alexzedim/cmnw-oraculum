@@ -4,6 +4,12 @@ export enum OPENAI_MODEL_ENGINE {
   ChatGPT_4 = 'gpt-4',
 }
 
+export enum PEPA_ROLL_CHANCE {
+  ATTACHMENT_ONLY_EMOJI = 95,
+  TEXT_ONLY_REPLY = 1,
+  TEXT_ONLY_EMOJI = 98,
+  IS_MEDIA = 50,
+}
 export enum PEPA_STORAGE_KEYS {
   EMOJIS = 'pepaEmojis',
   STICKERS = 'pepaStickers',

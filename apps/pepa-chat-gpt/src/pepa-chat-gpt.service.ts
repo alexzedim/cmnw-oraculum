@@ -1,22 +1,25 @@
+import { REST } from '@discordjs/rest';
+import { Queue } from 'bullmq';
+import Redis from 'ioredis';
+import { InjectRedis } from '@nestjs-modules/ioredis';
+import { Whoami } from './commans';
+import { BullQueueInject, BullWorker } from '@anchan828/nest-bullmq';
+import { CoreUsersEntity } from '@cmnw/pg';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+
 import {
   Injectable,
   Logger,
   NotFoundException,
   OnApplicationBootstrap,
 } from '@nestjs/common';
-import { REST } from '@discordjs/rest';
-import { Job, Queue } from 'bullmq';
-import Redis from 'ioredis';
-import { InjectRedis } from '@nestjs-modules/ioredis';
-import { Whoami } from './commans';
-import { BullQueueInject, BullWorker } from '@anchan828/nest-bullmq';
-import { CoreUsersEntity } from '@cmnw/pg';
+
 import {
   chatQueue,
   ISlashCommand,
   MessageJobInterface,
   MessageJobResInterface,
-  randInBetweenInt,
 } from '@cmnw/shared';
 
 import {
@@ -28,8 +31,6 @@ import {
   Partials,
   Routes,
 } from 'discord.js';
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
 
 @Injectable()
 @BullWorker({ queueName: chatQueue.name, options: chatQueue.workerOptions })
@@ -94,7 +95,7 @@ export class PepaChatGptService implements OnApplicationBootstrap {
     if (!pepaUserEntity) throw new NotFoundException('Pepa not found!');
 
     if (!pepaUserEntity.token)
-      throw new NotFoundException('Fefenya token not found!');
+      throw new NotFoundException('Pepa token not found!');
 
     this.pepaUser = pepaUserEntity;
 
@@ -105,7 +106,7 @@ export class PepaChatGptService implements OnApplicationBootstrap {
   private async bot() {
     this.client.on(Events.ClientReady, async () => {
       this.logger.log(`Logged in as ${this.client.user.tag}!`);
-      await this.storage();
+      // await this.storage();
     });
 
     this.client.on(
@@ -136,61 +137,6 @@ export class PepaChatGptService implements OnApplicationBootstrap {
       if (message.channel.type !== ChannelType.GuildText || message.author.bot)
         return;
       try {
-        // TODO update activity or ignore message
-
-        this.dialog.push({
-          role: 'user',
-          content: message.content,
-        });
-
-        const engineIndex = randInBetweenInt(0, 1);
-
-        this.chatEngine = this.chatEngineStorage[engineIndex];
-        this.logger.debug(`Engine ${engineIndex} selected. REQUEST =>`);
-
-        let reply: string;
-
-        try {
-          const { data: chatResponses } =
-            await this.chatEngine.createChatCompletion({
-              model: OPENAI_MODEL_ENGINE.ChatGPT_35,
-              messages: this.dialog as any,
-              temperature: 0.7, // randInBetweenFloat(0.5, 0.9, 1),
-              max_tokens: 2048,
-              // top_p: randInBetweenFloat(0.3, 0.5, 1),
-              frequency_penalty: 0.0, // randInBetweenFloat(0.3, 0.6, 1),
-              presence_penalty: randInBetweenFloat(-2.0, 2.0, 1),
-            });
-
-          if (
-            !chatResponses ||
-            !chatResponses.choices ||
-            !chatResponses.choices.length
-          ) {
-            // TODO cover
-            this.logger.error('No responses found');
-            return;
-          }
-
-          const { content } = this.chatService.formatResponseReply(
-            chatResponses.choices,
-          );
-          reply = content;
-
-          this.dialog.push({
-            role: 'assistant',
-            content,
-          });
-        } catch (chatEngineError) {
-          this.logger.error(
-            `${chatEngineError.response.status} : ${chatEngineError.response.statusText}`,
-          );
-
-          reply = await this.chatService.triggerError();
-        }
-
-        await message.channel.send(reply);
-        this.dialog.shift();
       } catch (e) {
         console.error(e);
       }

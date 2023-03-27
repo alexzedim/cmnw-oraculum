@@ -10,6 +10,7 @@ import {
   ChannelsEntity,
   CoreUsersEntity,
   GuildsEntity,
+  SUBJECT_VECTOR,
   UsersEntity,
 } from '@cmnw/pg';
 
@@ -176,6 +177,31 @@ export class RainyService implements OnApplicationBootstrap {
 
       if (!this.coreChannel || this.coreChannel.type !== ChannelType.GuildText)
         return;
+
+      this.client.on(Events.GuildCreate, async (guild) => {
+        try {
+          let guildEntity = await this.guildsRepository.findOneBy({
+            id: guild.id,
+          });
+
+          if (!guildEntity) {
+            guildEntity = this.guildsRepository.create({
+              id: guild.id,
+              name: guild.name,
+              icon: guild.icon,
+              ownerId: guild.ownerId,
+              membersNumber: guild.memberCount,
+              vector: SUBJECT_VECTOR.CLASS_HALL,
+              isWatch: false,
+              scannedBy: this.client.user.id,
+            });
+
+            await this.guildsRepository.save(guildEntity);
+          }
+        } catch (errorOrException) {
+          this.logger.error(`${Events.GuildCreate}: ${errorOrException}`);
+        }
+      });
 
       this.client.on(
         Events.InteractionCreate,

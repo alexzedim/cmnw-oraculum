@@ -14,6 +14,7 @@
 
 # Config
 /config
+ormconfig.json
 
 # Logs
 logs

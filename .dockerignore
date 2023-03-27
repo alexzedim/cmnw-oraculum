@@ -4,3 +4,4 @@ config/default.yml
 Dockerfile
 local.Dockerfile
 docker-compose.oraculum.yaml
+ormconfig.json

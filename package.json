@@ -2,7 +2,19 @@
   "name": "cmnw-oraculum",
   "version": "1.0.0",
   "description": "",
-  "author": "",
+  "author": {
+    "name": "AlexZeDim",
+    "email": "907696+AlexZeDim@users.noreply.github.com"
+  },
+  "bugs": {
+    "url": "https://github.com/AlexZeDim/cmnw-oraculum/issues",
+    "discord": "AlexZeDim#2645"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AlexZeDim/cmnw-oraculum.git"
+  },
+  "languageName": "node",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {

@@ -6,6 +6,7 @@ import { postgresConfig, redisConfig } from '@cmnw/config';
 import { RedisModule } from '@nestjs-modules/ioredis';
 import { BullModule } from '@anchan828/nest-bullmq';
 import { chatQueue } from '@cmnw/shared';
+import { ChatService } from './chat/chat.service';
 import {
   ChannelsEntity,
   CoreUsersEntity,
@@ -53,6 +54,6 @@ import {
     }),
   ],
   controllers: [],
-  providers: [PepaChatGptService],
+  providers: [PepaChatGptService, ChatService],
 })
 export class PepaChatGptModule {}

@@ -1,13 +1,13 @@
+import Redis from 'ioredis';
 import { REST } from '@discordjs/rest';
 import { Queue } from 'bullmq';
-import Redis from 'ioredis';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import { Whoami } from './commans';
-import { BullQueueInject, BullWorker } from '@anchan828/nest-bullmq';
+import { BullQueueInject } from '@anchan828/nest-bullmq';
 import { CoreUsersEntity } from '@cmnw/pg';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-
+import { ChatService } from './chat/chat.service';
 import {
   Injectable,
   Logger,
@@ -17,9 +17,12 @@ import {
 
 import {
   chatQueue,
+  formatRedisKey,
   ISlashCommand,
   MessageJobInterface,
   MessageJobResInterface,
+  PEPA_CHAT_KEYS,
+  PEPA_TRIGGER_FLAG,
 } from '@cmnw/shared';
 
 import {
@@ -33,7 +36,6 @@ import {
 } from 'discord.js';
 
 @Injectable()
-@BullWorker({ queueName: chatQueue.name, options: chatQueue.workerOptions })
 export class PepaChatGptService implements OnApplicationBootstrap {
   private readonly logger = new Logger(PepaChatGptService.name, {
     timestamp: true,
@@ -45,6 +47,7 @@ export class PepaChatGptService implements OnApplicationBootstrap {
   private commandSlash = [];
 
   constructor(
+    private chatService: ChatService,
     @InjectRedis()
     private readonly redisService: Redis,
     @BullQueueInject(chatQueue.name)
@@ -134,9 +137,53 @@ export class PepaChatGptService implements OnApplicationBootstrap {
      * @description Doesn't trigger itself & other bots as-well.
      */
     this.client.on(Events.MessageCreate, async (message) => {
-      if (message.channel.type !== ChannelType.GuildText || message.author.bot)
-        return;
+      let isIgnore: boolean;
+      let isMentioned: boolean;
+
       try {
+        isIgnore = message.author.bot;
+        if (isIgnore) return;
+
+        isIgnore = message.channel.type !== ChannelType.GuildText;
+        if (isIgnore) return;
+
+        isIgnore = await this.chatService.isIgnore();
+        if (isIgnore) return;
+
+        if (message.channelId === '217532087001939969') {
+          await this.chatService.updateLastActiveMessage();
+        }
+
+        const { id, author, channelId, reference, content } = message;
+        const key = formatRedisKey(PEPA_CHAT_KEYS.MENTIONED, 'PEPA');
+
+        isMentioned = await this.chatService.isMentioned(
+          message.mentions,
+          message.mentions.users,
+          this.client.user.id,
+          content,
+        );
+        const wasMentioned = Boolean(await this.redisService.exists(key));
+        if (wasMentioned) isMentioned = true;
+
+        const isText = Boolean(content);
+        const hasAttachment = Boolean(message.attachments.size);
+
+        const { flag } = await this.chatService.rollDiceFullHouse({
+          isText,
+          hasAttachment,
+          isMentioned,
+        });
+
+        if (flag === PEPA_TRIGGER_FLAG.MESSAGE) {
+          await this.queue.add(message.id, {
+            id,
+            author,
+            channelId,
+            content,
+            reference,
+          });
+        }
       } catch (e) {
         console.error(e);
       }

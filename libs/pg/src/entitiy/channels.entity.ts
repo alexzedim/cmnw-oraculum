@@ -1,8 +1,4 @@
-import {
-  GuildsEntity,
-  ENTITY_ENUM,
-  UserPermissionsEntity,
-} from '@cmnw/pg';
+import { GuildsEntity, ENTITY_ENUM, UserPermissionsEntity } from '@cmnw/pg';
 
 import {
   Column,

@@ -1,1 +1,1 @@
-export * from './chat.queue';
+export * from './oraculum.queue';

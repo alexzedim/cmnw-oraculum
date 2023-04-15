@@ -34,7 +34,7 @@ import {
 
 import {
   CoreUsersEntity,
-  FefenyaEntity,
+  FefenyaUsersEntity,
   GuildsEntity,
   UsersEntity,
 } from '@cmnw/pg';
@@ -59,8 +59,8 @@ export class FefenyaService implements OnApplicationBootstrap {
     private readonly guildsRepository: Repository<GuildsEntity>,
     @InjectRepository(CoreUsersEntity)
     private readonly coreUsersRepository: Repository<CoreUsersEntity>,
-    @InjectRepository(FefenyaEntity)
-    private readonly fefenyaRepository: Repository<FefenyaEntity>,
+    @InjectRepository(FefenyaUsersEntity)
+    private readonly fefenyaRepository: Repository<FefenyaUsersEntity>,
   ) {}
 
   async onApplicationBootstrap(): Promise<void> {

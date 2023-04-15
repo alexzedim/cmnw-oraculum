@@ -5,13 +5,9 @@ import { FefenyaService } from './fefenya.service';
 import { RedisModule } from '@nestjs-modules/ioredis';
 import { postgresConfig, redisConfig } from '@cmnw/config';
 import {
-  ChannelsEntity,
   CoreUsersEntity,
   GuildsEntity,
-  PermissionsEntity,
-  RolesEntity,
-  FefenyaEntity,
-  UserPermissionsEntity,
+  FefenyaUsersEntity,
   UsersEntity,
 } from '@cmnw/pg';
 
@@ -20,14 +16,10 @@ import {
     ScheduleModule.forRoot(),
     TypeOrmModule.forRoot(postgresConfig),
     TypeOrmModule.forFeature([
-      FefenyaEntity,
-      ChannelsEntity,
+      FefenyaUsersEntity,
       GuildsEntity,
       UsersEntity,
-      RolesEntity,
       CoreUsersEntity,
-      PermissionsEntity,
-      UserPermissionsEntity,
     ]),
     RedisModule.forRoot({
       config: {

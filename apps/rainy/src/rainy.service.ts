@@ -10,7 +10,6 @@ import {
   ChannelsEntity,
   CoreUsersEntity,
   GuildsEntity,
-  SUBJECT_VECTOR,
   UsersEntity,
 } from '@cmnw/pg';
 

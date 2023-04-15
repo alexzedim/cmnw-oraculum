@@ -7,7 +7,6 @@ import { RedisModule } from '@nestjs-modules/ioredis';
 import {
   ChannelsEntity,
   CoreUsersEntity,
-  FefenyaEntity,
   GuildsEntity,
   PermissionsEntity,
   RolesEntity,
@@ -20,7 +19,6 @@ import {
     ScheduleModule.forRoot(),
     TypeOrmModule.forRoot(postgresConfig),
     TypeOrmModule.forFeature([
-      FefenyaEntity,
       ChannelsEntity,
       GuildsEntity,
       UsersEntity,

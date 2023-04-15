@@ -1,13 +1,12 @@
 import Redis from 'ioredis';
 import { REST } from '@discordjs/rest';
-import { Queue } from 'bullmq';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import { Whoami } from './commans';
-import { BullQueueInject } from '@anchan828/nest-bullmq';
 import { CoreUsersEntity } from '@cmnw/pg';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ChatService } from './chat/chat.service';
+import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import {
   Injectable,
   Logger,
@@ -16,11 +15,10 @@ import {
 } from '@nestjs/common';
 
 import {
-  chatQueue,
   formatRedisKey,
   ISlashCommand,
-  MessageJobInterface,
-  MessageJobResInterface,
+  MessageChatPublish,
+  ORACULUM_EXCHANGE,
   PEPA_CHAT_KEYS,
   PEPA_TRIGGER_FLAG,
 } from '@cmnw/shared';
@@ -48,10 +46,9 @@ export class PepaChatGptService implements OnApplicationBootstrap {
 
   constructor(
     private chatService: ChatService,
+    private readonly amqpConnection: AmqpConnection,
     @InjectRedis()
     private readonly redisService: Redis,
-    @BullQueueInject(chatQueue.name)
-    private readonly queue: Queue<MessageJobInterface, MessageJobResInterface>,
     @InjectRepository(CoreUsersEntity)
     private readonly coreUsersRepository: Repository<CoreUsersEntity>,
   ) {}
@@ -149,12 +146,12 @@ export class PepaChatGptService implements OnApplicationBootstrap {
 
         isIgnore = await this.chatService.isIgnore();
         if (isIgnore) return;
-
+        // TODO refactor channel binding
         if (message.channelId === '217532087001939969') {
           await this.chatService.updateLastActiveMessage();
         }
 
-        const { id, author, channelId, reference, content } = message;
+        const { id, author, reference, content, channel, guild } = message;
         const key = formatRedisKey(PEPA_CHAT_KEYS.MENTIONED, 'PEPA');
 
         isMentioned = await this.chatService.isMentioned(
@@ -176,13 +173,18 @@ export class PepaChatGptService implements OnApplicationBootstrap {
         });
 
         if (flag === PEPA_TRIGGER_FLAG.MESSAGE) {
-          await this.queue.add(message.id, {
-            id,
-            author,
-            channelId,
-            content,
-            reference,
-          });
+          await this.amqpConnection.publish<MessageChatPublish>(
+            ORACULUM_EXCHANGE,
+            'message.chat.eye.pepa',
+            {
+              id,
+              channel,
+              guild,
+              author,
+              content,
+              reference,
+            },
+          );
         }
       } catch (e) {
         console.error(e);

@@ -1,7 +1,17 @@
-import { QueueOptions, WorkerOptions } from 'bullmq';
+import { Channel, Guild, MessageReference, User } from 'discord.js';
 
-export interface QueueInterface {
-  readonly name: string;
-  readonly workerOptions: WorkerOptions;
-  readonly options: QueueOptions;
+export interface MessageChatPublish {
+  readonly id: string;
+  readonly channel: Channel;
+  readonly guild: Guild;
+  readonly content: string;
+  readonly author: User;
+  readonly reference: MessageReference;
+  readonly token?: string;
+  readonly scannedBy?: string;
+}
+
+export interface MessageJobResInterface {
+  readonly response: string;
+  readonly channelId: string;
 }

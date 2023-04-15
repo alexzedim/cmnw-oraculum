@@ -2,36 +2,18 @@ import { Module } from '@nestjs/common';
 import { PepaChatGptService } from './pepa-chat-gpt.service';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { postgresConfig, redisConfig } from '@cmnw/config';
+import { postgresConfig, rabbitConfig, redisConfig } from '@cmnw/config';
 import { RedisModule } from '@nestjs-modules/ioredis';
-import { BullModule } from '@anchan828/nest-bullmq';
-import { chatQueue } from '@cmnw/shared';
+import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 import { ChatService } from './chat/chat.service';
-import {
-  ChannelsEntity,
-  CoreUsersEntity,
-  FefenyaEntity,
-  GuildsEntity,
-  PermissionsEntity,
-  RolesEntity,
-  UserPermissionsEntity,
-  UsersEntity,
-} from '@cmnw/pg';
+import { oraculumQueue } from '@cmnw/shared';
+import { CoreUsersEntity, UsersEntity } from '@cmnw/pg';
 
 @Module({
   imports: [
     ScheduleModule.forRoot(),
     TypeOrmModule.forRoot(postgresConfig),
-    TypeOrmModule.forFeature([
-      FefenyaEntity,
-      ChannelsEntity,
-      GuildsEntity,
-      UsersEntity,
-      RolesEntity,
-      CoreUsersEntity,
-      PermissionsEntity,
-      UserPermissionsEntity,
-    ]),
+    TypeOrmModule.forFeature([UsersEntity, CoreUsersEntity]),
     RedisModule.forRoot({
       config: {
         host: redisConfig.host,
@@ -39,18 +21,10 @@ import {
         password: redisConfig.password,
       },
     }),
-    BullModule.forRoot({
-      options: {
-        connection: {
-          host: redisConfig.host,
-          port: redisConfig.port,
-          password: redisConfig.password,
-        },
-      },
-    }),
-    BullModule.registerQueue({
-      queueName: chatQueue.name,
-      options: chatQueue.options,
+    RabbitMQModule.forRoot(RabbitMQModule, {
+      exchanges: [oraculumQueue],
+      uri: rabbitConfig.uri,
+      connectionInitOptions: { wait: true },
     }),
   ],
   controllers: [],

@@ -8,8 +8,8 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity({ name: ENTITY_ENUM.FEFENYA })
-export class FefenyaEntity {
+@Entity({ name: ENTITY_ENUM.FEFENYA_USERS })
+export class FefenyaUsersEntity {
   @PrimaryColumn('bigint')
   id: string;
 

@@ -160,6 +160,7 @@ export class PepaChatGptService implements OnApplicationBootstrap {
           this.client.user.id,
           content,
         );
+
         const wasMentioned = Boolean(await this.redisService.exists(key));
         if (wasMentioned) isMentioned = true;
 
@@ -186,8 +187,8 @@ export class PepaChatGptService implements OnApplicationBootstrap {
             },
           );
         }
-      } catch (e) {
-        console.error(e);
+      } catch (errorOrException) {
+        this.logger.error(errorOrException);
       }
     });
   }

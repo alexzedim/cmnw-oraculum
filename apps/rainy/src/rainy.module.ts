@@ -4,6 +4,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { postgresConfig, redisConfig } from '@cmnw/config';
 import { RedisModule } from '@nestjs-modules/ioredis';
+import { SeederService } from './seeder/seeder.service';
 import {
   ChannelsEntity,
   CoreUsersEntity,
@@ -36,6 +37,6 @@ import {
     }),
   ],
   controllers: [],
-  providers: [RainyService],
+  providers: [RainyService, SeederService],
 })
 export class RainyModule {}

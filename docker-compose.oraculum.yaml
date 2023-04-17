@@ -10,7 +10,7 @@ services:
 
   pepa-chatgpt:
     image: ghcr.io/alexzedim/pepa-chat-gpt:latest
-    container_name: pepa-chatgpt
+    container_name: pepa-chat-gpt
     restart: always
     command: [ 'node', 'dist/apps/pepa-chat-gpt/main.js' ]
     environment:

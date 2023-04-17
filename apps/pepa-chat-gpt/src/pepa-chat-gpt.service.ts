@@ -20,7 +20,7 @@ import {
   MessageChatPublish,
   ORACULUM_EXCHANGE,
   PEPA_CHAT_KEYS,
-  PEPA_TRIGGER_FLAG,
+  ROUTING_KEY,
 } from '@cmnw/shared';
 
 import {
@@ -146,10 +146,8 @@ export class PepaChatGptService implements OnApplicationBootstrap {
 
         isIgnore = await this.chatService.isIgnore();
         if (isIgnore) return;
-        // TODO refactor channel binding
-        if (message.channelId === '217532087001939969') {
-          await this.chatService.updateLastActiveMessage();
-        }
+
+        await this.chatService.updateLastActiveMessage(message.channelId);
 
         const { id, author, reference, content, channel, guild } = message;
         const key = formatRedisKey(PEPA_CHAT_KEYS.MENTIONED, 'PEPA');
@@ -161,8 +159,7 @@ export class PepaChatGptService implements OnApplicationBootstrap {
           content,
         );
 
-        const wasMentioned = Boolean(await this.redisService.exists(key));
-        if (wasMentioned) isMentioned = true;
+        isMentioned = Boolean(await this.redisService.exists(key));
 
         const isText = Boolean(content);
         const hasAttachment = Boolean(message.attachments.size);
@@ -173,7 +170,7 @@ export class PepaChatGptService implements OnApplicationBootstrap {
           isMentioned,
         });
 
-        if (flag === PEPA_TRIGGER_FLAG.MESSAGE) {
+        if (ROUTING_KEY.includes(flag)) {
           await this.amqpConnection.publish<MessageChatPublish>(
             ORACULUM_EXCHANGE,
             'message.chat.eye.pepa',

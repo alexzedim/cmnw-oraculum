@@ -69,11 +69,12 @@ export class ChatService {
         return { flag: PEPA_TRIGGER_FLAG.EMOJI };
       }
 
-      if (
-        (isText && triggerChance <= PEPA_ROLL_CHANCE.TEXT_ONLY_REPLY) ||
-        isMentioned
-      ) {
-        return { flag: PEPA_TRIGGER_FLAG.MESSAGE };
+      if (isMentioned) {
+        return { flag: PEPA_TRIGGER_FLAG.MESSAGE_REPLY };
+      }
+
+      if (isText && triggerChance <= PEPA_ROLL_CHANCE.TEXT_ONLY_PROVOKE) {
+        return { flag: PEPA_TRIGGER_FLAG.MESSAGE_PROVOKE };
       }
 
       if (isText && triggerChance >= PEPA_ROLL_CHANCE.TEXT_ONLY_EMOJI) {
@@ -106,9 +107,12 @@ export class ChatService {
     // return corpus.backoff.random();
   }
 
-  public async updateLastActiveMessage() {
+  public async updateLastActiveMessage(channelId: string) {
     const unixNow = Date.now();
-    const key = formatRedisKey(PEPA_CHAT_KEYS.LAST_MESSAGE_AT, 'PEPA');
+    const key = formatRedisKey(
+      `${PEPA_CHAT_KEYS.LAST_MESSAGE_AT}:${channelId}`,
+      'PEPA',
+    );
     await this.redisService.set(key, unixNow);
     this.logger.debug(`Last message timestamp updated for ${unixNow}`);
   }

@@ -195,7 +195,10 @@ export class FefenyaService implements OnApplicationBootstrap {
       ]);
 
       this.logger.debug(`isGotdTriggered: ${isGotdTriggered}`);
-      // TODO 882360954980012082 ROLE
+      /**
+       * TODO refactor codebase
+       * @description  Role (ID882360954980012082) assigment
+       */
       if (!isGotdTriggered) {
         if (!channel || !guild) return;
 

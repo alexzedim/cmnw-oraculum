@@ -7,6 +7,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ChatService } from './chat/chat.service';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
+import { DateTime } from 'luxon';
+import { Timeout } from '@nestjs/schedule';
 import {
   Injectable,
   Logger,
@@ -188,5 +190,17 @@ export class PepaChatGptService implements OnApplicationBootstrap {
         this.logger.error(errorOrException);
       }
     });
+  }
+
+  @Timeout(100_000)
+  async eventManagement() {
+    const now = DateTime.now().setZone('Europe/Moscow');
+    // TODO check current event at a moment of time
+
+    // TODO increase chance of inactivity for each period
+
+    // TODO Redis Pepa inactivity flag value
+
+    // TODO check chance
   }
 }

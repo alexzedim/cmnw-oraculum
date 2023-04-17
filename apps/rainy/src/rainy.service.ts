@@ -356,6 +356,7 @@ export class RainyService implements OnApplicationBootstrap {
             }
 
             // TODO Role has been removed
+            // TODO Pepa-gpt should manage it
           }
 
           if (!rainyHome) return;

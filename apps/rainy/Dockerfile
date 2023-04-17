@@ -24,8 +24,6 @@ RUN mv oraculum-secrets/* oraculum-secrets/.[^.]* . && rmdir oraculum-secrets/
 
 COPY package.json ./
 
-COPY package.json ./
-
 RUN yarn install
 
 COPY . .

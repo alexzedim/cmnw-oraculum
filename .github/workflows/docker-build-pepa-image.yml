@@ -19,7 +19,9 @@ jobs:
           fetch-depth: 2
 
       - name: Tag new release
-        uses: salsify/action-detect-and-tag-new-version@v2
+        uses: butlerlogic/action-autotag@stable
+        env:
+          GITHUB_TOKEN: ${{ secrets.CR_PAT }}
 
       - name: Docker meta
         id: meta

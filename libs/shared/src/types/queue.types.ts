@@ -7,6 +7,8 @@ export interface MessageChatPublish {
   readonly content: string;
   readonly author: User;
   readonly reference: MessageReference;
+  readonly prompt?: string;
+  readonly length?: number;
   readonly token?: string;
   readonly scannedBy?: string;
 }

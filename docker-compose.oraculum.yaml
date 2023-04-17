@@ -22,4 +22,4 @@ services:
     restart: always
     command: [ 'node', 'dist/apps/fefenya/main.js' ]
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=${NODE_ENV}

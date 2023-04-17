@@ -91,10 +91,10 @@ export class RainyService implements OnApplicationBootstrap {
       this.client = new Client({
         partials: [Partials.User, Partials.Channel, Partials.GuildMember],
         intents: [
-          GatewayIntentBits.GuildBans,
           GatewayIntentBits.Guilds,
           GatewayIntentBits.GuildMembers,
           GatewayIntentBits.GuildInvites,
+          GatewayIntentBits.GuildModeration,
         ],
         presence: {
           status: 'online',

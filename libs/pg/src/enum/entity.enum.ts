@@ -14,6 +14,7 @@ export enum ENTITY_ENUM {
   TRAFFIC = 'traffic',
   INVITES = 'invites',
   FEFENYA_USERS = 'fefenya_users',
+  PEPA_QUESTIONS = 'pepa_questions',
 }
 
 export enum SUBJECT_VECTOR {

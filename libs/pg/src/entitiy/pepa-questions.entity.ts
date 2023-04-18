@@ -38,20 +38,26 @@ export class PepaQuestionsEntity {
   question: string;
 
   @Column({
-    default: null,
-    nullable: true,
-    type: 'varchar',
-    length: 128,
-    name: 'type',
+    type: 'integer',
+    nullable: false,
+    default: 1,
+    name: 'question_marks',
   })
-  type?: string;
+  questionMarks: number;
+
+  @Column({
+    name: 'is_certain',
+    nullable: true,
+    default: false,
+  })
+  isCertain: boolean;
 
   @Column({
     name: 'is_answered',
     nullable: true,
     default: false,
   })
-  is_answered?: boolean;
+  isAnswered?: boolean;
 
   @CreateDateColumn({
     type: 'timestamp with time zone',

@@ -15,6 +15,7 @@ export enum PEPA_QUESTIONS_TYPE {
   LIGHT = 'LIGHT',
   HEAVY = 'HEAVY',
   CERTAIN = 'CERTAIN',
+  UNCERTAIN = 'UNCERTAIN',
 }
 
 export enum PEPA_ROLL_CHANCE {

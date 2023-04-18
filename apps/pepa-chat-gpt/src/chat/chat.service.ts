@@ -2,6 +2,9 @@ import Redis from 'ioredis';
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import { Client, Collection, Message, MessageMentions, User } from 'discord.js';
+import { InjectRepository } from '@nestjs/typeorm';
+import { PepaQuestionsEntity } from '@cmnw/pg';
+import { Repository } from 'typeorm';
 import {
   formatRedisKey,
   cryptoRandomIntBetween,
@@ -17,6 +20,8 @@ export class ChatService {
   constructor(
     @InjectRedis()
     private readonly redisService: Redis,
+    @InjectRepository(PepaQuestionsEntity)
+    private readonly pepaQuestionsRepository: Repository<PepaQuestionsEntity>,
   ) {}
 
   async chatReaction(

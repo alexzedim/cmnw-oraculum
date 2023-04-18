@@ -7,13 +7,17 @@ import { RedisModule } from '@nestjs-modules/ioredis';
 import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 import { ChatService } from './chat/chat.service';
 import { oraculumQueue } from '@cmnw/shared';
-import { CoreUsersEntity, UsersEntity } from '@cmnw/pg';
+import { CoreUsersEntity, PepaQuestionsEntity, UsersEntity } from '@cmnw/pg';
 
 @Module({
   imports: [
     ScheduleModule.forRoot(),
     TypeOrmModule.forRoot(postgresConfig),
-    TypeOrmModule.forFeature([UsersEntity, CoreUsersEntity]),
+    TypeOrmModule.forFeature([
+      UsersEntity,
+      CoreUsersEntity,
+      PepaQuestionsEntity,
+    ]),
     RedisModule.forRoot({
       config: {
         host: redisConfig.host,

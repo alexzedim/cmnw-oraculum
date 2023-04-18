@@ -171,7 +171,7 @@ export class PepaChatGptService implements OnApplicationBootstrap {
           hasAttachment,
           isMentioned,
         });
-
+        // TODO throw prompt personality flag length context (channel | user)
         if (ROUTING_KEY.includes(flag)) {
           await this.amqpConnection.publish<MessageChatPublish>(
             ORACULUM_EXCHANGE,

@@ -2,12 +2,14 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
 import { ENTITY_ENUM } from '@cmnw/pg/enum';
 
+@Index('ix__pepa_questions__is_answered', ['is_answered'], {})
 @Entity({ name: ENTITY_ENUM.PEPA_QUESTIONS })
 export class PepaQuestionsEntity {
   @PrimaryColumn('bigint')

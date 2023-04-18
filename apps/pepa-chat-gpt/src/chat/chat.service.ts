@@ -6,12 +6,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PepaQuestionsEntity } from '@cmnw/pg';
 import { Repository } from 'typeorm';
 import {
-  formatRedisKey,
   cryptoRandomIntBetween,
+  formatRedisKey,
+  PEPA_CHAT_KEYS,
+  PEPA_ROLL_CHANCE,
   PEPA_STORAGE_KEYS,
   PEPA_TRIGGER_FLAG,
-  PEPA_ROLL_CHANCE,
-  PEPA_CHAT_KEYS,
 } from '@cmnw/shared';
 
 @Injectable()
@@ -101,6 +101,33 @@ export class ChatService {
       this.logger.debug(`Pepa will ignore everything for ${ttl} more seconds`);
     }
     return ignoreMe;
+  }
+
+  public async isQuestion(question: string, userId: string, username: string) {
+    try {
+      const questionMarks = question.match(/\?/g).length;
+      if (!questionMarks) {
+        return false;
+      }
+
+      const isCertain = question.endsWith('?');
+
+      const questionEntity = this.pepaQuestionsRepository.create({
+        userId,
+        username,
+        question,
+        questionMarks,
+        isCertain,
+        isAnswered: false,
+      });
+
+      await this.pepaQuestionsRepository.save(questionEntity);
+
+      return true;
+    } catch (errorOrException) {
+      this.logger.error(errorOrException);
+      return false;
+    }
   }
 
   public async triggerIgnore(): Promise<void> {

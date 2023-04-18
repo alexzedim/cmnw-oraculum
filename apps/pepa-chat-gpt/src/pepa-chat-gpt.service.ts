@@ -138,6 +138,7 @@ export class PepaChatGptService implements OnApplicationBootstrap {
     this.client.on(Events.MessageCreate, async (message) => {
       let isIgnore: boolean;
       let isMentioned: boolean;
+      let isQuestion: boolean;
 
       try {
         isIgnore = message.author.bot;
@@ -145,6 +146,13 @@ export class PepaChatGptService implements OnApplicationBootstrap {
 
         isIgnore = message.channel.type !== ChannelType.GuildText;
         if (isIgnore) return;
+
+        isQuestion = await this.chatService.isQuestion(
+          message.content,
+          message.author.id,
+          message.author.username,
+        );
+        if (isQuestion) return;
 
         isIgnore = await this.chatService.isIgnore();
         if (isIgnore) return;

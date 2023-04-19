@@ -111,7 +111,7 @@ export class ChatService {
     channelId: string,
   ) {
     try {
-      const questionMarks = question.match(/\?/g).length;
+      const questionMarks = (question.match(/\?/g) || []).length;
       if (!questionMarks) {
         return false;
       }

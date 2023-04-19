@@ -105,6 +105,7 @@ export class ChatService {
   }
 
   public async isQuestion(
+    id: string,
     question: string,
     userId: string,
     username: string,
@@ -119,6 +120,7 @@ export class ChatService {
       const isCertain = question.endsWith('?');
 
       const questionEntity = this.pepaQuestionsRepository.create({
+        id,
         userId,
         username,
         question,

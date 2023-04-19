@@ -9,7 +9,7 @@ import {
 
 import { ENTITY_ENUM } from '@cmnw/pg/enum';
 
-@Index('ix__pepa_questions__is_answered', ['is_answered'], {})
+@Index('ix__pepa_questions__is_answered', ['isAnswered'], {})
 @Entity({ name: ENTITY_ENUM.PEPA_QUESTIONS })
 export class PepaQuestionsEntity {
   @PrimaryColumn('bigint')

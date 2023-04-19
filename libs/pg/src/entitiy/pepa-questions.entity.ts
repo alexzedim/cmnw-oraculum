@@ -34,6 +34,13 @@ export class PepaQuestionsEntity {
 
   @Column({
     nullable: false,
+    type: 'bigint',
+    name: 'channel_id',
+  })
+  channelId: string;
+
+  @Column({
+    nullable: false,
     type: 'text',
     name: 'question',
   })

@@ -9,6 +9,7 @@ import {
   cryptoRandomIntBetween,
   formatRedisKey,
   PEPA_CHAT_KEYS,
+  PEPA_PERSONALITY,
   PEPA_ROLL_CHANCE,
   PEPA_STORAGE_KEYS,
   PEPA_TRIGGER_FLAG,
@@ -103,7 +104,12 @@ export class ChatService {
     return ignoreMe;
   }
 
-  public async isQuestion(question: string, userId: string, username: string) {
+  public async isQuestion(
+    question: string,
+    userId: string,
+    username: string,
+    channelId: string,
+  ) {
     try {
       const questionMarks = question.match(/\?/g).length;
       if (!questionMarks) {
@@ -118,6 +124,7 @@ export class ChatService {
         question,
         questionMarks,
         isCertain,
+        channelId,
         isAnswered: false,
       });
 
@@ -127,6 +134,36 @@ export class ChatService {
     } catch (errorOrException) {
       this.logger.error(errorOrException);
       return false;
+    }
+  }
+
+  /**
+   * TODO add timeout expire if someone else answer that question
+   */
+  public async answerQuestion() {
+    try {
+      const questionsToAnswer = await this.pepaQuestionsRepository.find({
+        where: { isAnswered: false },
+      });
+
+      if (!questionsToAnswer || !questionsToAnswer.length) {
+        return [];
+      }
+
+      await this.pepaQuestionsRepository.update(
+        { isAnswered: false },
+        { isAnswered: true },
+      );
+
+      return questionsToAnswer.map((questionEntity) => ({
+        ...questionEntity,
+        personality:
+          questionEntity.questionMarks > 1 || questionEntity.isCertain
+            ? [PEPA_PERSONALITY.QUESTION]
+            : [PEPA_PERSONALITY.SUBMISSION],
+      }));
+    } catch (errorOrException) {
+      this.logger.error(errorOrException);
     }
   }
 

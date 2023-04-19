@@ -22,6 +22,7 @@ import {
   MessageChatPublish,
   ORACULUM_EXCHANGE,
   PEPA_CHAT_KEYS,
+  QuestionChatPublish,
   ROUTING_KEY,
 } from '@cmnw/shared';
 
@@ -151,6 +152,7 @@ export class PepaChatGptService implements OnApplicationBootstrap {
           message.content,
           message.author.id,
           message.author.username,
+          message.channelId,
         );
         if (isQuestion) return;
 
@@ -210,5 +212,14 @@ export class PepaChatGptService implements OnApplicationBootstrap {
     // TODO Redis Pepa inactivity flag value
 
     // TODO check chance
+    const questions = await this.chatService.answerQuestion();
+
+    for (const question of questions) {
+      await this.amqpConnection.publish<QuestionChatPublish>(
+        ORACULUM_EXCHANGE,
+        'message.chat.question',
+        question,
+      );
+    }
   }
 }

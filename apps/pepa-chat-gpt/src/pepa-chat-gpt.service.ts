@@ -149,12 +149,13 @@ export class PepaChatGptService implements OnApplicationBootstrap {
         if (isIgnore) return;
 
         isQuestion = await this.chatService.isQuestion(
+          message.id,
           message.content,
           message.author.id,
           message.author.username,
           message.channelId,
         );
-        if (isQuestion) return;
+        // if (isQuestion) return;
 
         isIgnore = await this.chatService.isIgnore();
         if (isIgnore) return;

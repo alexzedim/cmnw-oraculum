@@ -1,5 +1,19 @@
 import { Channel, Guild, MessageReference, User } from 'discord.js';
 
+export interface QuestionChatPublish {
+  readonly id: string;
+  readonly userId?: string;
+  readonly username?: string;
+  readonly channelId: string;
+  readonly question: string;
+  readonly questionMarks: number;
+  readonly isCertain?: boolean;
+  readonly isAnswered?: boolean;
+  readonly createdAt?: Date;
+  readonly updateAt?: Date;
+  readonly personality: Array<string>;
+}
+
 export interface MessageChatPublish {
   readonly id: string;
   readonly channel: Channel;

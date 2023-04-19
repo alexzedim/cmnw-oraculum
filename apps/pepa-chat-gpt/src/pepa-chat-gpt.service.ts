@@ -212,14 +212,15 @@ export class PepaChatGptService implements OnApplicationBootstrap {
     // TODO Redis Pepa inactivity flag value
 
     // TODO check chance
-    const questions = await this.chatService.answerQuestion();
+    // const questions = await this.chatService.answerQuestion();
 
+    /*
     for (const question of questions) {
       await this.amqpConnection.publish<QuestionChatPublish>(
         ORACULUM_EXCHANGE,
         'message.chat.question',
         question,
       );
-    }
+    }*/
   }
 }

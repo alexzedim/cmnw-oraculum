@@ -6,6 +6,7 @@ import { PostgresInterface } from '@cmnw/config/types';
 import {
   ChannelsEntity,
   CoreUsersEntity,
+  FefenyaUsersEntity,
   GuildsEntity,
   PepaQuestionsEntity,
   PermissionsEntity,
@@ -33,6 +34,7 @@ export const postgresConfig: TypeOrmModuleOptions = {
     RolesEntity,
     CoreUsersEntity,
     UserPermissionsEntity,
+    FefenyaUsersEntity,
     PepaQuestionsEntity,
   ],
   synchronize: false,

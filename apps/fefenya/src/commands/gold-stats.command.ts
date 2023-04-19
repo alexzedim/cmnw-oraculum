@@ -17,10 +17,11 @@ export const GotsStatsCommand: ISlashCommand = {
   async executeInteraction({
     interaction,
     repository,
+    logger,
   }: ISlashCommandArgs): Promise<void> {
     if (!interaction.isChatInputCommand()) return;
     try {
-      const gotdHallOfGlory = await repository.find({
+      const fefenyaUsersEntities = await repository.find({
         where: { guildId: interaction.guildId },
         take: 10,
         order: {
@@ -39,7 +40,7 @@ export const GotsStatsCommand: ISlashCommand = {
           iconURL: 'https://i.imgur.com/OBDcu7K.png',
         });
 
-      for (const gotdEntity of gotdHallOfGlory) {
+      for (const gotdEntity of fefenyaUsersEntities) {
         embed.addFields({
           name: `${gotdEntity.name}`,
           value: `${gotdEntity.count}`,
@@ -52,7 +53,7 @@ export const GotsStatsCommand: ISlashCommand = {
         ephemeral: false,
       });
     } catch (errorOrException) {
-      console.error(errorOrException);
+      logger.error(errorOrException);
       await interaction.reply({
         content: errorOrException.message,
         ephemeral: true,

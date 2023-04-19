@@ -63,29 +63,29 @@ export const gotdCommand: ISlashCommand = {
 
       logger.log(`Fefenya pre-pick user as a gaylord: ${guildUserIdRandom}`);
 
-      const gothUserEntity = await repository.findOneBy({
+      const fefenyaUsersEntity = await repository.findOneBy({
         id: guildUserIdRandom,
       });
 
-      if (!gothUserEntity) {
+      if (!fefenyaUsersEntity) {
         const guildMember = await interaction.guild.members.fetch(
           guildUserIdRandom,
         );
 
-        const gothEntity = repository.create({
+        const fefenyaEntity = repository.create({
           id: guildUserIdRandom,
           name: guildMember.displayName,
           count: 1,
           guildId: interaction.guildId,
         });
 
-        await repository.save(gothEntity);
+        await repository.save(fefenyaEntity);
       } else {
         await repository.update(
           { id: guildUserIdRandom },
           {
-            name: gothUserEntity.name,
-            count: gothUserEntity.count + 1,
+            name: fefenyaUsersEntity.name,
+            count: fefenyaUsersEntity.count + 1,
           },
         );
       }
@@ -97,7 +97,7 @@ export const gotdCommand: ISlashCommand = {
 
       await redis.set(
         FEFENYA_STORAGE_KEYS.GOTD_TOD_STATUS,
-        gothUserEntity.name,
+        fefenyaUsersEntity.name,
       );
 
       for (let i = 0; i < arrLength; i++) {
@@ -116,7 +116,7 @@ export const gotdCommand: ISlashCommand = {
         }
       }
     } catch (errorOrException) {
-      console.error(errorOrException);
+      logger.error(errorOrException);
       await interaction.reply({
         content: errorOrException.message,
         ephemeral: true,

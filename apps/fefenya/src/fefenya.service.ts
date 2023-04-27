@@ -166,6 +166,7 @@ export class FefenyaService implements OnApplicationBootstrap {
           let fefenyaUsersEntity = await this.fefenyaRepository.findOneBy({
             id: message.member.user.id,
           });
+
           if (!fefenyaUsersEntity) {
             fefenyaUsersEntity = this.fefenyaRepository.create({
               id: message.member.user.id,

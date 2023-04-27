@@ -130,9 +130,22 @@ export class FefenyaService implements OnApplicationBootstrap {
 
       this.client.on(Events.GuildCreate, async (guild): Promise<void> => {
         try {
-          for (const [userId, GuildMember] of guild.members.cache.entries()) {
-            if (!GuildMember.user.bot)
-              this.redisService.sadd(formatRedisKey(guild.id), userId);
+          for (const [userId, guildMember] of guild.members.cache.entries()) {
+            if (!guildMember.user.bot) {
+              let fefenyaUsersEntity = await this.fefenyaRepository.findOneBy({
+                id: userId,
+              });
+              if (!fefenyaUsersEntity) {
+                fefenyaUsersEntity = this.fefenyaRepository.create({
+                  id: userId,
+                  name: guildMember.user.username,
+                  guildId: guild.id,
+                  count: 0,
+                });
+
+                await this.fefenyaRepository.save(fefenyaUsersEntity);
+              }
+            }
           }
         } catch (errorException) {
           this.logger.error(errorException);
@@ -143,10 +156,31 @@ export class FefenyaService implements OnApplicationBootstrap {
         try {
           if (message.author.bot) return;
 
-          await this.redisService.sadd(
+          const isUserCached = await this.redisService.sismember(
             formatRedisKey(message.guildId),
             message.member.user.id,
           );
+
+          if (isUserCached) return;
+
+          let fefenyaUsersEntity = await this.fefenyaRepository.findOneBy({
+            id: message.member.user.id,
+          });
+          if (!fefenyaUsersEntity) {
+            fefenyaUsersEntity = this.fefenyaRepository.create({
+              id: message.member.user.id,
+              name: message.member.user.username,
+              guildId: message.guildId,
+              count: 0,
+            });
+
+            await this.fefenyaRepository.save(fefenyaUsersEntity);
+
+            await this.redisService.sadd(
+              formatRedisKey(message.guildId),
+              message.member.user.id,
+            );
+          }
         } catch (errorException) {
           this.logger.error(errorException);
         }

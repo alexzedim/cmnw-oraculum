@@ -53,42 +53,30 @@ export const gotdCommand: ISlashCommand = {
         `Selecting gay lord of the day from: ${interaction.guild.id}`,
       );
 
-      // const randIndex = randInBetweenInt(0, storage.length);
+      const to = await repository.count();
+      const randomInt = cryptoRandomIntBetween(1, to);
 
-      const guildUserIdRandom = await redis.spop(
-        formatRedisKey(interaction.guild.id),
-      );
+      const [fefenyaUsersEntity] = await repository.find({
+        order: {
+          count: 'ASC',
+        },
+        skip: randomInt,
+        take: 1,
+      });
 
       // const guildUserIdRandom = storage[randIndex];
 
-      logger.log(`Fefenya pre-pick user as a gaylord: ${guildUserIdRandom}`);
+      logger.log(
+        `Fefenya pre-pick user as a gaylord: ${fefenyaUsersEntity.id}`,
+      );
 
-      const fefenyaUsersEntity = await repository.findOneBy({
-        id: guildUserIdRandom,
-      });
-
-      if (!fefenyaUsersEntity) {
-        const guildMember = await interaction.guild.members.fetch(
-          guildUserIdRandom,
-        );
-
-        const fefenyaEntity = repository.create({
-          id: guildUserIdRandom,
-          name: guildMember.displayName,
-          count: 1,
-          guildId: interaction.guildId,
-        });
-
-        await repository.save(fefenyaEntity);
-      } else {
-        await repository.update(
-          { id: guildUserIdRandom },
-          {
-            name: fefenyaUsersEntity.name,
-            count: fefenyaUsersEntity.count + 1,
-          },
-        );
-      }
+      await repository.update(
+        { id: fefenyaUsersEntity.id },
+        {
+          name: fefenyaUsersEntity.name,
+          count: fefenyaUsersEntity.count + 1,
+        },
+      );
 
       const randIndex = cryptoRandomIntBetween(1, GOTD_GREETING_FLOW.size);
       const greetingFlow = GOTD_GREETING_FLOW.get(randIndex);
@@ -103,7 +91,7 @@ export const gotdCommand: ISlashCommand = {
       for (let i = 0; i < arrLength; i++) {
         content =
           arrLength - 1 === i
-            ? gotdGreeter(greetingFlow[i], guildUserIdRandom)
+            ? gotdGreeter(greetingFlow[i], fefenyaUsersEntity.id)
             : greetingFlow[i];
 
         if (i === 0) {

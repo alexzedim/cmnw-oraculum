@@ -22,7 +22,6 @@ import {
   MessageChatPublish,
   ORACULUM_EXCHANGE,
   PEPA_CHAT_KEYS,
-  QuestionChatPublish,
   ROUTING_KEY,
 } from '@cmnw/shared';
 

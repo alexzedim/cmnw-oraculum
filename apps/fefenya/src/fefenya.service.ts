@@ -215,7 +215,7 @@ export class FefenyaService implements OnApplicationBootstrap {
     }
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_10PM)
+  @Cron(CronExpression.EVERY_DAY_AT_9PM)
   async idleReaction() {
     try {
       const isGotdTriggered = !!(await this.redisService.exists(

@@ -8,7 +8,7 @@ services:
     environment:
       - NODE_ENV=${NODE_ENV}
 
-  pepa-chatgpt:
+  pepa-chat-gpt:
     image: ghcr.io/alexzedim/pepa-chat-gpt:latest
     container_name: pepa-chat-gpt
     restart: always
@@ -21,5 +21,13 @@ services:
     container_name: fefenya
     restart: always
     command: [ 'node', 'dist/apps/fefenya/main.js' ]
+    environment:
+      - NODE_ENV=${NODE_ENV}
+
+  black-temple:
+    image: ghcr.io/alexzedim/black-temple:latest
+    container_name: black-temple
+    restart: always
+    command: [ 'node', 'dist/apps/black-temple/main.js' ]
     environment:
       - NODE_ENV=${NODE_ENV}

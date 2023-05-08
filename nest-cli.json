@@ -63,6 +63,15 @@
       "compilerOptions": {
         "tsConfigPath": "apps/pepa-chat-gpt/tsconfig.app.json"
       }
+    },
+    "black-temple": {
+      "type": "application",
+      "root": "apps/black-temple",
+      "entryFile": "main",
+      "sourceRoot": "apps/black-temple/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/black-temple/tsconfig.app.json"
+      }
     }
   }
 }

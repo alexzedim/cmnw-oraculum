@@ -22,6 +22,7 @@ import {
   RolesEntity,
   SUBJECT_VECTOR,
 } from '@cmnw/pg';
+
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -136,8 +137,6 @@ export class BlackTempleService implements OnApplicationBootstrap {
         position: 'ASC',
       },
     });
-
-    console.log(this.blackTempleRoles);
   }
 
   private async bot() {

@@ -160,7 +160,7 @@ export class BlackTempleService implements OnApplicationBootstrap {
           oldMember.guild.members.me.permissions.has(
             PermissionsBitField.Flags.ManageRoles,
             false,
-          ) && memberRole.position > serviceRole.position;
+          ) && memberRole.position < serviceRole.position;
 
         if (!hasPermissions) {
           this.logger.warn(

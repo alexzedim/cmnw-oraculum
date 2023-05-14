@@ -17,7 +17,7 @@ FROM node:lts-alpine as production
 ARG NODE_ENV=production
 ENV NODE_ENV=${NODE_ENV}
 
-LABEL org.opencontainers.image.title = "Black Temple"
+LABEL org.opencontainers.image.title = "Rodriga"
 LABEL org.opencontainers.image.vendor = "AlexZeDim"
 LABEL org.opencontainers.image.url = "https://i.imgur.com/CY0Kqy3.png"
 LABEL org.opencontainers.image.source = "https://github.com/AlexZeDim/cmnw-oraculum"
@@ -32,7 +32,7 @@ COPY . .
 
 COPY --from=development /usr/src/app/dist ./dist
 
-CMD ["node", "dist/apps/black-temple/main.js"]
+CMD ["node", "dist/apps/rodriga/main.js"]
 
 
 

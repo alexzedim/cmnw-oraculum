@@ -11,12 +11,12 @@ CMNW Oraculum is a home repository of Discord bots & applications which serves a
 
 We are very glad to hear any relevant proposal or code contribution from you. 
 
- - Have you found a bug? Feel free to make an issue about it [here](https://github.com/AlexZeDim/cmnw-oraculum/issues)
+ - Have you found a bug? Feel free to make an issue about it [here](https://github.com/AlexZeDim/cmnw-oraculum/issues).
  - If you want to contribute your code, just for the repo and make a PR. We are using [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) in description so take it as guide-line.
 
 ## Deployment
 
-Avaliable via `*.yaml` files from the `./config` directory in the root folder. Configuration module `@cmnw/config` reponsible for extracting credential & sensitive variables. You need to pass only one variable to the application directly:
+Available via `*.yaml` files from the `./config` directory in the root folder. Configuration module `@cmnw/config` reponsible for extracting credential & sensitive variables. You need to pass only one variable to the application directly:
 
 ```env
 NODE_ENV=production

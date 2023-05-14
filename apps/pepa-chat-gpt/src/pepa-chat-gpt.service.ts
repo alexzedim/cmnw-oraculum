@@ -22,6 +22,7 @@ import {
   MessageChatPublish,
   ORACULUM_EXCHANGE,
   PEPA_CHAT_KEYS,
+  PEPA_STORAGE_KEYS,
   ROUTING_KEY,
 } from '@cmnw/shared';
 
@@ -31,6 +32,8 @@ import {
   Collection,
   Events,
   GatewayIntentBits,
+  GuildMember,
+  PartialGuildMember,
   Partials,
   Routes,
 } from 'discord.js';
@@ -76,6 +79,7 @@ export class PepaChatGptService implements OnApplicationBootstrap {
       partials: [Partials.User, Partials.Channel, Partials.GuildMember],
       intents: [
         GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMembers,
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.GuildPresences,
         GatewayIntentBits.MessageContent,
@@ -110,6 +114,24 @@ export class PepaChatGptService implements OnApplicationBootstrap {
       this.logger.log(`Logged in as ${this.client.user.tag}!`);
       // await this.storage();
     });
+
+    this.client.on(
+      Events.GuildMemberUpdate,
+      async (
+        oldMember: GuildMember | PartialGuildMember,
+        newMember: GuildMember,
+      ) => {
+        // TODO index roles
+        const key = formatRedisKey(PEPA_STORAGE_KEYS.USER, 'PEPA');
+        const hasEvent = Boolean(await this.redisService.exists(key));
+        if (hasEvent) {
+          this.logger.warn(`${oldMember.id} has been triggered already!`);
+          return;
+        }
+
+        await this.redisService.set(key, oldMember.id, 'EX', 10);
+      },
+    );
 
     this.client.on(
       Events.InteractionCreate,

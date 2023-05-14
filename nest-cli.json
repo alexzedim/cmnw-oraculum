@@ -64,11 +64,11 @@
         "tsConfigPath": "apps/pepa-chat-gpt/tsconfig.app.json"
       }
     },
-    "black-temple": {
+    "rodriga": {
       "type": "application",
-      "root": "apps/black-temple",
+      "root": "apps/rodrigae",
       "entryFile": "main",
-      "sourceRoot": "apps/black-temple/src",
+      "sourceRoot": "apps/rodriga/src",
       "compilerOptions": {
         "tsConfigPath": "apps/black-temple/tsconfig.app.json"
       }

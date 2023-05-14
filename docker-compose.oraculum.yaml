@@ -24,10 +24,10 @@ services:
     environment:
       - NODE_ENV=${NODE_ENV}
 
-  black-temple:
-    image: ghcr.io/alexzedim/black-temple:latest
-    container_name: black-temple
+  rodriga:
+    image: ghcr.io/alexzedim/rodriga:latest
+    container_name: rodriga
     restart: always
-    command: [ 'node', 'dist/apps/black-temple/main.js' ]
+    command: [ 'node', 'dist/apps/rodriga/main.js' ]
     environment:
       - NODE_ENV=${NODE_ENV}

@@ -3,7 +3,7 @@ FROM node:lts
 ARG CR_PAT
 ENV CR_PAT=$CR_PAT
 
-LABEL org.opencontainers.image.title = "Black Temple"
+LABEL org.opencontainers.image.title = "Rodriga"
 LABEL org.opencontainers.image.vendor = "AlexZeDim"
 LABEL org.opencontainers.image.url = "https://i.imgur.com/CY0Kqy3.png"
 LABEL org.opencontainers.image.source = "https://github.com/AlexZeDim/cmnw-oraculum"
@@ -28,9 +28,9 @@ RUN yarn install
 
 COPY . .
 
-RUN nest build black-temple
+RUN nest build rodriguez
 
-CMD wait && ["node", "dist/apps/black-temple/main.js"]
+CMD wait && ["node", "dist/apps/rodriga/main.js"]
 
 
 

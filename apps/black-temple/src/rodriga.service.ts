@@ -23,19 +23,15 @@ import {
   SUBJECT_VECTOR,
 } from '@cmnw/pg';
 
+import Redis from 'ioredis';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { InjectRedis } from '@nestjs-modules/ioredis';
-import Redis from 'ioredis';
-import {
-  BLACK_TEMPLE_ENUM,
-  formatRedisKey,
-  PEPA_CHAT_KEYS,
-} from '@cmnw/shared';
+import { RODRIGA_ENUM, formatRedisKey } from '@cmnw/shared';
 
 @Injectable()
-export class BlackTempleService implements OnApplicationBootstrap {
-  private readonly logger = new Logger(BlackTempleService.name, {
+export class RodrigaService implements OnApplicationBootstrap {
+  private readonly logger = new Logger(RodrigaService.name, {
     timestamp: true,
   });
   private client: Client;
@@ -162,7 +158,7 @@ export class BlackTempleService implements OnApplicationBootstrap {
         oldMember: GuildMember | PartialGuildMember,
         newMember: GuildMember,
       ) => {
-        const key = formatRedisKey(BLACK_TEMPLE_ENUM.GUILD_MEMBER, 'RODRIGA');
+        const key = formatRedisKey(RODRIGA_ENUM.GUILD_MEMBER, 'RODRIGA');
         const hasEvent = Boolean(await this.redisService.exists(key));
         if (hasEvent) {
           this.logger.warn(`${oldMember.id} has been triggered already!`);

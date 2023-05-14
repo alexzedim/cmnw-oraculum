@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { BlackTempleService } from './black-temple.service';
+import { RodrigaService } from './rodriga.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { postgresConfig, redisConfig } from '@cmnw/config';
 import { CoreUsersEntity, GuildsEntity, RolesEntity } from '@cmnw/pg';
@@ -18,6 +18,6 @@ import { RedisModule } from '@nestjs-modules/ioredis';
     TypeOrmModule.forFeature([CoreUsersEntity, RolesEntity, GuildsEntity]),
   ],
   controllers: [],
-  providers: [BlackTempleService],
+  providers: [RodrigaService],
 })
-export class BlackTempleModule {}
+export class RodrigaModule {}

@@ -7,7 +7,7 @@
 CMNW Oraculum is a home repository of Discord bots & applications which serves a common purpose for Discord Warcraft communities.
 
 
-## Contributions & Issues policy.
+## Contributions & Issues policy
 
 We are very glad to hear any relevant proposal or code contribution from you. 
 

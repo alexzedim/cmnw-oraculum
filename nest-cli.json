@@ -70,7 +70,7 @@
       "entryFile": "main",
       "sourceRoot": "apps/rodriga/src",
       "compilerOptions": {
-        "tsConfigPath": "apps/black-temple/tsconfig.app.json"
+        "tsConfigPath": "apps/rodriga/tsconfig.app.json"
       }
     }
   }

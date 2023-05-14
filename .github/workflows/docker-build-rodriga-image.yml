@@ -1,4 +1,4 @@
-name: Create Black Temple Release Image
+name: Create Rodriga Release Image
 
 # build image only on push to master & specific app directory
 on:

@@ -29,7 +29,6 @@ import {
   Partials,
   REST,
   Routes,
-  TextChannel,
 } from 'discord.js';
 
 import {
@@ -218,14 +217,14 @@ export class FefenyaService implements OnApplicationBootstrap {
   @Cron(CronExpression.EVERY_DAY_AT_9PM)
   async idleReaction() {
     try {
-      const isGotdTriggered = !!(await this.redisService.exists(
-        FEFENYA_STORAGE_KEYS.GOTD_TOD_STATUS,
-      ));
+      const isGotdTriggered = Boolean(
+        await this.redisService.exists(FEFENYA_STORAGE_KEYS.GOTD_TOD_STATUS),
+      );
 
       const [channel, guild] = await Promise.all([
-        this.client.channels.fetch(
-          '881965561892974672',
-        ) as Promise<TextChannel>,
+        // TODO remember channel from last triggered or bind one
+        await this.client.channels.fetch('881965561892974672'),
+        // TODO take from binding
         this.client.guilds.fetch('881954435662766150'),
       ]);
 
@@ -237,11 +236,26 @@ export class FefenyaService implements OnApplicationBootstrap {
       if (!isGotdTriggered) {
         if (!channel || !guild) return;
 
-        const guildUserIdRandom = await this.redisService.srandmember(
-          formatRedisKey('881954435662766150'),
+        const to = await this.fefenyaRepository.count();
+        const randomInt = cryptoRandomIntBetween(1, to);
+
+        this.logger.log(
+          `Fefenya randomize in between ${to} values, roll is ${randomInt}`,
         );
 
-        const guildMember = guild.members.cache.get(guildUserIdRandom);
+        const [fefenyaUsersEntity] = await this.fefenyaRepository.find({
+          order: {
+            count: 'ASC',
+          },
+          skip: randomInt,
+          take: 1,
+        });
+
+        this.logger.log(
+          `Fefenya pre-pick user as a gaylord: ${fefenyaUsersEntity.id}`,
+        );
+
+        const guildMember = guild.members.cache.get(fefenyaUsersEntity.id);
         if (!guildMember) return;
 
         await this.redisService.set(
@@ -258,7 +272,7 @@ export class FefenyaService implements OnApplicationBootstrap {
           for (let i = 0; i < arrLength; i++) {
             content =
               arrLength - 1 === i
-                ? gotdGreeter(greetingFlow[i], guildUserIdRandom)
+                ? gotdGreeter(greetingFlow[i], fefenyaUsersEntity.id)
                 : greetingFlow[i];
 
             if (i === 0) {

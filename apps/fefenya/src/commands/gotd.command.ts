@@ -56,6 +56,10 @@ export const gotdCommand: ISlashCommand = {
       const to = await repository.count();
       const randomInt = cryptoRandomIntBetween(1, to);
 
+      logger.log(
+        `Fefenya randomize in between ${to} values, roll is ${randomInt}`,
+      );
+
       const [fefenyaUsersEntity] = await repository.find({
         order: {
           count: 'ASC',
@@ -63,8 +67,6 @@ export const gotdCommand: ISlashCommand = {
         skip: randomInt,
         take: 1,
       });
-
-      // const guildUserIdRandom = storage[randIndex];
 
       logger.log(
         `Fefenya pre-pick user as a gaylord: ${fefenyaUsersEntity.id}`,

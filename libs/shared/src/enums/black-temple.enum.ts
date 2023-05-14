@@ -1,0 +1,3 @@
+export enum BLACK_TEMPLE_ENUM {
+  GUILD_MEMBER = 'BLACK_TEMPLE_USER',
+}

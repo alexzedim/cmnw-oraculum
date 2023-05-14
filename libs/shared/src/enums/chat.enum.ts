@@ -26,8 +26,9 @@ export enum PEPA_ROLL_CHANCE {
 }
 
 export enum PEPA_STORAGE_KEYS {
-  EMOJIS = 'pepaEmojis',
-  STICKERS = 'pepaStickers',
+  EMOJIS = 'PEPA_EMO',
+  STICKERS = 'PEPA_STICKER',
+  USER = 'PEPA_USER',
 }
 
 export enum PEPA_CHAT_KEYS {

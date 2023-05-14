@@ -28,7 +28,7 @@ RUN yarn install
 
 COPY . .
 
-RUN nest build rodriguez
+RUN nest build rodriga
 
 CMD wait && ["node", "dist/apps/rodriga/main.js"]
 

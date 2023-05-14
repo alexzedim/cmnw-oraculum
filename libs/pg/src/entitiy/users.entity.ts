@@ -61,8 +61,9 @@ export class UsersEntity {
     array: true,
     nullable: true,
     type: 'character varying',
+    name: 'tags',
   })
-  roles: string[];
+  tags: string[];
 
   @OneToMany(() => GuildsEntity, (guild: GuildsEntity) => guild.ownerUser)
   @JoinColumn({ name: 'id' })

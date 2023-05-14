@@ -25,6 +25,13 @@ import {
 
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { InjectRedis } from '@nestjs-modules/ioredis';
+import Redis from 'ioredis';
+import {
+  BLACK_TEMPLE_ENUM,
+  formatRedisKey,
+  PEPA_CHAT_KEYS,
+} from '@cmnw/shared';
 
 @Injectable()
 export class BlackTempleService implements OnApplicationBootstrap {
@@ -36,6 +43,8 @@ export class BlackTempleService implements OnApplicationBootstrap {
   private blackTempleGuild: Guild;
   private blackTempleRoles: Array<RolesEntity>;
   constructor(
+    @InjectRedis()
+    private readonly redisService: Redis,
     @InjectRepository(CoreUsersEntity)
     private readonly coreUsersRepository: Repository<CoreUsersEntity>,
     @InjectRepository(RolesEntity)
@@ -45,7 +54,6 @@ export class BlackTempleService implements OnApplicationBootstrap {
   ) {}
   async onApplicationBootstrap() {
     await this.loadBot();
-
     await this.bot();
   }
 
@@ -132,6 +140,9 @@ export class BlackTempleService implements OnApplicationBootstrap {
         { guildId: guildEntity.id, name: 'Поддержка сервера' },
         { guildId: guildEntity.id, name: 'Member' },
         { guildId: guildEntity.id, name: 'Отряд токси' },
+        { guildId: guildEntity.id, name: 'Иллидари' },
+        { guildId: guildEntity.id, name: 'Тень Акамы' },
+        { guildId: guildEntity.id, name: 'Совет Иллидари' },
       ],
       order: {
         position: 'ASC',
@@ -151,16 +162,50 @@ export class BlackTempleService implements OnApplicationBootstrap {
         oldMember: GuildMember | PartialGuildMember,
         newMember: GuildMember,
       ) => {
-        const [memberRole, boostRole, serviceRole] = this.blackTempleRoles;
-        const hasBoostRole =
-          newMember.roles.cache.has(boostRole.id) &&
-          !oldMember.roles.cache.has(boostRole.id);
+        const key = formatRedisKey(BLACK_TEMPLE_ENUM.GUILD_MEMBER, 'RODRIGA');
+        const hasEvent = Boolean(await this.redisService.exists(key));
+        if (hasEvent) {
+          this.logger.warn(`${oldMember.id} has been triggered already!`);
+          return;
+        }
+
+        await this.redisService.set(key, oldMember.id, 'EX', 10);
+
+        const [
+          memberRole,
+          toxicSquadRole,
+          serverSupportRole,
+          illidariRole,
+          shadowOfAkamaRole,
+          illidariCouncilRole,
+        ] = this.blackTempleRoles;
+
+        const serviceRoles = [
+          toxicSquadRole.id,
+          illidariRole.id,
+          shadowOfAkamaRole.id,
+          illidariCouncilRole.id,
+        ];
+
+        const haveNowServiceRoles = serviceRoles.some((role) =>
+          newMember.roles.cache.has(role),
+        );
+        const wasWithServiceRoles = serviceRoles.some((role) =>
+          oldMember.roles.cache.has(role),
+        );
+
+        const hasBeenPromoted = haveNowServiceRoles && !wasWithServiceRoles;
+        const hasBeenDemoted = !haveNowServiceRoles && wasWithServiceRoles;
+
+        this.logger.log(
+          `user: ${oldMember.id} | hasBeenPromoted: ${hasBeenPromoted} | hasBeenDemoted: ${hasBeenDemoted} `,
+        );
 
         const hasPermissions =
           oldMember.guild.members.me.permissions.has(
             PermissionsBitField.Flags.ManageRoles,
             false,
-          ) && memberRole.position < serviceRole.position;
+          ) && memberRole.position < serverSupportRole.position;
 
         if (!hasPermissions) {
           this.logger.warn(
@@ -171,10 +216,18 @@ export class BlackTempleService implements OnApplicationBootstrap {
 
         await oldMember.fetch();
 
-        if (hasBoostRole) {
-          await oldMember.roles.add(serviceRole.id);
-        } else {
-          await oldMember.roles.remove(serviceRole.id);
+        if (hasBeenPromoted) {
+          await oldMember.roles.add(serverSupportRole.id);
+          this.logger.log(
+            `user: ${oldMember.id} role added ${serverSupportRole.id}`,
+          );
+        }
+
+        if (hasBeenDemoted) {
+          await oldMember.roles.remove(serverSupportRole.id);
+          this.logger.log(
+            `user: ${oldMember.id} role removed ${serverSupportRole.id}`,
+          );
         }
       },
     );

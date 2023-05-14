@@ -62,17 +62,16 @@ export class RodrigaService implements OnApplicationBootstrap {
       },
     });
 
-    const blackTempleUserEntity = await this.coreUsersRepository.findOneBy({
-      name: 'BlackTemple',
+    const rodrigaUserEntity = await this.coreUsersRepository.findOneBy({
+      name: 'Rodriga',
     });
 
-    if (!blackTempleUserEntity)
-      throw new NotFoundException('BlackTemple not found!');
+    if (!rodrigaUserEntity) throw new NotFoundException('Rodriga not found!');
 
-    if (!blackTempleUserEntity.token)
-      throw new NotFoundException('BlackTemple token not found!');
+    if (!rodrigaUserEntity.token)
+      throw new NotFoundException('Rodriga token not found!');
 
-    this.blackTempleUser = blackTempleUserEntity;
+    this.blackTempleUser = rodrigaUserEntity;
 
     await this.client.login(this.blackTempleUser.token);
   }

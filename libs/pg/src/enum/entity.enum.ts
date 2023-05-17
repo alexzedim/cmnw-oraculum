@@ -15,9 +15,10 @@ export enum ENTITY_ENUM {
   INVITES = 'invites',
   FEFENYA_USERS = 'fefenya_users',
   PEPA_QUESTIONS = 'pepa_questions',
+  PEPA_IDENTITY = 'pepa_identity',
 }
 
-export enum SUBJECT_VECTOR {
+export enum VECTOR_ENUM {
   WPVP = 'WPVP',
   PVP = 'PVP',
   PVE = 'PVE',
@@ -30,4 +31,10 @@ export enum TRAFFIC_ENUM {
   INGRESS = 'ingress',
   EGRESS = 'egress',
   REGRESS = 'regress',
+}
+
+export enum IDENTITY_STATUS_ENUM {
+  ACTIVE = 'ACTIVE',
+  ENABLED = 'ENABLED',
+  DISABLED = 'DISABLED',
 }

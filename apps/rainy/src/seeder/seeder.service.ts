@@ -25,7 +25,7 @@ import {
   RolesEntity,
   UserPermissionsEntity,
   UsersEntity,
-  SUBJECT_VECTOR,
+  VECTOR_ENUM,
 } from '@cmnw/pg';
 
 @Injectable()
@@ -117,7 +117,7 @@ export class SeederService {
           icon: discordGuild.icon,
           ownerId: discordGuild.ownerId,
           membersNumber: discordGuild.memberCount,
-          vector: SUBJECT_VECTOR.CLASS_HALL,
+          vector: VECTOR_ENUM.CLASS_HALL,
           isWatch: false,
           scannedBy: this.client.user.id,
         });
@@ -285,7 +285,7 @@ export class SeederService {
         icon: guild.icon,
         ownerId: guild.ownerId,
         membersNumber: guild.memberCount,
-        vector: SUBJECT_VECTOR.CLASS_HALL,
+        vector: VECTOR_ENUM.CLASS_HALL,
         isWatch: false,
         scannedBy: this.client.user.id,
       });

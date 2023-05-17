@@ -1,9 +1,17 @@
 import Redis from 'ioredis';
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRedis } from '@nestjs-modules/ioredis';
-import { Client, Collection, Message, MessageMentions, User } from 'discord.js';
+import {
+  ChannelType,
+  Client,
+  Collection,
+  Message,
+  MessageMentions,
+  TextChannel,
+  User,
+} from 'discord.js';
 import { InjectRepository } from '@nestjs/typeorm';
-import { PepaQuestionsEntity } from '@cmnw/pg';
+import { ChannelsEntity, GuildsEntity, PepaQuestionsEntity } from '@cmnw/pg';
 import { Repository } from 'typeorm';
 import {
   cryptoRandomIntBetween,
@@ -23,6 +31,10 @@ export class ChatService {
     private readonly redisService: Redis,
     @InjectRepository(PepaQuestionsEntity)
     private readonly pepaQuestionsRepository: Repository<PepaQuestionsEntity>,
+    @InjectRepository(GuildsEntity)
+    private readonly guildsRepository: Repository<GuildsEntity>,
+    @InjectRepository(ChannelsEntity)
+    private readonly channelsRepository: Repository<ChannelsEntity>,
   ) {}
 
   async chatReaction(
@@ -92,6 +104,24 @@ export class ChatService {
       this.logger.error(errorException);
       return { flag: PEPA_TRIGGER_FLAG.EMPTY };
     }
+  }
+
+  /**
+   * @description TODO refactor, seriously reduce proc chance for reply
+   * @param message
+   */
+  public async isChannelResponse(message: Message) {
+    if (message.channel.type !== ChannelType.GuildText) {
+      return false;
+    }
+
+    if (message.channelId === '886541776968613908') return false;
+
+    const channelCategory = await this.channelsRepository.findOneBy({
+      name: 'ОБЩЕНИЕ',
+    });
+    const channel = message.channel as TextChannel;
+    return channel.parentId !== channelCategory.id;
   }
 
   public async isIgnore(): Promise<boolean> {

@@ -20,7 +20,7 @@ import {
   CoreUsersEntity,
   GuildsEntity,
   RolesEntity,
-  SUBJECT_VECTOR,
+  VECTOR_ENUM,
 } from '@cmnw/pg';
 
 import Redis from 'ioredis';
@@ -91,7 +91,7 @@ export class RodrigaService implements OnApplicationBootstrap {
         icon: this.blackTempleGuild.icon,
         ownerId: this.blackTempleGuild.ownerId,
         membersNumber: this.blackTempleGuild.memberCount,
-        vector: SUBJECT_VECTOR.CLASS_HALL,
+        vector: VECTOR_ENUM.CLASS_HALL,
         isWatch: false,
         scannedBy: this.client.user.id,
       });

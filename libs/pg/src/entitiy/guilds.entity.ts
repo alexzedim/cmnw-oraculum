@@ -2,7 +2,7 @@ import {
   ChannelsEntity,
   RolesEntity,
   ENTITY_ENUM,
-  SUBJECT_VECTOR,
+  VECTOR_ENUM,
   UserPermissionsEntity,
   UsersEntity,
 } from '@cmnw/pg';
@@ -71,8 +71,8 @@ export class GuildsEntity {
   membersNumber?: number;
 
   @Column({
-    default: SUBJECT_VECTOR.UNCLASSIFIED,
-    enum: SUBJECT_VECTOR,
+    default: VECTOR_ENUM.UNCLASSIFIED,
+    enum: VECTOR_ENUM,
     nullable: false,
     type: 'enum',
     name: 'vector',

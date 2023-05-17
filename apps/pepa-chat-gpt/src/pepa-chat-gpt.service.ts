@@ -1,7 +1,7 @@
 import Redis from 'ioredis';
 import { REST } from '@discordjs/rest';
 import { InjectRedis } from '@nestjs-modules/ioredis';
-import { Whoami } from './commans';
+import { Identity, Whoami } from './commans';
 import { CoreUsersEntity } from '@cmnw/pg';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -27,7 +27,6 @@ import {
 } from '@cmnw/shared';
 
 import {
-  ChannelType,
   Client,
   Collection,
   Events,
@@ -68,6 +67,8 @@ export class PepaChatGptService implements OnApplicationBootstrap {
   private async loadCommands(): Promise<void> {
     this.commandsMessage.set(Whoami.name, Whoami);
     this.commandSlash.push(Whoami.slashCommand.toJSON());
+    this.commandsMessage.set(Identity.name, Whoami);
+    this.commandSlash.push(Identity.slashCommand.toJSON());
 
     await this.rest.put(Routes.applicationCommands(this.client.user.id), {
       body: this.commandSlash,
@@ -166,7 +167,7 @@ export class PepaChatGptService implements OnApplicationBootstrap {
         isIgnore = message.author.bot;
         if (isIgnore) return;
 
-        isIgnore = message.channel.type !== ChannelType.GuildText;
+        isIgnore = await this.chatService.isChannelResponse(message);
         if (isIgnore) return;
 
         isQuestion = await this.chatService.isQuestion(

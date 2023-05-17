@@ -7,7 +7,12 @@ import { RedisModule } from '@nestjs-modules/ioredis';
 import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 import { ChatService } from './chat/chat.service';
 import { oraculumQueue } from '@cmnw/shared';
-import { CoreUsersEntity, PepaQuestionsEntity, UsersEntity } from '@cmnw/pg';
+import {
+  CoreUsersEntity,
+  PepaIdentityEntity,
+  PepaQuestionsEntity,
+  UsersEntity,
+} from '@cmnw/pg';
 
 @Module({
   imports: [
@@ -17,6 +22,7 @@ import { CoreUsersEntity, PepaQuestionsEntity, UsersEntity } from '@cmnw/pg';
       UsersEntity,
       CoreUsersEntity,
       PepaQuestionsEntity,
+      PepaIdentityEntity,
     ]),
     RedisModule.forRoot({
       config: {

@@ -7,3 +7,4 @@ export * from './core-users.entity';
 export * from './permissions.entity';
 export * from './user-permissions.entity';
 export * from './pepa-questions.entity';
+export * from './pepa-identity.entity';

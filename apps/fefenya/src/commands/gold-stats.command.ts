@@ -1,4 +1,6 @@
 import { EmbedBuilder, SlashCommandBuilder } from 'discord.js';
+import { Repository } from 'typeorm';
+import { FefenyaUsersEntity } from '@cmnw/pg';
 import {
   FEFENYA_COMMANDS,
   FEFENYA_DESCRIPTION,
@@ -21,7 +23,9 @@ export const GotsStatsCommand: ISlashCommand = {
   }: ISlashCommandArgs): Promise<void> {
     if (!interaction.isChatInputCommand()) return;
     try {
-      const fefenyaUsersEntities = await repository.find({
+      const fefenyaUsersEntities = await (
+        repository as Repository<FefenyaUsersEntity>
+      ).find({
         where: { guildId: interaction.guildId },
         take: 10,
         order: {

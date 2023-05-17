@@ -1,9 +1,10 @@
 import { SlashCommandBuilder, TextChannel } from 'discord.js';
+import { Repository } from 'typeorm';
+import { FefenyaUsersEntity } from '@cmnw/pg';
 import {
   FEFENYA_COMMANDS,
   FEFENYA_DESCRIPTION,
   FEFENYA_STORAGE_KEYS,
-  formatRedisKey,
   GOTD_GREETING_FLOW,
   GOTD_SELECTED_FLOW,
   gotdGreeter,
@@ -60,7 +61,9 @@ export const gotdCommand: ISlashCommand = {
         `Fefenya randomize in between ${to} values, roll is ${randomInt}`,
       );
 
-      const [fefenyaUsersEntity] = await repository.find({
+      const [fefenyaUsersEntity] = await (
+        repository as Repository<FefenyaUsersEntity>
+      ).find({
         order: {
           count: 'ASC',
         },
@@ -72,7 +75,7 @@ export const gotdCommand: ISlashCommand = {
         `Fefenya pre-pick user as a gaylord: ${fefenyaUsersEntity.id}`,
       );
 
-      await repository.update(
+      await (repository as Repository<FefenyaUsersEntity>).update(
         { id: fefenyaUsersEntity.id },
         {
           name: fefenyaUsersEntity.name,

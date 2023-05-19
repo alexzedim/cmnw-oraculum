@@ -91,8 +91,7 @@ export class RodrigaService implements OnApplicationBootstrap {
         icon: this.blackTempleGuild.icon,
         ownerId: this.blackTempleGuild.ownerId,
         membersNumber: this.blackTempleGuild.memberCount,
-        vector: VECTOR_ENUM.CLASS_HALL,
-        isWatch: false,
+        tags: [VECTOR_ENUM.CLASS_HALL],
         scannedBy: this.client.user.id,
       });
 

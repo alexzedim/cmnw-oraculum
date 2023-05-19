@@ -1,8 +1,8 @@
 import {
-  CoreUsersEntity,
   GuildsEntity,
   ENTITY_ENUM,
   UserPermissionsEntity,
+  CoreUsersEntity,
 } from '@cmnw/pg';
 
 import {
@@ -58,10 +58,18 @@ export class UsersEntity {
   avatar?: string;
 
   @Column({
+    nullable: true,
+    default: null,
+    type: 'varchar',
+    name: 'battle_tag',
+    length: 128,
+  })
+  battleTag?: string;
+
+  @Column({
     array: true,
     nullable: true,
     type: 'character varying',
-    name: 'tags',
   })
   tags: string[];
 
@@ -76,16 +84,39 @@ export class UsersEntity {
   userPermissions: UserPermissionsEntity[];
 
   @OneToOne(() => CoreUsersEntity, (coreUser) => coreUser.user)
-  coreUser: CoreUsersEntity;
+  coreUser?: CoreUsersEntity;
 
   @Column({
     default: null,
     nullable: true,
-    type: 'varchar',
+    type: 'bigint',
     name: 'scanned_by',
-    length: 128,
   })
   scannedBy?: string;
+
+  @Column({
+    default: null,
+    nullable: true,
+    type: 'bigint',
+    name: 'updated_by',
+  })
+  updatedBy?: string;
+
+  @Column({
+    default: null,
+    nullable: true,
+    type: 'bigint',
+    name: 'scanned_from',
+  })
+  scannedFrom?: string;
+
+  @Column({
+    default: null,
+    nullable: true,
+    type: 'bigint',
+    name: 'updated_from',
+  })
+  updatedFrom?: string;
 
   @Column('timestamp with time zone', {
     name: 'scanned_at',

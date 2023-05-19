@@ -2,9 +2,9 @@ import {
   ChannelsEntity,
   RolesEntity,
   ENTITY_ENUM,
-  VECTOR_ENUM,
   UserPermissionsEntity,
   UsersEntity,
+  VECTOR_ENUM,
 } from '@cmnw/pg';
 
 import {
@@ -51,7 +51,6 @@ export class GuildsEntity {
   ownerUser: UsersEntity;
 
   @OneToMany(() => ChannelsEntity, (channel: ChannelsEntity) => channel.guild)
-  @JoinColumn({ name: 'id' })
   channels: ChannelsEntity[];
 
   @OneToMany(() => RolesEntity, (roles: RolesEntity) => roles.guild)
@@ -80,20 +79,27 @@ export class GuildsEntity {
   vector?: string;
 
   @Column({
-    name: 'is_watch',
-    nullable: false,
-    default: false,
+    array: true,
+    nullable: true,
+    type: 'character varying',
   })
-  isWatch: boolean;
+  tags: string[];
 
   @Column({
     default: null,
     nullable: true,
-    type: 'varchar',
+    type: 'bigint',
     name: 'scanned_by',
-    length: 128,
   })
   scannedBy?: string;
+
+  @Column({
+    default: null,
+    nullable: true,
+    type: 'bigint',
+    name: 'updated_by',
+  })
+  updatedBy?: string;
 
   @Column('timestamp with time zone', {
     name: 'scanned_at',

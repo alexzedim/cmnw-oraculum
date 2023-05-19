@@ -6,6 +6,7 @@ on:
     branches: [ master ]
     paths:
       - 'apps/pepa-chat-gpt/**'
+      - 'package.json'
 
 jobs:
   # define job to build and publish docker image

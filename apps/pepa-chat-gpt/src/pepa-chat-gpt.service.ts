@@ -67,7 +67,7 @@ export class PepaChatGptService implements OnApplicationBootstrap {
   private async loadCommands(): Promise<void> {
     this.commandsMessage.set(Whoami.name, Whoami);
     this.commandSlash.push(Whoami.slashCommand.toJSON());
-    this.commandsMessage.set(Identity.name, Whoami);
+    this.commandsMessage.set(Identity.name, Identity);
     this.commandSlash.push(Identity.slashCommand.toJSON());
 
     await this.rest.put(Routes.applicationCommands(this.client.user.id), {

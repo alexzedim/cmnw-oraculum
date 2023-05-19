@@ -41,6 +41,11 @@ export const Identity: ISlashCommand = {
     }
 
     if (identityEntity) {
+      await (repository as Repository<PepaIdentityEntity>).update(
+        { status: IDENTITY_STATUS_ENUM.ACTIVE },
+        { status: IDENTITY_STATUS_ENUM.ENABLED },
+      );
+
       identityEntity = await (
         repository as Repository<PepaIdentityEntity>
       ).save({

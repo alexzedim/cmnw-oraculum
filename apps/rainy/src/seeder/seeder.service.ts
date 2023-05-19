@@ -117,8 +117,7 @@ export class SeederService {
           icon: discordGuild.icon,
           ownerId: discordGuild.ownerId,
           membersNumber: discordGuild.memberCount,
-          vector: VECTOR_ENUM.CLASS_HALL,
-          isWatch: false,
+          tags: [VECTOR_ENUM.CLASS_HALL],
           scannedBy: this.client.user.id,
         });
 
@@ -285,8 +284,7 @@ export class SeederService {
         icon: guild.icon,
         ownerId: guild.ownerId,
         membersNumber: guild.memberCount,
-        vector: VECTOR_ENUM.CLASS_HALL,
-        isWatch: false,
+        tags: [VECTOR_ENUM.CLASS_HALL],
         scannedBy: this.client.user.id,
       });
 

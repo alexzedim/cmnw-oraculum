@@ -8,7 +8,9 @@ import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 import { ChatService } from './chat/chat.service';
 import { oraculumQueue } from '@cmnw/shared';
 import {
+  ChannelsEntity,
   CoreUsersEntity,
+  GuildsEntity,
   PepaIdentityEntity,
   PepaQuestionsEntity,
   UsersEntity,
@@ -21,6 +23,8 @@ import {
     TypeOrmModule.forFeature([
       UsersEntity,
       CoreUsersEntity,
+      GuildsEntity,
+      ChannelsEntity,
       PepaQuestionsEntity,
       PepaIdentityEntity,
     ]),

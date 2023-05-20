@@ -12,7 +12,10 @@ export const Identity: ISlashCommand = {
     .setName('identity')
     .setDescription('Force using selected identity by default')
     .addStringOption((option) =>
-      option.setName('identity').setDescription('Codename').setRequired(true),
+      option
+        .setName('identity')
+        .setDescription('Set codename')
+        .setRequired(true),
     ),
 
   async executeInteraction({
@@ -21,51 +24,59 @@ export const Identity: ISlashCommand = {
   }: ISlashCommandArgs): Promise<void> {
     if (!interaction.isChatInputCommand() || !repository) return;
 
-    const name = interaction.options.getString('identity');
+    try {
+      const name = interaction.options.getString('identity');
 
-    let embed = new EmbedBuilder()
-      .setColor(0x0099ff)
-      .setTitle(`Identity model ${name} not found!`)
-      .setFooter({
-        text: 'Managed & operated by CMNW. Dedicated to Kristina | LisaeL',
-        iconURL: 'https://i.imgur.com/OBDcu7K.png',
-      });
+      let embed = new EmbedBuilder()
+        .setColor(0x0099ff)
+        .setTitle(`Identity model ${name} not found!`)
+        .setFooter({
+          text: 'Managed & operated by CMNW. Dedicated to Kristina | LisaeL',
+          iconURL: 'https://i.imgur.com/OBDcu7K.png',
+        });
 
-    let identityEntity = await (
-      repository as Repository<PepaIdentityEntity>
-    ).findOneBy({ name });
-
-    if (!identityEntity) {
-      await interaction.reply({ embeds: [embed], ephemeral: true });
-      return;
-    }
-
-    if (identityEntity) {
-      await (repository as Repository<PepaIdentityEntity>).update(
-        { status: IDENTITY_STATUS_ENUM.ACTIVE },
-        { status: IDENTITY_STATUS_ENUM.ENABLED },
-      );
-
-      identityEntity = await (
+      let identityEntity = await (
         repository as Repository<PepaIdentityEntity>
-      ).save({
-        status: IDENTITY_STATUS_ENUM.ACTIVE,
+      ).findOneBy({ name });
+
+      if (!identityEntity) {
+        await interaction.reply({ embeds: [embed], ephemeral: true });
+        return;
+      }
+
+      if (identityEntity) {
+        await (repository as Repository<PepaIdentityEntity>).update(
+          { status: IDENTITY_STATUS_ENUM.ACTIVE },
+          { status: IDENTITY_STATUS_ENUM.ENABLED },
+        );
+
+        identityEntity = await (
+          repository as Repository<PepaIdentityEntity>
+        ).save({
+          status: IDENTITY_STATUS_ENUM.ACTIVE,
+        });
+      }
+
+      embed = new EmbedBuilder()
+        .setColor(0x0099ff)
+        .setTitle(identityEntity.name)
+        .setDescription(
+          `Identity model has been set to ${IDENTITY_STATUS_ENUM.ACTIVE} successfully.`,
+        )
+        .setTimestamp(identityEntity.updatedAt)
+        .setThumbnail(identityEntity.avatar)
+        .setFooter({
+          text: 'Managed & operated by CMNW. Dedicated to Kristina | LisaeL',
+          iconURL: 'https://i.imgur.com/OBDcu7K.png',
+        });
+
+      await interaction.reply({ embeds: [embed], ephemeral: true });
+    } catch (errorOrException) {
+      console.error(errorOrException);
+      await interaction.reply({
+        content: errorOrException.message,
+        ephemeral: true,
       });
     }
-
-    embed = new EmbedBuilder()
-      .setColor(0x0099ff)
-      .setTitle(identityEntity.name)
-      .setDescription(
-        `Identity model has been set to ${IDENTITY_STATUS_ENUM.ACTIVE} successfully.`,
-      )
-      .setTimestamp(identityEntity.updatedAt)
-      .setThumbnail(identityEntity.avatar)
-      .setFooter({
-        text: 'Managed & operated by CMNW. Dedicated to Kristina | LisaeL',
-        iconURL: 'https://i.imgur.com/OBDcu7K.png',
-      });
-
-    await interaction.reply({ embeds: [embed], ephemeral: true });
   },
 };

@@ -35,7 +35,7 @@ export const Identity: ISlashCommand = {
           iconURL: 'https://i.imgur.com/OBDcu7K.png',
         });
 
-      let identityEntity = await (
+      const identityEntity = await (
         repository as Repository<PepaIdentityEntity>
       ).findOneBy({ name });
 
@@ -50,11 +50,11 @@ export const Identity: ISlashCommand = {
           { status: IDENTITY_STATUS_ENUM.ENABLED },
         );
 
-        identityEntity = await (
-          repository as Repository<PepaIdentityEntity>
-        ).save({
-          status: IDENTITY_STATUS_ENUM.ACTIVE,
-        });
+        identityEntity.status = IDENTITY_STATUS_ENUM.ACTIVE;
+
+        await (repository as Repository<PepaIdentityEntity>).save(
+          identityEntity,
+        );
       }
 
       embed = new EmbedBuilder()
@@ -73,10 +73,17 @@ export const Identity: ISlashCommand = {
       await interaction.reply({ embeds: [embed], ephemeral: true });
     } catch (errorOrException) {
       console.error(errorOrException);
-      await interaction.reply({
-        content: errorOrException.message,
-        ephemeral: true,
-      });
+      if (interaction.replied || interaction.deferred) {
+        await interaction.followUp({
+          content: 'There was an error while executing this command!',
+          ephemeral: true,
+        });
+      } else {
+        await interaction.reply({
+          content: errorOrException.message,
+          ephemeral: true,
+        });
+      }
     }
   },
 };

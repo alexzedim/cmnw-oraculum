@@ -30,7 +30,8 @@ COPY . .
 
 RUN nest build rainy \
   && nest build fefenya \
-  && nest build pepa-chat-git
+  && nest build pepa-chat-git \
+  && nest build rodriga
 
 CMD wait && ["node"]
 

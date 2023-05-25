@@ -20,10 +20,13 @@ export const Identity: ISlashCommand = {
 
   async executeInteraction({
     interaction,
+    logger,
     repository,
   }: ISlashCommandArgs): Promise<void> {
     if (!interaction.isChatInputCommand() || !repository) return;
-
+    logger.warn(
+      `User: ${interaction.user.id} | ${interaction.user.username} triggered command ${Identity.name}`,
+    );
     try {
       const name = interaction.options.getString('identity');
 

@@ -2,7 +2,7 @@ import Redis from 'ioredis';
 import { REST } from '@discordjs/rest';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import { Identity, Whoami } from './commans';
-import { CoreUsersEntity } from '@cmnw/pg';
+import { CoreUsersEntity, PepaIdentityEntity } from '@cmnw/pg';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ChatService } from './chat/chat.service';
@@ -55,6 +55,8 @@ export class PepaChatGptService implements OnApplicationBootstrap {
     private readonly redisService: Redis,
     @InjectRepository(CoreUsersEntity)
     private readonly coreUsersRepository: Repository<CoreUsersEntity>,
+    @InjectRepository(PepaIdentityEntity)
+    private readonly pepaIdentityRepository: Repository<PepaIdentityEntity>,
   ) {}
   async onApplicationBootstrap() {
     await this.loadBot();
@@ -145,6 +147,7 @@ export class PepaChatGptService implements OnApplicationBootstrap {
           await command.executeInteraction({
             interaction,
             logger: this.logger,
+            repository: this.pepaIdentityRepository,
           });
         } catch (errorException) {
           this.logger.error(errorException);

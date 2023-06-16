@@ -57,7 +57,7 @@ export class SeederService {
   ) {}
 
   async init(client: Client, flushAll: boolean) {
-    this.logger.log('seeder started!');
+    this.logger.log('Seeder started');
 
     if (!client) {
       throw new ServiceUnavailableException(
@@ -233,7 +233,9 @@ export class SeederService {
       this.localStorage.userStorage.set(userEntity.id, userEntity);
 
       const commandPermissionEntity =
-        await this.permissionsRepository.findOneBy({ name: 'COMMAND' });
+        await this.permissionsRepository.findOneBy({
+          name: DISCORD_PERMISSION_ENUM.COMMAND,
+        });
 
       const isGuildExists = this.localStorage.guildStorage.has(guildId);
       if (!isGuildExists) {

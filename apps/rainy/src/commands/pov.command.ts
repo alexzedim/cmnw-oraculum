@@ -36,7 +36,7 @@ export const PovCommand: ISlashCommand = {
         .setTimestamp();
 
       await embed.send({
-        options: { interaction, followUp: true },
+        options: { interaction },
       });
     } catch (errorOrException) {
       console.error(errorOrException);

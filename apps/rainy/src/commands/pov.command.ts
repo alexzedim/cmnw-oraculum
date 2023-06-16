@@ -7,7 +7,6 @@ import {
 
 import { PaginatedEmbed } from 'embed-paginator';
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { TextChannel } from 'discord.js';
 
 export const PovCommand: ISlashCommand = {
   name: 'pov',
@@ -37,7 +36,7 @@ export const PovCommand: ISlashCommand = {
         .setTimestamp();
 
       await embed.send({
-        options: { channel: interaction.channel as TextChannel },
+        options: { interaction, followUp: true },
       });
     } catch (errorOrException) {
       console.error(errorOrException);

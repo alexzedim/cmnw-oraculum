@@ -341,8 +341,14 @@ export class RainyService implements OnApplicationBootstrap {
               const buttons = new ActionRowBuilder().addComponents(
                 new ButtonBuilder()
                   .setCustomId(guildBan.user.id)
-                  .setLabel('Ban')
+                  .setLabel('Заблокировать')
                   .setStyle(ButtonStyle.Danger),
+                new ButtonBuilder()
+                  .setLabel('История банов')
+                  .setURL(
+                    'https://discord.com/channels/474036493061718016/896513694488477767',
+                  )
+                  .setStyle(ButtonStyle.Secondary),
               ) as ActionRowBuilder<MessageActionRowComponentBuilder>;
 
               const emoji = this.client.emojis.cache.get(

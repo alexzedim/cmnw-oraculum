@@ -20,7 +20,9 @@ RUN git config --global url."https://alexzedim:${CR_PAT}@github.com/".insteadOf 
 
 RUN git clone https://github.com/AlexZeDim/oraculum-secrets.git
 
-RUN mv oraculum-secrets/* oraculum-secrets/.[^.]* . && rmdir oraculum-secrets/
+RUN mv oraculum-secrets/* .
+
+RUN rm -rf oraculum-secrets-secrets
 
 COPY package.json ./
 

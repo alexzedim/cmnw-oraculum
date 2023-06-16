@@ -22,7 +22,7 @@ RUN git clone https://github.com/AlexZeDim/oraculum-secrets.git
 
 RUN mv oraculum-secrets/* .
 
-RUN rm -rf oraculum-secrets-secrets
+RUN rm -rf oraculum-secrets
 
 COPY package.json ./
 

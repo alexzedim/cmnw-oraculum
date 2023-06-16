@@ -21,7 +21,7 @@ export const PovCommand: ISlashCommand = {
     if (!interaction.isChatInputCommand()) return;
     try {
       const embed = new PaginatedEmbed({
-        itemsPerPage: RAINY_PAGES.length,
+        itemsPerPage: 1,
         paginationType: 'field',
         showFirstLastBtns: true,
       })

@@ -20,8 +20,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ButtonStyle, GatewayIntentBits, Routes } from 'discord-api-types/v10';
 import { MessageActionRowComponentBuilder } from '@discordjs/builders';
+import { Ban, Clearance, PovCommand, Whoami } from './commands';
 import { SeederService } from './seeder/seeder.service';
-import { Ban, Clearance, Whoami } from './commands';
 
 import {
   DISCORD_CHANNELS_ENUM,
@@ -135,6 +135,8 @@ export class RainyService implements OnApplicationBootstrap {
     this.commandSlash.push(Whoami.slashCommand.toJSON());
     this.commandsMessage.set(Clearance.name, Clearance);
     this.commandSlash.push(Clearance.slashCommand.toJSON());
+    this.commandsMessage.set(PovCommand.name, PovCommand);
+    this.commandSlash.push(PovCommand.slashCommand.toJSON());
 
     await this.rest.put(Routes.applicationCommands(this.client.user.id), {
       body: this.commandSlash,
@@ -181,17 +183,10 @@ export class RainyService implements OnApplicationBootstrap {
           /**
            * @description IF button is pressed
            */
-          if (interaction.isButton()) {
-            if (
-              !this.localStorage.userPermissionStorage.has(interaction.user.id)
-            ) {
-              await interaction.reply({
-                ephemeral: true,
-                content: `У вас нет доступа к использованию команд`,
-              });
-              return;
-            }
-
+          if (
+            interaction.isButton() &&
+            this.localStorage.userPermissionStorage.has(interaction.user.id)
+          ) {
             const userPermissionsEntity =
               this.localStorage.userPermissionStorage.get(interaction.user.id);
 

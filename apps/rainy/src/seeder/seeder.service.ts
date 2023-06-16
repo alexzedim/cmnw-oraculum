@@ -76,13 +76,14 @@ export class SeederService {
     await this.initUserPermissions();
     await this.initChannels();
 
-    this.logger.log('seeder ended!');
+    this.logger.log('Seeder ended');
   }
 
   /**
    * @description Extract in-memory storage after init
    */
   public extract(): StorageTypes {
+    this.logger.log('Storage extracted');
     return this.localStorage;
   }
 

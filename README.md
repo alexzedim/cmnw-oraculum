@@ -29,6 +29,7 @@ The current repository and it's code is a result of a various contributors combi
  - AlexZeDim
  - Efhen
  - Janisse
+ - Lisael
  - Nims
  - Rainon
  - Rodriguez

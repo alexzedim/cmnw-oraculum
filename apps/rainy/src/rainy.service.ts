@@ -13,7 +13,7 @@ import {
   UsersEntity,
 } from '@cmnw/pg';
 
-import { capitalizeFirstLetter, normalizeDiacritics } from 'normalize-text';
+import { capitalizeFirstLetter } from 'normalize-text';
 import { InjectRedis, Redis } from '@nestjs-modules/ioredis';
 import { REST } from '@discordjs/rest';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -26,13 +26,8 @@ import { Ban, Clearance, Whoami } from './commands';
 import {
   DISCORD_CHANNELS_ENUM,
   DISCORD_EMOJI,
-  DISCORD_MONK_ROLES,
-  DISCORD_MONK_ROLES_BOOST_TITLES,
-  DISCORD_RAINON_HOME,
   DISCORD_REASON_BANS,
-  DISCORD_ROLES,
   DISCORD_SERVER_RENAME,
-  DISCORD_SERVERS_ENUM,
   ISlashCommand,
   StorageTypes,
 } from '@cmnw/shared';
@@ -41,11 +36,8 @@ import {
   Client,
   TextChannel,
   Collection,
-  GuildMember,
-  PartialGuildMember,
   ButtonBuilder,
   ChannelType,
-  PermissionsBitField,
   EmbedBuilder,
   ActionRowBuilder,
   Events,
@@ -161,8 +153,6 @@ export class RainyService implements OnApplicationBootstrap {
       this.coreChannel = (await this.client.channels.fetch(
         channelCoreEntity.id,
       )) as TextChannel;
-
-      const rainyHome = await this.client.guilds.fetch(DISCORD_RAINON_HOME);
 
       if (!this.coreChannel || this.coreChannel.type !== ChannelType.GuildText)
         return;
@@ -329,83 +319,6 @@ export class RainyService implements OnApplicationBootstrap {
         },
       );
 
-      this.client.on(
-        Events.GuildMemberUpdate,
-        async (
-          oldMember: GuildMember | PartialGuildMember,
-          newMember: GuildMember,
-        ) => {
-          if (
-            newMember &&
-            newMember.guild.id === DISCORD_SERVERS_ENUM.TempleOfFiveDawns
-          ) {
-            let flag = false;
-            // Role has been added
-            if (oldMember.roles.cache.size < newMember.roles.cache.size) {
-              for (const roleId of Array.from(newMember.roles.cache.keys())) {
-                if (DISCORD_MONK_ROLES_BOOST_TITLES.has(roleId)) {
-                  flag = true;
-                  break;
-                }
-              }
-
-              if (flag) {
-                await newMember.fetch();
-                await newMember.roles.add(DISCORD_MONK_ROLES.BoostMeta);
-              }
-            }
-
-            // TODO Role has been removed
-            // TODO Pepa-gpt should manage it
-          }
-
-          if (!rainyHome) return;
-
-          if (
-            newMember &&
-            newMember.guild.id === DISCORD_SERVERS_ENUM.SanctumOfLight
-          ) {
-            // Role has been added
-            if (oldMember.roles.cache.size < newMember.roles.cache.size) {
-              if (newMember.roles.cache.has(DISCORD_ROLES.MoteOfLight)) {
-                const rainyGuildMember = await rainyHome.members.fetch(
-                  newMember.user.id,
-                );
-                if (
-                  rainyGuildMember &&
-                  rainyHome.members.me.permissions.has(
-                    PermissionsBitField.Flags.ManageRoles,
-                    false,
-                  )
-                ) {
-                  await rainyGuildMember.fetch();
-                  await rainyGuildMember.roles.add(DISCORD_ROLES.Supported);
-                }
-              }
-            }
-
-            // Role has been removed
-            if (oldMember.roles.cache.size > newMember.roles.cache.size) {
-              if (!oldMember.roles.cache.has(DISCORD_ROLES.MoteOfLight)) {
-                const rainyGuildMember = await rainyHome.members.fetch(
-                  newMember.user.id,
-                );
-                if (
-                  rainyGuildMember &&
-                  rainyHome.members.me.permissions.has(
-                    PermissionsBitField.Flags.ManageRoles,
-                    false,
-                  )
-                ) {
-                  await rainyGuildMember.fetch();
-                  await rainyGuildMember.roles.remove(DISCORD_ROLES.Supported);
-                }
-              }
-            }
-          }
-        },
-      );
-
       this.client.on(Events.GuildBanAdd, async (ban) => {
         try {
           const guildBan = await ban.fetch();
@@ -443,8 +356,9 @@ export class RainyService implements OnApplicationBootstrap {
 
               const embed = new EmbedBuilder()
                 .setDescription(
-                  `**${guildBan.user.username}#${guildBan.user.discriminator}** заблокирован на:`,
+                  `**${guildBan.user.username}** заблокирован на:`,
                 )
+                .setColor('#2b2d31')
                 .addFields({
                   name: '\u200B',
                   value: `${emoji} - ✅`,
@@ -452,7 +366,7 @@ export class RainyService implements OnApplicationBootstrap {
                 });
 
               const message = await this.coreChannel.send({
-                content: `!ban ${guildBan.user.id} CrossBan`,
+                content: `⁣!ban ${guildBan.user.id} CrossBan⁣`,
                 embeds: [embed],
                 components: [buttons],
               });
@@ -503,35 +417,19 @@ export class RainyService implements OnApplicationBootstrap {
       this.client.on(Events.GuildMemberAdd, async (guildMember) => {
         try {
           if (DISCORD_SERVER_RENAME.has(guildMember.guild.id)) {
-            const oldUsername = guildMember.user.username;
-            let username = guildMember.user.username;
-            username = username.toLowerCase();
-            username = username.normalize('NFD');
-            username = normalizeDiacritics(username);
-            username = username
-              .replace('͜', '')
-              .replace('1', 'i')
-              .replace('$', 's')
-              .replace(/\[.*?]/gi, '')
-              .replace(/\(.*?\)/gi, '')
-              .replace(/{.*?}/gi, '')
-              .replace(/[`~!@#$%^€&*()_|̅+\-=?;:'",.<>{}\[\]\\\/]/gi, '')
+            const usernameBefore = guildMember.user.username;
+            const username = guildMember.user.username
+              .toLowerCase()
+              .replace('_', '')
+              .replace('.', '')
               .replace(/\d/g, '');
 
-            const C = username.replace(/[^a-zA-Z]/g, '').length;
-            const L = username.replace(/[^а-яА-Я]/g, '').length;
+            const displayName = capitalizeFirstLetter(username);
 
-            L >= C
-              ? (username = username.replace(/[^а-яА-Я]/g, ''))
-              : (username = username.replace(/[^a-zA-Z]/g, ''));
-
-            username =
-              username.length === 0
-                ? 'Username'
-                : capitalizeFirstLetter(username);
-
-            await guildMember.setNickname(username);
-            this.logger.log(`Rename user from ${oldUsername} to ${username}`);
+            await guildMember.setNickname(displayName);
+            this.logger.log(
+              `Rename user from ${usernameBefore} to ${displayName}`,
+            );
           }
         } catch (errorOrException) {
           this.logger.error(`${Events.GuildMemberAdd}: ${errorOrException}`);

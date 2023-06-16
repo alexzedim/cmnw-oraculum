@@ -20,7 +20,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ButtonStyle, GatewayIntentBits, Routes } from 'discord-api-types/v10';
 import { MessageActionRowComponentBuilder } from '@discordjs/builders';
-import { Ban, Clearance, PovCommand, Whoami } from './commands';
+import { Ban, Clearance, PovCommand, VoteUnban, Whoami } from './commands';
 import { SeederService } from './seeder/seeder.service';
 
 import {
@@ -284,8 +284,16 @@ export class RainyService implements OnApplicationBootstrap {
 
           if (interaction.isCommand()) {
             try {
+              const command = this.commandsMessage.get(interaction.commandName);
+              if (!command) return;
+
+              const hasPermission = [Ban.name, VoteUnban.name, Clearance.name];
+
               if (
-                this.localStorage.userPermissionStorage.has(interaction.user.id)
+                this.localStorage.userPermissionStorage.has(
+                  interaction.user.id,
+                ) &&
+                hasPermission.includes(command.name)
               ) {
                 await interaction.reply({
                   ephemeral: true,
@@ -293,9 +301,6 @@ export class RainyService implements OnApplicationBootstrap {
                 });
                 return;
               }
-
-              const command = this.commandsMessage.get(interaction.commandName);
-              if (!command) return;
 
               await command.executeInteraction({
                 interaction,

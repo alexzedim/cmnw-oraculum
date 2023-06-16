@@ -48,6 +48,7 @@
     "config": "^3.3.9",
     "discord-api-types": "0.37.42",
     "discord.js": "14.11.0",
+    "embed-paginator": "^2.0.1",
     "ioredis": "5.3.1",
     "luxon": "3.3.0",
     "normalize-text": "2.4.1",

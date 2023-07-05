@@ -4,7 +4,7 @@ import { Interaction } from 'discord.js';
 import { Logger } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { FefenyaUsersEntity, PepaIdentityEntity } from '@cmnw/pg';
-import { StorageTypes } from 'cmnw/core';
+import { StorageTypes } from '@cmnw/core';
 
 export interface ISlashCommandArgs {
   readonly interaction: Interaction;

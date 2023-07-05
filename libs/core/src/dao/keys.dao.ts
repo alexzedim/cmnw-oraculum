@@ -1,5 +1,5 @@
 import { FilterQuery, Model } from 'mongoose';
-import { Keys } from 'cmnw/mongo';
+import { Keys } from '@cmnw/mongo';
 import { STATUS_ENUM } from '@cmnw/core/enums';
 
 export async function loadKey(

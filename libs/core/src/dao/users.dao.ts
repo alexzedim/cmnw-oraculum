@@ -1,6 +1,6 @@
 import { SnowflakeUtil, User } from 'discord.js';
 import { DateTime } from 'luxon';
-import { Users } from 'cmnw/mongo';
+import { Users } from '@cmnw/mongo';
 import { Model } from 'mongoose';
 
 export async function indexUser(

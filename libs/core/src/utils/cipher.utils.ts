@@ -1,5 +1,5 @@
 import { createCipheriv, createDecipheriv } from 'crypto';
-import { CIPHER_ALGO_AES } from 'cmnw/core/const';
+import { CIPHER_ALGO_AES } from '@cmnw/core/const';
 
 export const encrypt = (sensitive: string) => {
   const key = Buffer.from(process.env.KEY);

@@ -1,4 +1,4 @@
-import { PEPA_TRIGGER_FLAG, STATUS_ENUM } from 'cmnw/core/enums';
+import { PEPA_TRIGGER_FLAG, STATUS_ENUM } from '@cmnw/core/enums';
 
 export const RPC_EXCHANGE = 'rpc-queue';
 export const ORACULUM_QUEUE = 'oraculum';

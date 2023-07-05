@@ -1,4 +1,4 @@
-import { ORACULUM_QUEUE, TEST_QUEUE } from 'cmnw/core/const';
+import { ORACULUM_QUEUE, TEST_QUEUE } from '@cmnw/core/const';
 
 export const oraculumQueue = {
   name: ORACULUM_QUEUE,

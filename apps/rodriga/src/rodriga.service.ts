@@ -27,7 +27,7 @@ import Redis from 'ioredis';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { InjectRedis } from '@nestjs-modules/ioredis';
-import { RODRIGA_ENUM, formatRedisKey } from '@cmnw/shared';
+import { RODRIGA_ENUM, formatRedisKey } from '@cmnw/core';
 
 @Injectable()
 export class RodrigaService implements OnApplicationBootstrap {

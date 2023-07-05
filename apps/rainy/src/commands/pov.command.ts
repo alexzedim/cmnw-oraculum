@@ -3,7 +3,7 @@ import {
   ISlashCommandArgs,
   RAINY_IMAGES_PAGE,
   RAINY_PAGES,
-} from '@cmnw/shared';
+} from '@cmnw/core';
 
 import { PaginatedEmbed } from 'embed-paginator';
 import { SlashCommandBuilder } from '@discordjs/builders';

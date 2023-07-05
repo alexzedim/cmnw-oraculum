@@ -1,7 +1,7 @@
+import { ISlashCommand, ISlashCommandArgs } from '@cmnw/core';
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { EmbedBuilder } from 'discord.js';
 import { Octokit } from 'octokit';
-import { ISlashCommand } from 'cmnw/core/types/command.types';
 
 export const Whoami: ISlashCommand = {
   name: 'whoami',

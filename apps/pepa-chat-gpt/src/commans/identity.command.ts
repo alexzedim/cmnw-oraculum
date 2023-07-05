@@ -1,4 +1,4 @@
-import { ISlashCommand, ISlashCommandArgs } from '@cmnw/shared';
+import { ISlashCommand, ISlashCommandArgs } from '@cmnw/core';
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { IDENTITY_STATUS_ENUM, PepaIdentityEntity } from '@cmnw/pg';
 import { Repository } from 'typeorm';

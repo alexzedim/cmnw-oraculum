@@ -30,7 +30,7 @@ import {
   DISCORD_SERVER_RENAME,
   ISlashCommand,
   StorageTypes,
-} from '@cmnw/shared';
+} from '@cmnw/core';
 
 import {
   Client,

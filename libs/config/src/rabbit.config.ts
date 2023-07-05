@@ -1,14 +1,22 @@
-import { join } from 'path';
-import { util } from 'config';
-import { RabbitConfigInterface, RabbitInterface } from '@cmnw/config/types';
+import config from 'config';
+import { decrypt } from '@cmnw/core';
+import { RabbitConfigInterface } from '@cmnw/config/types';
 
-const configDir = join(__dirname, '..', '..', '..', 'config');
-const { rabbit }: RabbitInterface = util.loadFileConfigs(configDir);
+const RABBIT_CONFIG = config.get<RabbitConfigInterface>('rabbit');
+
+const [user, password, host, port] = [
+  decrypt(RABBIT_CONFIG.user),
+  decrypt(RABBIT_CONFIG.password),
+  decrypt(RABBIT_CONFIG.host),
+  RABBIT_CONFIG.port,
+];
+
+const uri = `amqp://${user}:${password}@${host}:${port}`;
 
 export const rabbitConfig: RabbitConfigInterface = {
-  user: rabbit.user,
-  password: rabbit.password,
-  host: rabbit.host,
-  port: rabbit.port,
-  uri: `amqp://${rabbit.user}:${rabbit.password}@${rabbit.host}:${rabbit.port}`,
+  user: user,
+  password: password,
+  host: host,
+  port: port,
+  uri: uri,
 };

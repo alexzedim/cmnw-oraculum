@@ -1,6 +1,6 @@
 import config from 'config';
-import { decrypt } from 'cmnw/core';
-import { IMongo } from '@cmnw/config';
+import { decrypt } from '@cmnw/core';
+import { IMongo } from '@cmnw/config/types';
 
 const MONGO_DB_CONFIG = config.get<IMongo>('mongo');
 

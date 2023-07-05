@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-import { SUBJECT_ENUM, PERMISSIONS_ENUM } from '@cmnw/core';
+import { PERMISSIONS_ENUM, SUBJECT_ENUM } from 'cmnw/core';
 
 @Schema({ timestamps: true })
 export class Permissions extends Document {

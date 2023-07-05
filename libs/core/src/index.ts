@@ -1,4 +1,5 @@
 export * from './dao';
+export * from './dto';
 export * from './queue';
 export * from './const';
 export * from './enums';

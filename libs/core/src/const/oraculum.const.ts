@@ -1,4 +1,4 @@
-import { PEPA_TRIGGER_FLAG, STATUS_ENUM } from '@cmnw/core/enums';
+import { ACTION_TRIGGER_FLAG, STATUS_ENUM } from '@cmnw/core/enums';
 
 export const RPC_EXCHANGE = 'rpc-queue';
 export const ORACULUM_QUEUE = 'oraculum';
@@ -12,6 +12,6 @@ export const CIPHER_ALGO_AES = 'aes-128-ecb';
 export const KEY_STATUS_ARRAY = Object.values(STATUS_ENUM);
 
 export const ROUTING_KEY = [
-  PEPA_TRIGGER_FLAG.MESSAGE_PROVOKE,
-  PEPA_TRIGGER_FLAG.MESSAGE_REPLY,
+  ACTION_TRIGGER_FLAG.MESSAGE_PROVOKE,
+  ACTION_TRIGGER_FLAG.MESSAGE_REPLY,
 ];

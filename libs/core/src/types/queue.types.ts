@@ -1,16 +1,35 @@
-import { Channel, Guild, MessageReference, User } from 'discord.js';
+import { Channel, Guild, MessageReference } from 'discord.js';
 
-export interface MessageChatPublish {
+export interface ChatMessageAuthor {
+  userId: string;
+  username: string;
+}
+
+export interface ChatMessageGuild {
+  guildId: string;
+  guildName: string;
+}
+
+export interface ChatMessageChannel {
+  channelId: string;
+  channelName: string;
+  channelType: number | string;
+}
+
+export interface ChatMessageContent {
+  text: string;
+  length: number;
+}
+
+export interface ChatMessage {
   id: string;
-  channel: Channel;
-  guild: Guild;
-  content: string;
-  author: User;
+  channel: ChatMessageChannel;
+  guild: ChatMessageGuild;
+  content: ChatMessageContent;
+  author: ChatMessageAuthor;
   reference: MessageReference;
-  model?: string;
-  length?: number;
-  token?: string;
-  scannedBy?: string;
+  sourceName: string;
+  sourceId: string;
 }
 
 export interface QuestionChatPublish {
@@ -27,13 +46,13 @@ export interface QuestionChatPublish {
   personality: Array<string>;
 }
 
-export interface MessageVoicePublish {
+export interface VoiceMessage {
   readonly channel: Channel;
   readonly guild: Guild;
-  readonly voice: Partial<YandexTTS> & Pick<YandexTTS, 'text'>;
+  readonly voice: Partial<Voice> & Pick<Voice, 'text'>;
 }
 
-export interface YandexTTS {
+export interface Voice {
   text: string;
   lang: string;
   voice: string;

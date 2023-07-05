@@ -2,9 +2,9 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import { Redis } from '@nestjs-modules/ioredis';
 import { Interaction } from 'discord.js';
 import { Logger } from '@nestjs/common';
-import { StorageTypes } from '@cmnw/shared/types/storage.types';
 import { Repository } from 'typeorm';
 import { FefenyaUsersEntity, PepaIdentityEntity } from '@cmnw/pg';
+import { StorageTypes } from 'cmnw/core';
 
 export interface ISlashCommandArgs {
   readonly interaction: Interaction;

@@ -22,7 +22,7 @@ Available via `*.yaml` files from the `./config` directory in the root folder. C
 NODE_ENV=production
 ```
 
-## Dedicated
+## Dedication
 
 The current repository and it's code is a result of a various contributors combined. Here are some of them, in aphabetical order:
 

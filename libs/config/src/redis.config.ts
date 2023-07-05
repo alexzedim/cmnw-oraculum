@@ -1,12 +1,11 @@
-import { join } from 'path';
-import { util } from 'config';
-import { RedisConfigInterface, RedisInterface } from '@cmnw/config';
+import config from 'config';
+import { decrypt } from '@cmnw/core';
+import { RedisConfigInterface } from '@cmnw/config/types';
 
-const configDir = join(__dirname, '..', '..', '..', 'config');
-const { redis }: RedisInterface = util.loadFileConfigs(configDir);
+const REDIS_CONFIG = config.get<RedisConfigInterface>('redis');
 
 export const redisConfig: RedisConfigInterface = {
-  host: redis.host,
-  port: redis.port,
-  password: redis.password,
+  host: decrypt(REDIS_CONFIG.host),
+  port: REDIS_CONFIG.port,
+  password: decrypt(REDIS_CONFIG.password),
 };

@@ -108,8 +108,8 @@
     "moduleNameMapper": {
       "^@cmnw/pg(|/.*)$": "<rootDir>/libs/pg/src/$1",
       "^@cmnw/config(|/.*)$": "<rootDir>/libs/config/src/$1",
-      "^cmnw/mongo(|/.*)$": "<rootDir>/libs/mongo/src/$1",
-      "^cmnw/core(|/.*)$": "<rootDir>/libs/core/src/$1"
+      "^@cmnw/mongo(|/.*)$": "<rootDir>/libs/mongo/src/$1",
+      "^@cmnw/core(|/.*)$": "<rootDir>/libs/core/src/$1"
     }
   }
 }

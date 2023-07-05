@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { GENDER_ENUM } from '@cmnw/core';
+import { GENDER_ENUM } from 'cmnw/core';
 
 @Schema({ timestamps: true })
 export class Identity extends Document {

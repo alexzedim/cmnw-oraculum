@@ -41,4 +41,7 @@ export class Messages extends Document {
 }
 
 export const MessagesSchema = SchemaFactory.createForClass(Messages);
-MessagesSchema.index({ channelId: -1, createdAt: -1 }, { name: 'IdxChatThread' });
+MessagesSchema.index(
+  { channelId: -1, createdAt: -1 },
+  { name: 'IdxChatThread' },
+);

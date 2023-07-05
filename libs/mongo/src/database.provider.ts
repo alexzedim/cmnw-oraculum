@@ -1,5 +1,5 @@
 import * as mongoose from 'mongoose';
-import { mongoConfig } from '@cmnw/configuration';
+import { mongoConfig } from '@cmnw/config';
 
 export const databaseProviders = [
   {

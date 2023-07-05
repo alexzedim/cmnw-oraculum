@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { KEY_STATUS_ARRAY, STATUS_ENUM } from 'cmnw/core';
+import { KEY_STATUS_ARRAY, STATUS_ENUM } from '@cmnw/core';
 
 @Schema({ timestamps: true })
 export class Keys extends Document {

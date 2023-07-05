@@ -8,7 +8,7 @@ import { Repository } from 'typeorm';
 import { ChatService } from './chat/chat.service';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { DateTime } from 'luxon';
-import { Timeout } from '@nestjs/schedule';
+import { Interval } from '@nestjs/schedule';
 import {
   Injectable,
   Logger,
@@ -20,7 +20,7 @@ import {
   formatRedisKey,
   ISlashCommand,
   MessageChatPublish,
-  ORACULUM_EXCHANGE,
+  ORACULUM_QUEUE,
   PEPA_CHAT_KEYS,
   PEPA_STORAGE_KEYS,
   ROUTING_KEY,
@@ -165,6 +165,7 @@ export class PepaChatGptService implements OnApplicationBootstrap {
       let isIgnore: boolean;
       let isMentioned: boolean;
       let isQuestion: boolean;
+      console.log(message);
 
       try {
         isIgnore = message.author.bot;
@@ -209,18 +210,18 @@ export class PepaChatGptService implements OnApplicationBootstrap {
         });
         // TODO throw prompt personality flag length context (channel | user)
         if (ROUTING_KEY.includes(flag)) {
-          await this.amqpConnection.publish<MessageChatPublish>(
-            ORACULUM_EXCHANGE,
-            'message.chat.eye.pepa',
-            {
-              id,
-              channel,
-              guild,
-              author,
-              content,
-              reference,
+          const now = DateTime.now().setZone('Europe/Moscow');
+          console.log(now.toJSDate());
+          const response = await this.amqpConnection.request<any>({
+            exchange: 'rpc-queue',
+            routingKey: 'rpc',
+            payload: {
+              request: now,
             },
-          );
+            timeout: 10000, // optional timeout for how long the request
+            // should wait before failing if no response is received
+          });
+          console.log(response)
         }
       } catch (errorOrException) {
         this.logger.error(errorOrException);
@@ -228,7 +229,7 @@ export class PepaChatGptService implements OnApplicationBootstrap {
     });
   }
 
-  @Timeout(100_000)
+  @Interval(10_000)
   async eventManagement() {
     const now = DateTime.now().setZone('Europe/Moscow');
     // TODO check current event at a moment of time
@@ -239,14 +240,5 @@ export class PepaChatGptService implements OnApplicationBootstrap {
 
     // TODO check chance
     // const questions = await this.chatService.answerQuestion();
-
-    /*
-    for (const question of questions) {
-      await this.amqpConnection.publish<QuestionChatPublish>(
-        ORACULUM_EXCHANGE,
-        'message.chat.question',
-        question,
-      );
-    }*/
   }
 }

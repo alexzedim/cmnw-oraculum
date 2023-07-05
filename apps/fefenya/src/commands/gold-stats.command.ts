@@ -6,7 +6,7 @@ import {
   FEFENYA_DESCRIPTION,
   ISlashCommand,
   ISlashCommandArgs,
-} from '@cmnw/shared';
+} from '@cmnw/core';
 
 export const GotsStatsCommand: ISlashCommand = {
   name: FEFENYA_COMMANDS.GOTS_STATS,

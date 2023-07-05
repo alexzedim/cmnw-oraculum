@@ -65,9 +65,7 @@ export class FefenyaService implements OnApplicationBootstrap {
   async onApplicationBootstrap(): Promise<void> {
     try {
       await this.loadFefenya();
-
       await this.loadCommands();
-
       await this.bot();
     } catch (errorOrException) {
       this.logger.error(`Application: ${errorOrException}`);

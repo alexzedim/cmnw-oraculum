@@ -1,4 +1,3 @@
-export * from './open-ai.enums';
 export * from './chat.enums';
 export * from './oraculum.enums';
 export * from './discord.enum';

@@ -6,7 +6,6 @@ import { postgresConfig, rabbitConfig, redisConfig } from '@cmnw/config';
 import { RedisModule } from '@nestjs-modules/ioredis';
 import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 import { ChatService } from './chat/chat.service';
-import { oraculumQueue } from '@cmnw/shared';
 import {
   ChannelsEntity,
   CoreUsersEntity,
@@ -15,6 +14,8 @@ import {
   PepaQuestionsEntity,
   UsersEntity,
 } from '@cmnw/pg';
+
+console.log(rabbitConfig);
 
 @Module({
   imports: [
@@ -36,7 +37,6 @@ import {
       },
     }),
     RabbitMQModule.forRoot(RabbitMQModule, {
-      exchanges: [oraculumQueue],
       uri: rabbitConfig.uri,
       connectionInitOptions: { wait: true },
     }),

@@ -19,12 +19,10 @@ import {
 import {
   formatRedisKey,
   ISlashCommand,
-  MessageChatPublish,
-  ORACULUM_QUEUE,
   PEPA_CHAT_KEYS,
   PEPA_STORAGE_KEYS,
   ROUTING_KEY,
-} from '@cmnw/shared';
+} from '@cmnw/core';
 
 import {
   Client,

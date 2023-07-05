@@ -16,7 +16,7 @@ import {
   DISCORD_RELATIONS,
   DISCORD_SERVERS_ENUM,
   StorageTypes,
-} from '@cmnw/shared';
+} from '@cmnw/core';
 
 import {
   ChannelsEntity,

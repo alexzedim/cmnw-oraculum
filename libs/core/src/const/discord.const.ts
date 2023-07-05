@@ -5,7 +5,7 @@ import {
   DISCORD_MONK_ROLES,
   DISCORD_SERVER_RENAME_ENUM,
   DISCORD_SERVERS_ENUM,
-} from '@cmnw/shared/enums';
+} from '@cmnw/core/enums';
 /**
  * TODO rework based on pg relations
  */

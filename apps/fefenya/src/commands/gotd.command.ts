@@ -12,7 +12,7 @@ import {
   ISlashCommand,
   ISlashCommandArgs,
   cryptoRandomIntBetween,
-} from '@cmnw/shared';
+} from '@cmnw/core';
 
 export const gotdCommand: ISlashCommand = {
   name: FEFENYA_COMMANDS.GOTD,

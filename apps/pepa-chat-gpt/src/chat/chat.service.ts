@@ -21,7 +21,7 @@ import {
   PEPA_ROLL_CHANCE,
   PEPA_STORAGE_KEYS,
   PEPA_TRIGGER_FLAG,
-} from '@cmnw/shared';
+} from '@cmnw/core';
 
 @Injectable()
 export class ChatService {

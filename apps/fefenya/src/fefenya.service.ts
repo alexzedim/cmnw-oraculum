@@ -11,7 +11,7 @@ import {
   gotdGreeter,
   ISlashCommand,
   cryptoRandomIntBetween,
-} from '@cmnw/shared';
+} from '@cmnw/core';
 
 import {
   Injectable,

@@ -1,37 +1,25 @@
 import { EmbedBuilder, SlashCommandBuilder } from 'discord.js';
-import { Repository } from 'typeorm';
-import { FefenyaUsersEntity } from '@cmnw/pg';
-import {
-  FEFENYA_COMMANDS,
-  FEFENYA_DESCRIPTION,
-  ISlashCommand,
-  ISlashCommandArgs,
-} from '@cmnw/core';
+import { SlashCommand } from '@cmnw/commands/types';
+import { FEFENYA_COMMANDS, FEFENYA_DESCRIPTION } from '@cmnw/core';
+import { UsersFefenya } from '@cmnw/mongo';
+import { COMMAND_DESCRIPTION_ENUMS, COMMAND_ENUMS } from '@cmnw/commands/enums';
 
-export const GotsStatsCommand: ISlashCommand = {
-  name: FEFENYA_COMMANDS.GOTS_STATS,
-  description: FEFENYA_DESCRIPTION.GOTD_STATS,
-  guildOnly: true,
+export const gotsStatsCommand: SlashCommand = {
+  name: COMMAND_ENUMS.FEFENYA_GOTS_STATS,
+  description: COMMAND_DESCRIPTION_ENUMS.FEFENYA_GOTD_STATS,
   slashCommand: new SlashCommandBuilder()
     .setName(FEFENYA_COMMANDS.GOTS_STATS)
     .setDescription(FEFENYA_DESCRIPTION.GOTD_STATS),
 
-  async executeInteraction({
-    interaction,
-    repository,
-    logger,
-  }: ISlashCommandArgs): Promise<void> {
+  async executeInteraction({ interaction, models, logger }): Promise<void> {
     if (!interaction.isChatInputCommand()) return;
     try {
-      const fefenyaUsersEntities = await (
-        repository as Repository<FefenyaUsersEntity>
-      ).find({
-        where: { guildId: interaction.guildId },
-        take: 10,
-        order: {
-          count: 'DESC',
-        },
-      });
+      const { usersFefenyaModel } = models;
+
+      const usersFefenya = await usersFefenyaModel
+        .find<UsersFefenya>({ guildId: interaction.guildId })
+        .limit(10)
+        .sort({ count: -1 });
 
       const now = new Date();
 
@@ -44,9 +32,9 @@ export const GotsStatsCommand: ISlashCommand = {
           iconURL: 'https://i.imgur.com/OBDcu7K.png',
         });
 
-      for (const gotdEntity of fefenyaUsersEntities) {
+      for (const gotdEntity of usersFefenya) {
         embed.addFields({
-          name: `${gotdEntity.name}`,
+          name: `${gotdEntity.username}`,
           value: `${gotdEntity.count}`,
           inline: true,
         });

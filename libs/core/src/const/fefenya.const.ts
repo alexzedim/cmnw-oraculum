@@ -1,4 +1,6 @@
-export const GOTD_GREETING_FLOW = new Map<number, string[]>([
+import { Collection } from 'discord.js';
+
+export const GOTD_GREETING_FLOW = new Collection<number, string[]>([
   [1, ['Сегодня пидор дня — ']],
   [2, ['Ты сегодня пидор дня — ']],
   [
@@ -31,7 +33,7 @@ export const GOTD_GREETING_FLOW = new Map<number, string[]>([
   ],
 ]);
 
-export const GOTD_SELECTED_FLOW = new Map<number, string>([
+export const GOTD_SELECTED_FLOW = new Collection<number, string>([
   [1, 'Ты, — котик, я котик, а самый милый пидорюга дня:'],
   [
     2,

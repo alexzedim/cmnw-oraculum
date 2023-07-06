@@ -3,13 +3,13 @@ import { GuildsEntity } from '@cmnw/pg';
 import { Guild, SnowflakeUtil } from 'discord.js';
 import { DateTime } from 'luxon';
 
-export async function indexGuildByRepository(
+export const indexGuildByRepository = async (
   repository: Repository<GuildsEntity>,
   guild: Guild,
   scannedBy: string,
   forceUpdate = false,
   tags = ['UNCLASSIFIED'],
-) {
+) => {
   let guildEntity = await repository.findOneBy({ id: guild.id });
 
   if (guildEntity && forceUpdate) {
@@ -43,4 +43,4 @@ export async function indexGuildByRepository(
 
     await repository.save(guildEntity);
   }
-}
+};

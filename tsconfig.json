@@ -42,6 +42,12 @@
       ],
       "@cmnw/core/*": [
         "libs/core/src/*"
+      ],
+      "@cmnw/commands": [
+        "libs/commands/src"
+      ],
+      "@cmnw/commands/*": [
+        "libs/commands/src/*"
       ]
     }
   }

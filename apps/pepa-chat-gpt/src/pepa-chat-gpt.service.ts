@@ -1,39 +1,43 @@
 import Redis from 'ioredis';
 import { REST } from '@discordjs/rest';
 import { InjectRedis } from '@nestjs-modules/ioredis';
-import { Identity, Whoami } from './commans';
-import { CoreUsersEntity, PepaIdentityEntity } from '@cmnw/pg';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { ChatService } from './chat/chat.service';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { DateTime } from 'luxon';
 import { Interval } from '@nestjs/schedule';
-import {
-  Injectable,
-  Logger,
-  NotFoundException,
-  OnApplicationBootstrap,
-} from '@nestjs/common';
+import { Model } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
+import { SlashCommand } from '@cmnw/commands';
+import { Keys } from '@cmnw/mongo';
+
+import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 
 import {
   formatRedisKey,
-  ISlashCommand,
-  PEPA_CHAT_KEYS,
+  CHAT_KEYS,
   PEPA_STORAGE_KEYS,
-  ROUTING_KEY,
+  MESSAGE_QUEUE,
+  MessageDto,
+  ChatFlowDto,
+  cryptoRandomIntBetween,
+  loadKey,
 } from '@cmnw/core';
 
 import {
+  ApplicationCommandType,
   Client,
   Collection,
+  EmbedBuilder,
   Events,
   GatewayIntentBits,
   GuildMember,
+  Message,
   PartialGuildMember,
   Partials,
   Routes,
+  Snowflake,
 } from 'discord.js';
+import { votingSanctionsCommand } from '@cmnw/commands/voting-sanctions.command';
 
 @Injectable()
 export class PepaChatGptService implements OnApplicationBootstrap {
@@ -41,20 +45,28 @@ export class PepaChatGptService implements OnApplicationBootstrap {
     timestamp: true,
   });
   private readonly rest = new REST({ version: '10' });
+
   private client: Client;
-  private pepaUser: CoreUsersEntity;
-  private commandsMessage: Collection<string, ISlashCommand> = new Collection();
-  private commandSlash = [];
+  private chatUser: Keys;
+  private commandsMessage: Collection<string, SlashCommand> = new Collection();
+  private messageStorage: Collection<
+    Snowflake,
+    Collection<Snowflake, MessageDto>
+  > = new Collection();
+
+  // TODO remove
+  private votingStorage = new Collection<
+    string,
+    { yes: number; no: number; voters: Set<string> }
+  >();
 
   constructor(
     private chatService: ChatService,
     private readonly amqpConnection: AmqpConnection,
     @InjectRedis()
     private readonly redisService: Redis,
-    @InjectRepository(CoreUsersEntity)
-    private readonly coreUsersRepository: Repository<CoreUsersEntity>,
-    @InjectRepository(PepaIdentityEntity)
-    private readonly pepaIdentityRepository: Repository<PepaIdentityEntity>,
+    @InjectModel(Keys.name)
+    private readonly keysModel: Model<Keys>,
   ) {}
   async onApplicationBootstrap() {
     await this.loadBot();
@@ -65,13 +77,15 @@ export class PepaChatGptService implements OnApplicationBootstrap {
   }
 
   private async loadCommands(): Promise<void> {
-    this.commandsMessage.set(Whoami.name, Whoami);
-    this.commandSlash.push(Whoami.slashCommand.toJSON());
-    this.commandsMessage.set(Identity.name, Identity);
-    this.commandSlash.push(Identity.slashCommand.toJSON());
+    this.commandsMessage.set(
+      votingSanctionsCommand.name,
+      votingSanctionsCommand,
+    );
+
+    const commandsBody = [votingSanctionsCommand.slashCommand.toJSON()];
 
     await this.rest.put(Routes.applicationCommands(this.client.user.id), {
-      body: this.commandSlash,
+      body: commandsBody,
     });
   }
 
@@ -95,19 +109,10 @@ export class PepaChatGptService implements OnApplicationBootstrap {
       this.logger.warn(`resetContext set to ${resetContext}`);
     }
 
-    const pepaUserEntity = await this.coreUsersRepository.findOneBy({
-      name: 'PepaChatGpt',
-    });
+    this.chatUser = await loadKey(this.keysModel, 'Janisse');
 
-    if (!pepaUserEntity) throw new NotFoundException('Pepa not found!');
-
-    if (!pepaUserEntity.token)
-      throw new NotFoundException('Pepa token not found!');
-
-    this.pepaUser = pepaUserEntity;
-
-    await this.client.login(this.pepaUser.token);
-    this.rest.setToken(this.pepaUser.token);
+    await this.client.login(this.chatUser.token);
+    this.rest.setToken(this.chatUser.token);
   }
 
   private async bot() {
@@ -137,64 +142,109 @@ export class PepaChatGptService implements OnApplicationBootstrap {
     this.client.on(
       Events.InteractionCreate,
       async (interaction): Promise<void> => {
-        if (!interaction.isCommand()) return;
         try {
-          const command = this.commandsMessage.get(interaction.commandName);
-          if (!command) return;
+          if (interaction.isCommand()) {
+            const command = this.commandsMessage.get(interaction.commandName);
+            if (!command) return;
 
-          await command.executeInteraction({
-            interaction,
-            logger: this.logger,
-            repository: this.pepaIdentityRepository,
-          });
+            await command.executeInteraction({
+              interaction,
+              logger: this.logger,
+            });
+          }
+
+          if (interaction.isButton()) {
+            const votingId = interaction.message.id;
+            const isVotingStorages = this.votingStorage.has(votingId);
+            const currentVote = isVotingStorages
+              ? this.votingStorage.get(votingId)
+              : { yes: 0, no: 0, voters: new Set<string>() };
+
+            const isYes = interaction.customId === 'Yes';
+            const currentVoteCount = isYes
+              ? (currentVote.yes = currentVote.yes + 1)
+              : (currentVote.no = currentVote.no + 1);
+
+            currentVote.voters.add(interaction.user.id);
+
+            this.votingStorage.set(votingId, currentVote);
+
+            const [embed] = interaction.message.embeds;
+
+            const [index, name] = isYes ? [0, 'За'] : [-1, 'Против'];
+
+            const updatedEmbed = new EmbedBuilder(embed).spliceFields(
+              index,
+              1,
+              {
+                name: `─────────────`,
+                value: `${name}: ${currentVoteCount}\n─────────────`,
+                inline: true,
+              },
+            );
+
+            await interaction.update({ embeds: [updatedEmbed] });
+          }
         } catch (errorException) {
           this.logger.error(errorException);
-          await interaction.reply({
-            content: 'There was an error while executing this command!',
-            ephemeral: true,
-          });
+          if (interaction.isCommand()) {
+            await interaction.reply({
+              content: 'There was an error while executing this command!',
+              ephemeral: true,
+            });
+          }
         }
       },
     );
     /**
      * @description Doesn't trigger itself & other bots as-well.
      */
-    this.client.on(Events.MessageCreate, async (message) => {
+    this.client.on(Events.MessageCreate, async (message: Message<true>) => {
       let isIgnore: boolean;
       let isMentioned: boolean;
       let isQuestion: boolean;
-      console.log(message);
 
       try {
-        isIgnore = message.author.bot;
-        if (isIgnore) return;
-
-        isIgnore = await this.chatService.isChannelResponse(message);
-        if (isIgnore) return;
-
-        isQuestion = await this.chatService.isQuestion(
-          message.id,
-          message.content,
-          message.author.id,
-          message.author.username,
-          message.channelId,
+        const chatMessage = MessageDto.fromDiscordMessage(
+          message,
+          this.chatUser,
         );
-        // if (isQuestion) return;
 
-        isIgnore = await this.chatService.isIgnore();
+        const channelId = message.channel.id;
+        const isChannelExists = this.messageStorage.has(channelId);
+        const messageStorage = isChannelExists
+          ? this.messageStorage.get(channelId)
+          : new Collection<Snowflake, MessageDto>([
+              [message.author.id, chatMessage],
+            ]);
+
+        if (!isChannelExists) {
+          this.messageStorage.set(message.channel.id, messageStorage);
+        }
+
+        const { isBot, isSelf, isGuild } = this.chatService.isIgnore(
+          message,
+          this.client,
+        );
         if (isIgnore) return;
 
-        await this.chatService.updateLastActiveMessage(message.channelId);
+        await this.chatService.isQuestion(message);
+        // TODO if (isQuestion) return;
+
+        isIgnore = await this.chatService.isIgnoreTriggered(this.chatUser.name);
+        if (isIgnore) return;
+
+        await this.chatService.setChannelLastActive(message.channelId);
 
         const { id, author, reference, content, channel, guild } = message;
-        const key = formatRedisKey(PEPA_CHAT_KEYS.MENTIONED, 'PEPA');
+        const key = formatRedisKey(CHAT_KEYS.MENTIONED, 'CHAT');
 
-        isMentioned = await this.chatService.isMentioned(
+        /*        isMentioned = await this.chatService.isUserMentioned(
           message.mentions,
           message.mentions.users,
           this.client.user.id,
           content,
-        );
+        );*/
 
         isMentioned = Boolean(await this.redisService.exists(key));
 
@@ -206,21 +256,36 @@ export class PepaChatGptService implements OnApplicationBootstrap {
           hasAttachment,
           isMentioned,
         });
+
         // TODO throw prompt personality flag length context (channel | user)
-        if (ROUTING_KEY.includes(flag)) {
-          const now = DateTime.now().setZone('Europe/Moscow');
-          console.log(now.toJSDate());
-          const response = await this.amqpConnection.request<any>({
-            exchange: 'rpc-queue',
-            routingKey: 'rpc',
-            payload: {
-              request: now,
-            },
-            timeout: 10000, // optional timeout for how long the request
-            // should wait before failing if no response is received
-          });
-          console.log(response)
-        }
+        const now = DateTime.now().setZone('Europe/Moscow');
+        await this.amqpConnection.publish<MessageDto>(
+          MESSAGE_QUEUE,
+          'test-test',
+          chatMessage,
+        );
+
+        const n = cryptoRandomIntBetween(1, 7);
+        if (n < 6) return;
+
+        const messageCollection = this.messageStorage.get(channelId);
+        const dialogFrom = messageCollection
+          .last(n)
+          .map((message) =>
+            ChatFlowDto.fromMessageDto(message, this.client.user.id),
+          );
+
+        const response = await this.amqpConnection.request<string>({
+          exchange: 'rpc-queue',
+          routingKey: 'rpc',
+          payload: dialogFrom,
+          timeout: 30000, // optional timeout for how long the request
+          // should wait before failing if no response is received
+        });
+
+        console.log(response);
+
+        await message.channel.send({ content: response });
       } catch (errorOrException) {
         this.logger.error(errorOrException);
       }

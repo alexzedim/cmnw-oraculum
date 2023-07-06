@@ -1,26 +1,23 @@
 import Redis from 'ioredis';
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRedis } from '@nestjs-modules/ioredis';
+import { Identity } from '@cmnw/mongo';
 import {
   ChannelType,
   Client,
   Collection,
   Message,
   MessageMentions,
-  TextChannel,
   User,
 } from 'discord.js';
-import { InjectRepository } from '@nestjs/typeorm';
-import { ChannelsEntity, GuildsEntity, PepaQuestionsEntity } from '@cmnw/pg';
-import { Repository } from 'typeorm';
+
 import {
   cryptoRandomIntBetween,
   formatRedisKey,
-  PEPA_CHAT_KEYS,
-  PEPA_PERSONALITY,
+  CHAT_KEYS,
   PEPA_ROLL_CHANCE,
   PEPA_STORAGE_KEYS,
-  PEPA_TRIGGER_FLAG,
+  ACTION_TRIGGER_FLAG,
 } from '@cmnw/core';
 
 @Injectable()
@@ -29,12 +26,6 @@ export class ChatService {
   constructor(
     @InjectRedis()
     private readonly redisService: Redis,
-    @InjectRepository(PepaQuestionsEntity)
-    private readonly pepaQuestionsRepository: Repository<PepaQuestionsEntity>,
-    @InjectRepository(GuildsEntity)
-    private readonly guildsRepository: Repository<GuildsEntity>,
-    @InjectRepository(ChannelsEntity)
-    private readonly channelsRepository: Repository<ChannelsEntity>,
   ) {}
 
   async chatReaction(
@@ -67,7 +58,7 @@ export class ChatService {
     hasAttachment = false,
   }) {
     if (isTest) {
-      return { flag: PEPA_TRIGGER_FLAG.TEST, context: `Привет, я Пепа` };
+      return { flag: ACTION_TRIGGER_FLAG.TEST, context: `Привет, я Пепа` };
     }
 
     try {
@@ -75,7 +66,7 @@ export class ChatService {
 
       if (isMedia && triggerChance > PEPA_ROLL_CHANCE.IS_MEDIA) {
         return {
-          flag: PEPA_TRIGGER_FLAG.POST_MEME,
+          flag: ACTION_TRIGGER_FLAG.POST_MEME,
         };
       }
 
@@ -84,147 +75,87 @@ export class ChatService {
         hasAttachment &&
         triggerChance > PEPA_ROLL_CHANCE.ATTACHMENT_ONLY_EMOJI
       ) {
-        return { flag: PEPA_TRIGGER_FLAG.EMOJI };
+        return { flag: ACTION_TRIGGER_FLAG.EMOJI };
       }
 
       if (isMentioned) {
-        return { flag: PEPA_TRIGGER_FLAG.MESSAGE_REPLY };
+        return { flag: ACTION_TRIGGER_FLAG.MESSAGE_REPLY };
       }
 
       if (isText && triggerChance <= PEPA_ROLL_CHANCE.TEXT_ONLY_PROVOKE) {
-        return { flag: PEPA_TRIGGER_FLAG.MESSAGE_PROVOKE };
+        return { flag: ACTION_TRIGGER_FLAG.MESSAGE_PROVOKE };
       }
 
       if (isText && triggerChance >= PEPA_ROLL_CHANCE.TEXT_ONLY_EMOJI) {
-        return { flag: PEPA_TRIGGER_FLAG.EMOJI };
+        return { flag: ACTION_TRIGGER_FLAG.EMOJI };
       }
 
-      return { flag: PEPA_TRIGGER_FLAG.EMPTY };
+      return { flag: ACTION_TRIGGER_FLAG.EMPTY };
     } catch (errorException) {
       this.logger.error(errorException);
-      return { flag: PEPA_TRIGGER_FLAG.EMPTY };
+      return { flag: ACTION_TRIGGER_FLAG.EMPTY };
     }
   }
 
-  /**
-   * @description TODO refactor, seriously reduce proc chance for reply
-   * @param message
-   */
-  public async isChannelResponse(message: Message) {
-    if (message.channel.type !== ChannelType.GuildText) {
-      return false;
-    }
+  public isIgnore(message: Message, client: Client) {
+    const isSelf = message.author.id === client.user.id;
+    const isBot = message.author.bot;
+    const isGuild = message.channel.type !== ChannelType.GuildText;
 
-    if (message.channelId === '886541776968613908') return false;
-
-    const channelCategory = await this.channelsRepository.findOneBy({
-      name: 'ОБЩЕНИЕ',
-    });
-    const channel = message.channel as TextChannel;
-    return channel.parentId !== channelCategory.id;
+    return { isSelf, isBot, isGuild };
   }
 
-  public async isIgnore(): Promise<boolean> {
-    const key = formatRedisKey(PEPA_CHAT_KEYS.FULL_TILT_IGNORE, 'PEPA');
+  public async isIgnoreTriggered(username: string): Promise<boolean> {
+    const key = formatRedisKey(CHAT_KEYS.FULL_TILT_IGNORE, 'CHAT');
     const ignoreMe = Boolean(await this.redisService.exists(key));
     if (ignoreMe) {
       const ttl = await this.redisService.ttl(key);
-      this.logger.debug(`Pepa will ignore everything for ${ttl} more seconds`);
+      this.logger.debug(
+        `${username} will ignore everything for ${ttl} more seconds`,
+      );
     }
+
     return ignoreMe;
   }
 
-  public async isQuestion(
-    id: string,
-    question: string,
-    userId: string,
-    username: string,
-    channelId: string,
-  ) {
+  public async isQuestion(message: Message) {
     try {
-      const questionMarks = (question.match(/\?/g) || []).length;
-      if (!questionMarks) {
-        return false;
-      }
+      const isMultipleQuestions = (message.content.match(/\?/g) || []).length;
+      const isCertainQuestion = message.content.endsWith('?');
 
-      const isCertain = question.endsWith('?');
-
-      const questionEntity = this.pepaQuestionsRepository.create({
-        id,
-        userId,
-        username,
-        question,
-        questionMarks,
-        isCertain,
-        channelId,
-        isAnswered: false,
-      });
-
-      await this.pepaQuestionsRepository.save(questionEntity);
-
-      return true;
+      return { isMultipleQuestions, isCertainQuestion };
     } catch (errorOrException) {
       this.logger.error(errorOrException);
-      return false;
+      return { isMultipleQuestions: false, isCertainQuestion: false };
     }
   }
 
-  /**
-   * TODO add timeout expire if someone else answer that question
-   */
-  public async answerQuestion() {
-    try {
-      const questionsToAnswer = await this.pepaQuestionsRepository.find({
-        where: { isAnswered: false },
-      });
-
-      if (!questionsToAnswer || !questionsToAnswer.length) {
-        return [];
-      }
-
-      await this.pepaQuestionsRepository.update(
-        { isAnswered: false },
-        { isAnswered: true },
-      );
-
-      return questionsToAnswer.map((questionEntity) => ({
-        ...questionEntity,
-        personality:
-          questionEntity.questionMarks > 1 || questionEntity.isCertain
-            ? [PEPA_PERSONALITY.QUESTION]
-            : [PEPA_PERSONALITY.SUBMISSION],
-      }));
-    } catch (errorOrException) {
-      this.logger.error(errorOrException);
-    }
-  }
-
-  public async triggerIgnore(): Promise<void> {
+  public async setTriggerIgnore(): Promise<void> {
     const timeout = cryptoRandomIntBetween(30, 600);
-    const key = formatRedisKey(PEPA_CHAT_KEYS.FULL_TILT_IGNORE, 'PEPA');
+    const key = formatRedisKey(CHAT_KEYS.FULL_TILT_IGNORE, 'CHAT');
     await this.redisService.set(key, 1, 'EX', timeout);
     this.logger.debug(`Pepa will ignore everything for ${timeout} seconds`);
-    // TODO random
-    // return corpus.backoff.random();
   }
 
-  public async updateLastActiveMessage(channelId: string) {
+  public async setChannelLastActive(channelId: string) {
     const unixNow = Date.now();
     const key = formatRedisKey(
-      `${PEPA_CHAT_KEYS.LAST_MESSAGE_AT}:${channelId}`,
-      'PEPA',
+      `${CHAT_KEYS.LAST_MESSAGE_AT}:${channelId}`,
+      'CHAT',
     );
     await this.redisService.set(key, unixNow);
     this.logger.debug(`Last message timestamp updated for ${unixNow}`);
   }
 
-  public async isMentioned(
+  public async isUserMentioned(
+    user: Identity,
     mentions: MessageMentions<boolean>,
     mentionUsers: Collection<string, User>,
     clientId: string,
     content: string,
   ): Promise<boolean> {
-    const regex = new RegExp('^пеп');
+    const precursor = user.username.toLowerCase().slice(0, 3);
+    const regex = new RegExp(`^${precursor}`);
     const isMentioned =
       mentions && mentionUsers.size
         ? mentionUsers.has(clientId)
@@ -234,7 +165,7 @@ export class ChatService {
             .some((s) => regex.test(s.toLowerCase()));
 
     if (isMentioned) {
-      const key = formatRedisKey(PEPA_CHAT_KEYS.MENTIONED, 'PEPA');
+      const key = formatRedisKey(CHAT_KEYS.MENTIONED, 'PEPA');
       await this.redisService.set(key, 1, 'EX', cryptoRandomIntBetween(7, 10));
     }
 

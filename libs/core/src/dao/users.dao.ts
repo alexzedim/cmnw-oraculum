@@ -1,16 +1,15 @@
-import { SnowflakeUtil, User } from 'discord.js';
+import { GuildMember, SnowflakeUtil, User } from 'discord.js';
 import { DateTime } from 'luxon';
-import { Users } from '@cmnw/mongo';
+import { Users, UsersFefenya } from '@cmnw/mongo';
 import { Model } from 'mongoose';
 
-export async function indexUser(
+export const indexUser = async (
   usersModel: Model<Users>,
   user: User,
   scannedBy: string,
   scannedFrom: string,
   forceUpdate = false,
-  // TODO isOwner = true create permission & remove from old
-) {
+) => {
   let userEntity = await usersModel.findOne<Users>({ _id: user.id });
   if (userEntity && !forceUpdate) return;
 
@@ -35,4 +34,24 @@ export async function indexUser(
   }
 
   await userEntity.save();
+};
+
+export async function indexFefenyaUser(
+  usersFefenyaModel: Model<UsersFefenya>,
+  guildMember: GuildMember,
+) {
+  let userFefenya = await usersFefenyaModel.findById<UsersFefenya>(
+    guildMember.user.id,
+  );
+  if (userFefenya) userFefenya.username = guildMember.user.username;
+  if (!userFefenya) {
+    userFefenya = new usersFefenyaModel({
+      _id: guildMember.user.id,
+      username: guildMember.displayName,
+      guildId: guildMember.guild.id,
+      count: 0,
+    });
+  }
+
+  await userFefenya.save();
 }

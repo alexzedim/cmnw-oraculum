@@ -1,25 +1,35 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
 import { FefenyaService } from './fefenya.service';
 import { RedisModule } from '@nestjs-modules/ioredis';
-import { postgresConfig, redisConfig } from '@cmnw/config';
+import { mongoConfig, redisConfig } from '@cmnw/config';
+import { MongooseModule } from '@nestjs/mongoose';
 import {
-  CoreUsersEntity,
-  GuildsEntity,
-  FefenyaUsersEntity,
-  UsersEntity,
-} from '@cmnw/pg';
+  Channels,
+  ChannelsSchema,
+  FefenyaUsersSchema,
+  Keys,
+  KeysSchema,
+  Logs,
+  LogsSchema,
+  Permissions,
+  PermissionsSchema,
+  Users,
+  UsersFefenya,
+  UsersSchema,
+} from '@cmnw/mongo';
 
 @Module({
   imports: [
     ScheduleModule.forRoot(),
-    TypeOrmModule.forRoot(postgresConfig),
-    TypeOrmModule.forFeature([
-      FefenyaUsersEntity,
-      GuildsEntity,
-      UsersEntity,
-      CoreUsersEntity,
+    MongooseModule.forRoot(mongoConfig.connectionString),
+    MongooseModule.forFeature([
+      { name: Keys.name, schema: KeysSchema },
+      { name: UsersFefenya.name, schema: FefenyaUsersSchema },
+      { name: Users.name, schema: UsersSchema },
+      { name: Permissions.name, schema: PermissionsSchema },
+      { name: Channels.name, schema: ChannelsSchema },
+      { name: Logs.name, schema: LogsSchema },
     ]),
     RedisModule.forRoot({
       config: {

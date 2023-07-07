@@ -59,7 +59,7 @@ export const votingSanctionsCommand: SlashCommand = {
           .setStyle(ButtonStyle.Success),
         new ButtonBuilder()
           .setCustomId('No')
-          .setLabel('❌ Против')
+          .setLabel('✖️ Против')
           .setStyle(ButtonStyle.Danger),
       ) as ActionRowBuilder<MessageActionRowComponentBuilder>;
 
@@ -71,10 +71,13 @@ export const votingSanctionsCommand: SlashCommand = {
       ]);
       const votingAction = actionMapper.get(action);
       const until = DateTime.now().plus({ minutes: 3 });
-      const remains = Duration.fromObject({ seconds: 180 }).toHuman();
+      const remains = Duration.fromObject(
+        { seconds: 180 },
+        { locale: 'ru' },
+      ).toHuman();
       const memberVoters = 5;
       const quorum = Math.ceil(memberVoters * 0.7);
-      const status = 'РЕШЕНИЕ НЕ ПРИНЯТО' || 'РЕШЕНИЕ ПРИНЯТО';
+      const status = 'РЕШЕНИЕ НЕ ПРИНЯТО';
 
       const embed = new EmbedBuilder()
         .setTitle(
@@ -83,29 +86,29 @@ export const votingSanctionsCommand: SlashCommand = {
         .setDescription(
           `
         Инициировано: ${interaction.user.username}
-        Всего участников: ${memberVoters} 
+        Доступно для ${memberVoters} участников
         Необходимо для кворума: 70% | ${quorum}
         
-        *голосование активно ещё ${remains}*
+        ⠀⠀⠀⠀⠀⠀⠀⠀⠀*голосование активно ещё ${remains}*
         
-        ⠀⠀⠀⠀⠀⠀⠀**${status}**
+        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀**${status}**
         `,
         )
         .setColor('#00FF98')
         .addFields([
           {
-            name: '─────────────',
-            value: `За: 0\n─────────────`,
+            name: '───────────────',
+            value: `⠀⠀⠀⠀⠀За: 0\n───────────────`,
             inline: true,
           },
           {
-            name: `─────────────`,
-            value: `Необходимо для кворума: ${quorum}\n─────────────`,
+            name: `───────────────`,
+            value: `Решение будет принято *только* при\n${quorum} из ${memberVoters} голосах\n───────────────`,
             inline: true,
           },
           {
-            name: `─────────────`,
-            value: `Против: 0\n─────────────`,
+            name: `───────────────`,
+            value: `⠀⠀⠀Против: 0\n───────────────`,
             inline: true,
           },
         ])

@@ -1,4 +1,5 @@
 import { SlashCommandBuilder, TextChannel } from 'discord.js';
+import { UsersFefenya } from '@cmnw/mongo';
 import {
   COMMAND_DESCRIPTION_ENUMS,
   COMMAND_ENUMS,
@@ -8,12 +9,12 @@ import {
 import {
   FEFENYA_COMMANDS,
   FEFENYA_DESCRIPTION,
-  FEFENYA_STORAGE_KEYS,
   GOTD_GREETING_FLOW,
   GOTD_SELECTED_FLOW,
   gotdGreeter,
   gotdSelected,
   cryptoRandomIntBetween,
+  pickRandomFefenyaUser,
 } from '@cmnw/core';
 
 export const gotdCommand: SlashCommand = {
@@ -28,56 +29,38 @@ export const gotdCommand: SlashCommand = {
     try {
       logger.log(`${FEFENYA_COMMANDS.GOTD} has been triggered`);
 
-      const isGotdTriggered = Boolean(
-        await redis.exists(FEFENYA_STORAGE_KEYS.GOTD_TOD_STATUS),
-      );
+      let fefenyaUser = await models.usersFefenyaModel.findOne<UsersFefenya>({
+        guildId: interaction.guildId,
+        isGotd: true,
+      });
 
-      if (isGotdTriggered) {
-        const gotdUser = await redis.get(FEFENYA_STORAGE_KEYS.GOTD_TOD_STATUS);
+      if (fefenyaUser) {
         const greetingSelectedFlow = GOTD_SELECTED_FLOW.random();
 
         await interaction.reply({
-          content: gotdSelected(greetingSelectedFlow, gotdUser),
+          content: gotdSelected(greetingSelectedFlow, fefenyaUser.username),
           ephemeral: false,
         });
+
+        return;
       }
 
       logger.debug(
         `Selecting gay lord of the day from: ${interaction.guild.id}`,
       );
 
-      const { usersFefenyaModel } = models;
-
-      const int = await usersFefenyaModel.count();
-      const randomInt = cryptoRandomIntBetween(0, int - 1);
+      fefenyaUser = await pickRandomFefenyaUser(
+        models.usersFefenyaModel,
+        interaction.guildId,
+      );
 
       logger.log(
-        `Fefenya randomize in between ${int} values, roll is ${randomInt}`,
+        `Fefenya pre-pick user as a gaylord: ${fefenyaUser._id} :: ${fefenyaUser.username}`,
       );
-
-      const fefenyaUser = await usersFefenyaModel.findOneAndUpdate(
-        {
-          guildId: interaction.guildId,
-        },
-        {
-          $inc: { count: 1 },
-        },
-        {
-          skip: randomInt,
-          new: true,
-        },
-      );
-
-      logger.log(`Fefenya pre-pick user as a gaylord: ${fefenyaUser._id}`);
 
       const greetingFlow = GOTD_GREETING_FLOW.random();
       const arrLength = greetingFlow.length;
       let content: string;
-
-      await redis.set(
-        FEFENYA_STORAGE_KEYS.GOTD_TOD_STATUS,
-        fefenyaUser.username,
-      );
 
       for (let i = 0; i < arrLength; i++) {
         content =

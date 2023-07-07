@@ -12,6 +12,9 @@ export class UsersFefenya extends Document {
   @Prop({ type: Number })
   guildId: string;
 
+  @Prop({ type: Boolean })
+  isGotd: boolean;
+
   @Prop({ type: Number })
   count: number;
 

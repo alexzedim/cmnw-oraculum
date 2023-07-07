@@ -18,6 +18,9 @@ export class Channels extends Document {
   @Prop({ type: String })
   type?: string;
 
+  @Prop({ type: Number })
+  position: number;
+
   @Prop({ type: Boolean, default: false })
   isDeleted: boolean;
 

@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-import { PERMISSIONS_ENUM, SUBJECT_ENUM } from '@cmnw/core';
+import { SUBJECT_ENUM, PERMISSIONS_ENUM } from '@cmnw/core';
 
 @Schema({ timestamps: true })
 export class Permissions extends Document {
@@ -27,6 +27,9 @@ export class Permissions extends Document {
 
   @Prop({ type: Number })
   bitfield: string;
+
+  @Prop({ type: Number })
+  approvedBy: string;
 
   @Prop({ type: Date })
   updatedAt: Date;

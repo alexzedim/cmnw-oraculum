@@ -8,3 +8,4 @@ export * from './keys.schema';
 export * from './messages.schema';
 export * from './users-fefenya.schema';
 export * from './bans.schema';
+export * from './logs.schema';

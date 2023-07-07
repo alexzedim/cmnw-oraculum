@@ -24,8 +24,23 @@ export class Messages extends Document {
   @Prop({ type: String })
   channelName: string;
 
+  @Prop({ type: Number })
+  channelType: number;
+
+  @Prop({ type: Number })
+  referenceMessageId: string;
+
+  @Prop({ type: Number })
+  referenceChannelId: string;
+
+  @Prop({ type: Number })
+  referenceGuildId: string;
+
   @Prop({ type: String })
-  content: string;
+  text: string;
+
+  @Prop({ type: Number })
+  length: number;
 
   @Prop({ type: [String] })
   tags: Types.Array<string>;
@@ -41,7 +56,4 @@ export class Messages extends Document {
 }
 
 export const MessagesSchema = SchemaFactory.createForClass(Messages);
-MessagesSchema.index(
-  { channelId: -1, createdAt: -1 },
-  { name: 'IdxChatThread' },
-);
+MessagesSchema.index({ channelId: -1, createdAt: -1 }, { name: 'IdxChatThread' });

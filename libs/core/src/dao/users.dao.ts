@@ -2,6 +2,7 @@ import { GuildMember, SnowflakeUtil, User } from 'discord.js';
 import { DateTime } from 'luxon';
 import { Users, UsersFefenya } from '@cmnw/mongo';
 import { Model } from 'mongoose';
+import { cryptoRandomIntBetween } from '@cmnw/core/utils';
 
 export const indexUser = async (
   usersModel: Model<Users>,
@@ -36,10 +37,10 @@ export const indexUser = async (
   await userEntity.save();
 };
 
-export async function indexFefenyaUser(
+export const indexFefenyaUser = async (
   usersFefenyaModel: Model<UsersFefenya>,
   guildMember: GuildMember,
-) {
+) => {
   let userFefenya = await usersFefenyaModel.findById<UsersFefenya>(
     guildMember.user.id,
   );
@@ -54,4 +55,29 @@ export async function indexFefenyaUser(
   }
 
   await userFefenya.save();
-}
+};
+
+export const pickRandomFefenyaUser = async (
+  usersFefenyaModel: Model<UsersFefenya>,
+  guildId: string,
+) => {
+  const int = await usersFefenyaModel.count({
+    guildId: guildId,
+  });
+
+  const randomInt = cryptoRandomIntBetween(0, int - 1);
+
+  return usersFefenyaModel.findOneAndUpdate(
+    {
+      guildId: guildId,
+    },
+    {
+      isGotd: true,
+      $inc: { count: 1 },
+    },
+    {
+      skip: randomInt,
+      new: true,
+    },
+  );
+};

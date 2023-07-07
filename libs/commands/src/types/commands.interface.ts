@@ -1,13 +1,14 @@
 import { Interaction } from 'discord.js';
 import { Logger } from '@nestjs/common';
 import { Redis } from '@nestjs-modules/ioredis';
-import { SlashCommandBuilder } from '@discordjs/builders';
-import { UsersFefenya, Permissions } from '@cmnw/mongo';
+import { UsersFefenya, Permissions, Logs, Channels } from '@cmnw/mongo';
 import { Model } from 'mongoose';
 
 export interface IModels {
   usersFefenyaModel: Model<UsersFefenya>;
-  permissions: Model<Permissions>;
+  permissionsModel: Model<Permissions>;
+  channelsModel: Model<Channels>;
+  logsModel: Model<Logs>;
 }
 
 export interface ISlashCommandArgs {
@@ -22,7 +23,7 @@ export interface ISlashCommand {
 
   description: string;
 
-  slashCommand: any;
+  slashCommand: any; // TODO SlashCommandBuilder
 
   executeInteraction(args: ISlashCommandArgs): Promise<void>;
 }

@@ -23,8 +23,12 @@ export enum PERMISSIONS_ENUM {
   CONTROL = 'CONTROL',
   COMMAND = 'COMMAND',
   HAS = 'HAS',
-  TEXT_READ_ONLY = 'TEXT_READ_ONLY',
-  TEXT_WRITE = 'TEXT_WRITE',
+  RO = 'RO',
+  RW = 'RW',
+  RED = 'RED',
+  AMBER = 'AMBER',
+  GREEN = 'GREEN',
+  WHITE = 'WHITE',
 }
 
 export enum SUBJECT_ENUM {

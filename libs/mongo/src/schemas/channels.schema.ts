@@ -3,16 +3,16 @@ import { Document } from 'mongoose';
 
 @Schema({ timestamps: true })
 export class Channels extends Document {
-  @Prop({ required: true, type: Number })
+  @Prop({ required: true, type: String })
   _id: string;
 
   @Prop({ type: String })
   name: string;
 
-  @Prop({ type: Number, ref: 'Guilds' })
+  @Prop({ type: String, ref: 'Guilds' })
   guildId: string;
 
-  @Prop({ type: Number })
+  @Prop({ type: String, ref: 'Channels' })
   parentId?: string;
 
   @Prop({ type: String })
@@ -24,10 +24,10 @@ export class Channels extends Document {
   @Prop({ type: Boolean, default: false })
   isDeleted: boolean;
 
-  @Prop({ type: Number })
+  @Prop({ type: String, ref: 'Users' })
   scannedBy?: string;
 
-  @Prop({ type: Number })
+  @Prop({ type: String, ref: 'Users' })
   updatedBy?: string;
 
   @Prop({ type: Date })

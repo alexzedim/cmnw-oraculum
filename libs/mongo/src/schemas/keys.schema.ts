@@ -1,14 +1,17 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { KEY_STATUS_ARRAY, STATUS_ENUM } from '@cmnw/core';
+import { STATUS_ENUM, KEY_STATUS_ARRAY } from '@cmnw/core';
 
 @Schema({ timestamps: true })
 export class Keys extends Document {
-  @Prop({ type: Number })
+  @Prop({ type: String })
   id: string;
 
   @Prop({ type: String })
   name: string;
+
+  @Prop({ type: String })
+  username: string;
 
   @Prop({ type: String })
   login: string;
@@ -49,3 +52,21 @@ export class Keys extends Document {
 }
 
 export const KeysSchema = SchemaFactory.createForClass(Keys);
+KeysSchema.index(
+  {
+    name: 'text',
+    tags: 'text',
+    login: 'text',
+    email: 'text',
+  },
+  {
+    default_language: 'english',
+    weights: {
+      name: 10,
+      login: 1,
+      email: 1,
+      tags: 3,
+    },
+    name: 'loadKey',
+  },
+);

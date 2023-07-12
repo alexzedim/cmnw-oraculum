@@ -3,22 +3,22 @@ import { Types, Document } from 'mongoose';
 
 @Schema()
 export class Messages extends Document {
-  @Prop({ required: true, type: Number })
+  @Prop({ required: true, type: String })
   _id: string;
 
-  @Prop({ type: Number, ref: 'Users' })
+  @Prop({ type: String, ref: 'Users' })
   userId: string;
 
   @Prop({ type: String })
   username: string;
 
-  @Prop({ type: Number, ref: 'Guilds' })
+  @Prop({ type: String, ref: 'Guilds' })
   guildId: string;
 
   @Prop({ type: String })
   guildName: string;
 
-  @Prop({ type: Number, ref: 'Channels' })
+  @Prop({ type: String, ref: 'Channels' })
   channelId: string;
 
   @Prop({ type: String })
@@ -27,13 +27,13 @@ export class Messages extends Document {
   @Prop({ type: Number })
   channelType: number;
 
-  @Prop({ type: Number })
+  @Prop({ type: String, ref: 'Messages' })
   referenceMessageId: string;
 
-  @Prop({ type: Number })
+  @Prop({ type: String, ref: 'Channels' })
   referenceChannelId: string;
 
-  @Prop({ type: Number })
+  @Prop({ type: String, ref: 'Guilds' })
   referenceGuildId: string;
 
   @Prop({ type: String })
@@ -45,7 +45,7 @@ export class Messages extends Document {
   @Prop({ type: [String] })
   tags: Types.Array<string>;
 
-  @Prop({ type: Number })
+  @Prop({ type: String })
   scannedBy: string;
 
   @Prop({ type: Date })
@@ -56,4 +56,7 @@ export class Messages extends Document {
 }
 
 export const MessagesSchema = SchemaFactory.createForClass(Messages);
-MessagesSchema.index({ channelId: -1, createdAt: -1 }, { name: 'IdxChatThread' });
+MessagesSchema.index(
+  { channelId: -1, createdAt: -1 },
+  { name: 'IdxChatThread' },
+);

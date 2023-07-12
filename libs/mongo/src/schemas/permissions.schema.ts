@@ -4,7 +4,7 @@ import { SUBJECT_ENUM, PERMISSIONS_ENUM } from '@cmnw/core';
 
 @Schema({ timestamps: true })
 export class Permissions extends Document {
-  @Prop({ type: Number })
+  @Prop({ type: String })
   controlId: string;
 
   @Prop({ type: String, enum: SUBJECT_ENUM })
@@ -13,7 +13,7 @@ export class Permissions extends Document {
   @Prop({ type: String, enum: PERMISSIONS_ENUM })
   permission: PERMISSIONS_ENUM;
 
-  @Prop({ type: Number })
+  @Prop({ type: String })
   subjectId: string;
 
   @Prop({ type: String, enum: SUBJECT_ENUM })
@@ -28,7 +28,7 @@ export class Permissions extends Document {
   @Prop({ type: Number })
   bitfield: string;
 
-  @Prop({ type: Number })
+  @Prop({ type: String })
   approvedBy: string;
 
   @Prop({ type: Date })

@@ -3,10 +3,10 @@ import { Document } from 'mongoose';
 
 @Schema({ timestamps: true })
 export class Bans extends Document {
-  @Prop({ type: Number })
+  @Prop({ type: String, ref: 'Users' })
   userId: string;
 
-  @Prop({ type: Number })
+  @Prop({ type: String, ref: 'Guilds' })
   guildId: string;
 
   @Prop({ type: String })

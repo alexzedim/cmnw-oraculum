@@ -3,7 +3,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 @Schema({ timestamps: true })
 export class Users extends Document {
-  @Prop({ required: true, type: Number })
+  @Prop({ required: true, type: String })
   _id: string;
 
   @Prop({ type: String })
@@ -27,16 +27,16 @@ export class Users extends Document {
   @Prop({ type: [String] })
   tags: Types.Array<string>;
 
-  @Prop({ type: Number })
+  @Prop({ type: String, ref: 'Users' })
   scannedBy?: string;
 
-  @Prop({ type: Number })
+  @Prop({ type: String, ref: 'Users' })
   updatedBy?: string;
 
-  @Prop({ type: Number, ref: 'Guild' })
+  @Prop({ type: String, ref: 'Guilds' })
   scannedFrom?: string;
 
-  @Prop({ type: Number, ref: 'Guild' })
+  @Prop({ type: String, ref: 'Guilds' })
   updatedFrom?: string;
 
   @Prop({ type: Date })

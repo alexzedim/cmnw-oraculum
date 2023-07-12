@@ -13,7 +13,6 @@ import {
   GOTD_SELECTED_FLOW,
   gotdGreeter,
   gotdSelected,
-  cryptoRandomIntBetween,
   pickRandomFefenyaUser,
 } from '@cmnw/core';
 
@@ -24,7 +23,7 @@ export const gotdCommand: SlashCommand = {
     .setName(FEFENYA_COMMANDS.GOTD)
     .setDescription(FEFENYA_DESCRIPTION.GOTD),
 
-  async executeInteraction({ interaction, redis, logger, models }) {
+  async executeInteraction({ interaction, logger, models }) {
     if (!interaction.isChatInputCommand()) return;
     try {
       logger.log(`${FEFENYA_COMMANDS.GOTD} has been triggered`);

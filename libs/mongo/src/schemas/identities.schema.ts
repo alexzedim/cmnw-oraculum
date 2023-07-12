@@ -7,6 +7,12 @@ export class Identity extends Document {
   @Prop({ type: String })
   codename: string;
 
+  @Prop({ type: String, ref: 'Users' })
+  userId: string;
+
+  @Prop({ type: Types.ObjectId, ref: 'Keys' })
+  keyId: string;
+
   @Prop({ type: String })
   username: string;
 

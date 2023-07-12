@@ -3,7 +3,7 @@ import { Document } from 'mongoose';
 
 @Schema({ timestamps: true })
 export class Roles extends Document {
-  @Prop({ type: Number, required: true })
+  @Prop({ type: String, required: true })
   _id: string;
 
   @Prop({ type: String })
@@ -12,7 +12,7 @@ export class Roles extends Document {
   @Prop({ type: String })
   description: string;
 
-  @Prop({ type: Number, ref: 'Guilds' })
+  @Prop({ type: String, ref: 'Guilds' })
   guildId: string;
 
   @Prop({ type: Number })
@@ -24,10 +24,10 @@ export class Roles extends Document {
   @Prop({ type: Number })
   position: number;
 
-  @Prop({ type: Number })
+  @Prop({ type: String, ref: 'Users' })
   scannedBy: string;
 
-  @Prop({ type: Number })
+  @Prop({ type: String, ref: 'Users' })
   updatedBy: string;
 
   @Prop({ type: Date })

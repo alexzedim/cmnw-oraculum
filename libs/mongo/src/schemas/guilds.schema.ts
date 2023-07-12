@@ -3,7 +3,7 @@ import { Document, Types } from 'mongoose';
 
 @Schema({ timestamps: true })
 export class Guilds extends Document {
-  @Prop({ required: true, type: Number })
+  @Prop({ required: true, type: String })
   _id: string;
 
   @Prop({ type: String })
@@ -12,7 +12,7 @@ export class Guilds extends Document {
   @Prop({ type: String })
   icon?: string;
 
-  @Prop({ type: Number, ref: 'Users' })
+  @Prop({ type: String, ref: 'Users' })
   ownerId?: string;
 
   @Prop({ type: Number })
@@ -21,10 +21,10 @@ export class Guilds extends Document {
   @Prop({ type: [String] })
   tags: Types.Array<string>;
 
-  @Prop({ type: Number })
+  @Prop({ type: String, ref: 'Users' })
   scannedBy?: string;
 
-  @Prop({ type: Number })
+  @Prop({ type: String, ref: 'Users' })
   updatedBy?: string;
 
   @Prop({ type: Date })

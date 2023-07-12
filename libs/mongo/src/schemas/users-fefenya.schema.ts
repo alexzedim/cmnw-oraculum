@@ -3,13 +3,13 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 @Schema({ timestamps: true })
 export class UsersFefenya extends Document {
-  @Prop({ required: true, type: Number })
+  @Prop({ required: true, type: String })
   _id: string;
 
   @Prop({ type: String })
   username: string;
 
-  @Prop({ type: Number })
+  @Prop({ type: String, ref: 'Guilds' })
   guildId: string;
 
   @Prop({ type: Boolean })

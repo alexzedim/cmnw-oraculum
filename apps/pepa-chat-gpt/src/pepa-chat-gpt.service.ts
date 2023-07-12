@@ -7,10 +7,13 @@ import { DateTime } from 'luxon';
 import { Interval } from '@nestjs/schedule';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { SlashCommand } from '@cmnw/commands';
 import { Keys } from '@cmnw/mongo';
-
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
+import {
+  cryptoCommand,
+  SlashCommand,
+  votingSanctionsCommand,
+} from '@cmnw/commands';
 
 import {
   formatRedisKey,
@@ -24,7 +27,6 @@ import {
 } from '@cmnw/core';
 
 import {
-  ApplicationCommandType,
   Client,
   Collection,
   EmbedBuilder,
@@ -37,7 +39,6 @@ import {
   Routes,
   Snowflake,
 } from 'discord.js';
-import { votingSanctionsCommand } from '@cmnw/commands/voting-sanctions.command';
 
 @Injectable()
 export class PepaChatGptService implements OnApplicationBootstrap {
@@ -70,9 +71,7 @@ export class PepaChatGptService implements OnApplicationBootstrap {
   ) {}
   async onApplicationBootstrap() {
     await this.loadBot();
-
     await this.loadCommands();
-
     await this.bot();
   }
 
@@ -81,8 +80,12 @@ export class PepaChatGptService implements OnApplicationBootstrap {
       votingSanctionsCommand.name,
       votingSanctionsCommand,
     );
+    this.commandsMessage.set(cryptoCommand.name, cryptoCommand);
 
-    const commandsBody = [votingSanctionsCommand.slashCommand.toJSON()];
+    const commandsBody = [
+      votingSanctionsCommand.slashCommand.toJSON(),
+      cryptoCommand.slashCommand.toJSON(),
+    ];
 
     await this.rest.put(Routes.applicationCommands(this.client.user.id), {
       body: commandsBody,
@@ -139,63 +142,74 @@ export class PepaChatGptService implements OnApplicationBootstrap {
       },
     );
 
-    this.client.on(
-      Events.InteractionCreate,
-      async (interaction): Promise<void> => {
-        try {
-          if (interaction.isCommand()) {
-            const command = this.commandsMessage.get(interaction.commandName);
-            if (!command) return;
+    this.client.on(Events.InteractionCreate, async (interaction) => {
+      try {
+        if (interaction.isCommand()) {
+          const command = this.commandsMessage.get(interaction.commandName);
+          if (!command) return;
 
-            await command.executeInteraction({
-              interaction,
-              logger: this.logger,
-            });
-          }
-
-          if (interaction.isButton()) {
-            const votingId = interaction.message.id;
-            const isVotingStorages = this.votingStorage.has(votingId);
-            const currentVote = isVotingStorages
-              ? this.votingStorage.get(votingId)
-              : { yes: 0, no: 0, voters: new Set<string>() };
-
-            const isYes = interaction.customId === 'Yes';
-            const currentVoteCount = isYes
-              ? (currentVote.yes = currentVote.yes + 1)
-              : (currentVote.no = currentVote.no + 1);
-
-            currentVote.voters.add(interaction.user.id);
-
-            this.votingStorage.set(votingId, currentVote);
-
-            const [embed] = interaction.message.embeds;
-
-            const [index, name] = isYes ? [0, 'За'] : [-1, 'Против'];
-
-            const updatedEmbed = new EmbedBuilder(embed).spliceFields(
-              index,
-              1,
-              {
-                name: `─────────────`,
-                value: `${name}: ${currentVoteCount}\n─────────────`,
-                inline: true,
-              },
-            );
-
-            await interaction.update({ embeds: [updatedEmbed] });
-          }
-        } catch (errorException) {
-          this.logger.error(errorException);
-          if (interaction.isCommand()) {
-            await interaction.reply({
-              content: 'There was an error while executing this command!',
-              ephemeral: true,
-            });
-          }
+          await command.executeInteraction({
+            interaction,
+            logger: this.logger,
+          });
         }
-      },
-    );
+
+        if (interaction.isButton()) {
+          const votingId = interaction.message.id;
+          const isVotingStorages = this.votingStorage.has(votingId);
+          const currentVote = isVotingStorages
+            ? this.votingStorage.get(votingId)
+            : { yes: 0, no: 0, voters: new Set<string>() };
+
+          if (isVotingStorages) {
+            const isUserVote = currentVote.voters.has(interaction.user.id);
+            if (isUserVote) {
+              await interaction.reply({
+                content: 'Вы уже участвовали в данном голосовании!',
+                ephemeral: true,
+              });
+
+              return;
+            }
+          }
+
+          const isYes = interaction.customId === 'Yes';
+          const currentVoteCount = isYes
+            ? (currentVote.yes = currentVote.yes + 1)
+            : (currentVote.no = currentVote.no + 1);
+
+          currentVote.voters.add(interaction.user.id);
+
+          this.votingStorage.set(votingId, currentVote);
+
+          const [embed] = interaction.message.embeds;
+
+          const [index, name, space] = isYes
+            ? [0, 'За', '⠀⠀⠀⠀⠀']
+            : [-1, 'Против', '⠀⠀⠀'];
+
+          const updatedEmbed = new EmbedBuilder(embed).spliceFields(index, 1, {
+            name: `───────────────`,
+            value: `${space}${name}: ${currentVoteCount}\n───────────────`,
+            inline: true,
+          });
+
+          await interaction.update({ embeds: [updatedEmbed] });
+          await interaction.reply({
+            content: 'Ваш голос был учтен!',
+            ephemeral: true,
+          });
+        }
+      } catch (errorException) {
+        this.logger.error(errorException);
+        if (interaction.isCommand()) {
+          await interaction.reply({
+            content: 'There was an error while executing this command!',
+            ephemeral: true,
+          });
+        }
+      }
+    });
     /**
      * @description Doesn't trigger itself & other bots as-well.
      */

@@ -167,7 +167,7 @@ export class FefenyaService implements OnApplicationBootstrap {
               await this.channelsModel.findByIdAndUpdate(
                 interaction.channel.id,
                 {
-                  tags: { $addToSet: 'fefenya' },
+                  tags: { $addToSet: this.fefenyaKey.name },
                 },
               );
 
@@ -245,7 +245,7 @@ export class FefenyaService implements OnApplicationBootstrap {
 
               const channelEntity = await this.channelsModel.findOne<Channels>({
                 guildId: guild.id,
-                tag: 'Fefenya',
+                tag: this.fefenyaKey.name,
               });
 
               const channel = guild.channels.cache.get(channelEntity._id);

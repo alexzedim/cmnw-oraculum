@@ -1,7 +1,7 @@
 import { Interaction } from 'discord.js';
 import { Logger } from '@nestjs/common';
 import { Redis } from '@nestjs-modules/ioredis';
-import { UsersFefenya, Permissions, Logs, Channels } from '@cmnw/mongo';
+import { UsersFefenya, Permissions, Logs, Channels, Roles } from '@cmnw/mongo';
 import { Model } from 'mongoose';
 
 export interface IModels {
@@ -9,6 +9,7 @@ export interface IModels {
   permissionsModel: Model<Permissions>;
   channelsModel: Model<Channels>;
   logsModel: Model<Logs>;
+  rolesModel: Model<Roles>;
 }
 
 export interface ISlashCommandArgs {

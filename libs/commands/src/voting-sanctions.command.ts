@@ -35,6 +35,8 @@ export const votingSanctionsCommand: SlashCommand = {
           { name: VOTING_ACTION_PARAMS.MUTE, value: 'mute' },
           { name: VOTING_ACTION_PARAMS.BAN, value: 'ban' },
           { name: VOTING_ACTION_PARAMS.KICK, value: 'kick' },
+          { name: VOTING_ACTION_PARAMS.UNBAN, value: 'unban' },
+          { name: VOTING_ACTION_PARAMS.UNMUTE, value: 'unmute' },
         ),
     )
     .addUserOption((option) =>
@@ -68,6 +70,8 @@ export const votingSanctionsCommand: SlashCommand = {
         ['mute', 'мут'],
         ['kick', 'изгнание'],
         ['ban', 'бан'],
+        ['unmute', 'снять мут'],
+        ['unban', 'разбан'],
       ]);
       const votingAction = actionMapper.get(action);
       const until = DateTime.now().plus({ minutes: 3 });

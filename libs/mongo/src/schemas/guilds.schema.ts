@@ -15,6 +15,9 @@ export class Guilds extends Document {
   @Prop({ type: String, ref: 'Users' })
   ownerId?: string;
 
+  @Prop({ type: String })
+  emoji: string;
+
   @Prop({ type: Number })
   membersNumber?: number;
 

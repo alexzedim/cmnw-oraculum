@@ -19,11 +19,11 @@ import {
   formatRedisKey,
   CHAT_KEYS,
   PEPA_STORAGE_KEYS,
-  MESSAGE_QUEUE,
   MessageDto,
   ChatFlowDto,
   cryptoRandomIntBetween,
   loadKey,
+  ORACULUM_QUEUE,
 } from '@cmnw/core';
 
 import {
@@ -274,7 +274,7 @@ export class PepaChatGptService implements OnApplicationBootstrap {
         // TODO throw prompt personality flag length context (channel | user)
         const now = DateTime.now().setZone('Europe/Moscow');
         await this.amqpConnection.publish<MessageDto>(
-          MESSAGE_QUEUE,
+          ORACULUM_QUEUE.MESSAGES,
           'test-test',
           chatMessage,
         );

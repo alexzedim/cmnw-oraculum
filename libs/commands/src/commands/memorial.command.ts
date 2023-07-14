@@ -4,6 +4,7 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import { Octokit } from 'octokit';
 import { githubConfig } from '@cmnw/config';
 import { EmbedBuilder } from 'discord.js';
+import { CMNW_MEMORIAL_DEDICATIONS } from '@cmnw/core';
 
 export const memorialCommand: SlashCommand = {
   name: COMMAND_ENUMS.MEMORIAL,
@@ -41,9 +42,19 @@ export const memorialCommand: SlashCommand = {
           iconURL: 'https://i.imgur.com/OBDcu7K.png',
         });
 
-      const [topContributor] = contributors;
+      embed.setThumbnail(interaction.user.avatar);
 
-      embed.setThumbnail(topContributor.avatar_url);
+      const memorials = CMNW_MEMORIAL_DEDICATIONS.get(
+        interaction.user.username,
+      );
+
+      for (const { name, value } of memorials) {
+        embed.addFields({
+          name: name,
+          value: value,
+          inline: true,
+        });
+      }
 
       for (const { login, url, contributions } of contributors) {
         embed.addFields({

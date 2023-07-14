@@ -1,14 +1,14 @@
 import { Interaction } from 'discord.js';
 import { Logger } from '@nestjs/common';
 import { Redis } from '@nestjs-modules/ioredis';
-import { UsersFefenya, Permissions, Logs, Channels, Roles } from '@cmnw/mongo';
+import { UsersFefenya, Permissions, Event, Channels, Roles } from '@cmnw/mongo';
 import { Model } from 'mongoose';
 
 export interface IModels {
   usersFefenyaModel: Model<UsersFefenya>;
   permissionsModel: Model<Permissions>;
   channelsModel: Model<Channels>;
-  logsModel: Model<Logs>;
+  eventModel: Model<Event>;
   rolesModel: Model<Roles>;
 }
 

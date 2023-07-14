@@ -1,11 +1,13 @@
 import { SlashCommand } from '@cmnw/commands/types';
+import { ButtonStyle } from 'discord-api-types/v10';
+import { DateTime, Duration } from 'luxon';
 import {
   ActionRowBuilder,
   ButtonBuilder,
   Collection,
   EmbedBuilder,
 } from 'discord.js';
-import { ButtonStyle } from 'discord-api-types/v10';
+
 import {
   COMMAND_DESCRIPTION_ENUMS,
   COMMAND_ENUMS,
@@ -18,7 +20,6 @@ import {
   MessageActionRowComponentBuilder,
   SlashCommandBuilder,
 } from '@discordjs/builders';
-import { DateTime, Duration } from 'luxon';
 
 export const votingSanctionsCommand: SlashCommand = {
   name: COMMAND_ENUMS.VOTING_SANCTIONS,
@@ -46,7 +47,12 @@ export const votingSanctionsCommand: SlashCommand = {
         .setRequired(true),
     ),
 
-  async executeInteraction({ interaction, models, logger }): Promise<void> {
+  async executeInteraction({
+    interaction,
+    redis,
+    models,
+    logger,
+  }): Promise<void> {
     if (!interaction.isChatInputCommand()) return;
     try {
       const [action, user] = [

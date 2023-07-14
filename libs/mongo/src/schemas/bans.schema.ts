@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 @Schema({ timestamps: true })
 export class Bans extends Document {
@@ -8,6 +8,15 @@ export class Bans extends Document {
 
   @Prop({ type: String, ref: 'Guilds' })
   guildId: string;
+
+  @Prop({ type: String })
+  votingMessageId: string;
+
+  @Prop({ type: [String] })
+  votingGuilds: Types.Array<string>;
+
+  @Prop({ type: [String] })
+  votingGuildRepresentatives: Types.Array<string>;
 
   @Prop({ type: String })
   reason: string;

@@ -9,7 +9,7 @@ import { DateTime } from 'luxon';
 import {
   Channels,
   Keys,
-  Logs,
+  Event,
   Permissions,
   Users,
   UsersFefenya,
@@ -56,8 +56,8 @@ export class FefenyaService implements OnApplicationBootstrap {
     private readonly permissionsModel: Model<Permissions>,
     @InjectModel(Channels.name)
     private readonly channelsModel: Model<Channels>,
-    @InjectModel(Logs.name)
-    private readonly logsModel: Model<Logs>,
+    @InjectModel(Event.name)
+    private readonly eventModel: Model<Event>,
   ) {}
 
   async onApplicationBootstrap(): Promise<void> {
@@ -175,7 +175,7 @@ export class FefenyaService implements OnApplicationBootstrap {
                 interaction,
                 models: {
                   usersFefenyaModel: this.usersFefenyaModel,
-                  logsModel: this.logsModel,
+                  eventModel: this.eventModel,
                   permissionsModel: this.permissionsModel,
                   channelsModel: this.channelsModel,
                 },

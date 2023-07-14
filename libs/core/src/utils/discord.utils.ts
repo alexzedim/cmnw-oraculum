@@ -26,3 +26,5 @@ export const waitForDelay = async (seconds: number) =>
 
 export const operationStatus = (isNew: boolean) =>
   isNew ? 'created' : 'updated';
+
+export const now = () => DateTime.now().setZone('Europe/Moscow').toJSDate();

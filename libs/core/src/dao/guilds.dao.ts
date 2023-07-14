@@ -1,46 +1,47 @@
-import { Repository } from 'typeorm';
-import { GuildsEntity } from '@cmnw/pg';
 import { Guild, SnowflakeUtil } from 'discord.js';
 import { DateTime } from 'luxon';
+import { Guilds } from '@cmnw/mongo';
+import { Model } from 'mongoose';
+import { isDurationNotPass } from '@cmnw/core/utils';
 
 export const indexGuildByRepository = async (
-  repository: Repository<GuildsEntity>,
+  model: Model<Guilds>,
   guild: Guild,
   scannedBy: string,
-  forceUpdate = false,
-  tags = ['UNCLASSIFIED'],
 ) => {
-  let guildEntity = await repository.findOneBy({ id: guild.id });
-
-  if (guildEntity && forceUpdate) {
-    // TODO if owner has been changed
-
-    await repository.update(
-      { id: guild.id },
-      {
-        name: guild.name,
-        icon: guild.icon,
-        ownerId: guild.ownerId,
-        membersNumber: guild.memberCount,
-        updatedBy: scannedBy,
-      },
-    );
-  }
+  let guildEntity = await model.findById<Guilds>(guild.id);
 
   if (!guildEntity) {
-    guildEntity = repository.create({
-      id: guild.id,
+    guildEntity = new model({
+      _id: guild.id,
       name: guild.name,
       icon: guild.icon,
       ownerId: guild.ownerId,
-      tags: tags,
       membersNumber: guild.memberCount,
+      updatedBy: scannedBy,
+      scannedAt: new Date(),
       scannedBy: scannedBy,
       createdAt: DateTime.fromMillis(
         SnowflakeUtil.timestampFrom(guild.id),
       ).toJSDate(),
     });
-
-    await repository.save(guildEntity);
   }
+
+  if (guildEntity) {
+    // TODO check changes of ownerId
+    guildEntity.name = guild.name;
+    guildEntity.icon = guild.icon;
+    guildEntity.ownerId = guild.ownerId;
+    guildEntity.membersNumber = guild.memberCount;
+    guildEntity.updatedBy = scannedBy;
+
+    const isReadyToUpdate = isDurationNotPass(guildEntity.updatedAt, 1);
+    if (isReadyToUpdate) {
+      throw new Error(
+        `Guild :: ${guildEntity._id} :: ${guildEntity.name} has been updated in last interval`,
+      );
+    }
+  }
+
+  await guildEntity.save();
 };

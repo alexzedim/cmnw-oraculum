@@ -1,4 +1,4 @@
-import { MessageDto } from '@cmnw/core';
+import { MessageDto } from '@cmnw/core/dto';
 
 export class ChatFlowDto {
   role: 'user' | 'assistant';

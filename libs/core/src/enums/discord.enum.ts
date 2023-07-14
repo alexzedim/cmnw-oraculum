@@ -29,11 +29,14 @@ export enum DISCORD_SERVERS_ENUM {
   DreamGroove = '203632333620772874',
   HuntersLounge = '215427955193544704',
   FelHammer = '215548192891076610',
-  BlackTemple = '736173202979422271', // Rodriges
+  BlackTemple = '736173202979422271',
   HallOfTheGuardian = '212664465181769728',
   SkyholdCitadel = '217528830418616322',
   TempleOfVoidLight = '888098294662848543',
   HallOfShadows = '217529023838814208',
+  BlackScar = '217529170291458048',
+  Achievements = '725036680301641798',
+  TempleOfWyrm = '966011436847476736',
 }
 
 export enum DISCORD_SERVER_RENAME_ENUM {

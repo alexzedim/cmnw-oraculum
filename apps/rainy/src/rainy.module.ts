@@ -1,32 +1,33 @@
 import { Module } from '@nestjs/common';
 import { RainyService } from './rainy.service';
 import { ScheduleModule } from '@nestjs/schedule';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { postgresConfig, redisConfig } from '@cmnw/config';
+import { mongoConfig, rabbitConfig, redisConfig } from '@cmnw/config';
 import { RedisModule } from '@nestjs-modules/ioredis';
-import { SeederService } from './seeder/seeder.service';
+import { MongooseModule } from '@nestjs/mongoose';
+import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 import {
-  ChannelsEntity,
-  CoreUsersEntity,
-  GuildsEntity,
-  PermissionsEntity,
-  RolesEntity,
-  UserPermissionsEntity,
-  UsersEntity,
-} from '@cmnw/pg';
+  Channels,
+  ChannelsSchema,
+  Guilds,
+  GuildsSchema,
+  Keys,
+  KeysSchema,
+  Roles,
+  RolesSchema,
+  Users,
+  UsersSchema,
+} from '@cmnw/mongo';
 
 @Module({
   imports: [
     ScheduleModule.forRoot(),
-    TypeOrmModule.forRoot(postgresConfig),
-    TypeOrmModule.forFeature([
-      ChannelsEntity,
-      GuildsEntity,
-      UsersEntity,
-      RolesEntity,
-      CoreUsersEntity,
-      PermissionsEntity,
-      UserPermissionsEntity,
+    MongooseModule.forRoot(mongoConfig.connectionString),
+    MongooseModule.forFeature([
+      { name: Keys.name, schema: KeysSchema },
+      { name: Guilds.name, schema: GuildsSchema },
+      { name: Users.name, schema: UsersSchema },
+      { name: Channels.name, schema: ChannelsSchema },
+      { name: Roles.name, schema: RolesSchema },
     ]),
     RedisModule.forRoot({
       config: {
@@ -35,8 +36,12 @@ import {
         password: redisConfig.password,
       },
     }),
+    RabbitMQModule.forRoot(RabbitMQModule, {
+      uri: rabbitConfig.uri,
+      connectionInitOptions: { wait: true },
+    }),
   ],
   controllers: [],
-  providers: [RainyService, SeederService],
+  providers: [RainyService],
 })
 export class RainyModule {}

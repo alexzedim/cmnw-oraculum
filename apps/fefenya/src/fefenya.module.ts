@@ -10,8 +10,8 @@ import {
   FefenyaUsersSchema,
   Keys,
   KeysSchema,
-  Logs,
-  LogsSchema,
+  Event,
+  EventsSchema,
   Permissions,
   PermissionsSchema,
   Users,
@@ -29,7 +29,7 @@ import {
       { name: Users.name, schema: UsersSchema },
       { name: Permissions.name, schema: PermissionsSchema },
       { name: Channels.name, schema: ChannelsSchema },
-      { name: Logs.name, schema: LogsSchema },
+      { name: Event.name, schema: EventsSchema },
     ]),
     RedisModule.forRoot({
       config: {

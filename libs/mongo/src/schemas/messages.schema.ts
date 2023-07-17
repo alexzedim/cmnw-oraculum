@@ -1,5 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types, Document } from 'mongoose';
+import { Mentions, MentionsSchema } from 'cmnw/mongo/schemas/mentions.schema';
+import {
+  Attachments,
+  AttachmentsSchema,
+} from 'cmnw/mongo/schemas/attachments.schema';
 
 @Schema()
 export class Messages extends Document {
@@ -42,6 +47,15 @@ export class Messages extends Document {
   @Prop({ type: Number })
   length: number;
 
+  @Prop({ type: Number })
+  emojisCount: number;
+
+  @Prop({ type: [MentionsSchema], ref: 'Users' })
+  mentions: Types.Array<Mentions>;
+
+  @Prop({ type: [AttachmentsSchema] })
+  attachments: Types.Array<Attachments>;
+
   @Prop({ type: [String] })
   tags: Types.Array<string>;
 
@@ -56,7 +70,4 @@ export class Messages extends Document {
 }
 
 export const MessagesSchema = SchemaFactory.createForClass(Messages);
-MessagesSchema.index(
-  { channelId: -1, createdAt: -1 },
-  { name: 'IdxChatThread' },
-);
+MessagesSchema.index({ channelId: -1, createdAt: -1 }, { name: 'IdxChatThread' });

@@ -9,3 +9,6 @@ export * from './messages.schema';
 export * from './users-fefenya.schema';
 export * from './bans.schema';
 export * from './events.schema';
+export * from './games.schema';
+export * from './attachments.schema';
+export * from './mentions.schema';

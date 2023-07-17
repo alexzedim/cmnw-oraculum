@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { GENDER_ENUM } from '@cmnw/core';
+import { GENDER_ENUM, IDENTITY_TYPE_ENUM } from '@cmnw/core';
 
 @Schema({ timestamps: true })
 export class Identity extends Document {
@@ -11,7 +11,7 @@ export class Identity extends Document {
   userId: string;
 
   @Prop({ type: Types.ObjectId, ref: 'Keys' })
-  keyId: string;
+  keyId: Types.ObjectId;
 
   @Prop({ type: String })
   username: string;
@@ -30,6 +30,9 @@ export class Identity extends Document {
 
   @Prop({ type: String, enum: GENDER_ENUM })
   gender?: GENDER_ENUM;
+
+  @Prop({ type: String, enum: IDENTITY_TYPE_ENUM })
+  type?: IDENTITY_TYPE_ENUM;
 
   @Prop({ type: String })
   textPrompt: string;

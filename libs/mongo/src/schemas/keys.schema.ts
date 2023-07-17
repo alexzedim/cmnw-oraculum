@@ -25,6 +25,9 @@ export class Keys extends Document {
   @Prop({ type: String })
   token: string;
 
+  @Prop({ type: [String], refs: 'Guilds' })
+  vectors: Types.Array<string>;
+
   @Prop({ type: [String] })
   tags: Types.Array<string>;
 

@@ -12,6 +12,9 @@ export class Event extends Document {
   @Prop({ type: String, ref: 'Guilds' })
   guildId: string;
 
+  @Prop({ type: String, ref: 'Users' })
+  messageUserId: string;
+
   @Prop({ type: String, ref: 'Messages' })
   messageId: string;
 

@@ -8,19 +8,16 @@ export class Keys extends Document {
   id: string;
 
   @Prop({ type: String })
-  name: string;
-
-  @Prop({ type: String })
-  username: string;
-
-  @Prop({ type: String })
   login: string;
+
+  @Prop({ type: String })
+  password: string;
 
   @Prop({ type: String })
   email: string;
 
   @Prop({ type: String })
-  password: string;
+  emailPassword: string;
 
   @Prop({ type: String })
   token: string;
@@ -57,17 +54,17 @@ export class Keys extends Document {
 export const KeysSchema = SchemaFactory.createForClass(Keys);
 KeysSchema.index(
   {
-    name: 'text',
     tags: 'text',
     login: 'text',
     email: 'text',
+    status: 'text',
   },
   {
     default_language: 'english',
     weights: {
-      name: 10,
       login: 1,
       email: 1,
+      status: 2,
       tags: 3,
     },
     name: 'loadKey',

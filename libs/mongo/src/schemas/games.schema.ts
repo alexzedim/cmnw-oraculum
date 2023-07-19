@@ -1,15 +1,16 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document, Types } from 'mongoose';
 
 @Schema({ timestamps: true })
-export class Games {
+export class Games extends Document {
   @Prop({ required: true, type: String })
   _id: string;
 
   @Prop({ required: true, type: String })
   username: string;
 
-  @Prop({ type: String, ref: 'Guilds' })
-  guildId: string;
+  @Prop({ type: [String], ref: 'Guilds' })
+  homeGuildArea: Types.Array<string>;
 
   @Prop({ type: Number })
   score: number;

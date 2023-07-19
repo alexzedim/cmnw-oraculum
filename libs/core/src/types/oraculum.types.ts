@@ -6,6 +6,14 @@ export type Memorials = Array<Memorial>;
 
 export type ClassHall = Partial<IClassHall>;
 
+export type Role = 'user' | 'system' | 'assistant';
+
+export interface ChatDialogFlow {
+  role: Role;
+  content: string;
+  name?: string;
+}
+
 export interface IClassHall {
   emoji: string;
   tags: string[];
@@ -14,4 +22,25 @@ export interface IClassHall {
 export interface Memorial {
   name: string;
   value: string;
+}
+
+export interface IChatFlow {
+  role: 'user' | 'assistant' | 'system';
+  name?: string;
+  content: string;
+}
+
+export interface IAttachmentsMessage {
+  _id: string;
+  name: string;
+  contentType: string;
+  attachment: string;
+  url: string;
+}
+
+export interface IMentionsMessage {
+  _id: string;
+  bot: boolean;
+  username: string;
+  avatar: string;
 }

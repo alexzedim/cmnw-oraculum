@@ -1,17 +1,29 @@
 import { MessageDto } from '@cmnw/core/dto';
+import { IChatFlow } from '@cmnw/core/types';
+import { isArrayPropertyGuard } from '@cmnw/core/guards';
+import { Prompts } from '@cmnw/mongo';
 
 export class ChatFlowDto {
-  role: 'user' | 'assistant';
+  prompt: Prompts;
 
-  name?: string;
+  chatFlow: Array<IChatFlow>;
 
-  content: string;
-
-  static fromMessageDto(message: MessageDto, self: string): ChatFlowDto {
+  static fromMessageDto(
+    message: MessageDto,
+    prompt: Prompts,
+    self: string,
+  ): ChatFlowDto {
     const dto = new ChatFlowDto();
-    dto.role = message.userId === self ? 'assistant' : 'user';
-    dto.name = message.userId === self ? undefined : message.username;
-    dto.content = message.text;
+    dto.prompt = prompt;
+    dto.chatFlow = [
+      {
+        role: message.userId === self ? 'assistant' : 'user',
+        name: message.userId === self ? undefined : message.username,
+        content: isArrayPropertyGuard(message.attachments)
+          ? `${message.text} ${message.attachments[0].url}`
+          : message.text,
+      },
+    ];
     return dto;
   }
 }

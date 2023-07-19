@@ -1,6 +1,8 @@
 import { Message, SnowflakeUtil } from 'discord.js';
 import { Keys } from '@cmnw/mongo';
 import { DateTime } from 'luxon';
+import { IAttachmentsMessage, IMentionsMessage } from '@cmnw/core/types';
+import { isArrayPropertyGuard } from '@cmnw/core/guards';
 
 export class MessageDto {
   id: string;
@@ -18,6 +20,10 @@ export class MessageDto {
   channelName: string;
 
   channelType: number;
+
+  attachments?: Array<IAttachmentsMessage>;
+
+  mentions?: Array<IMentionsMessage>;
 
   referenceMessageId?: string;
 
@@ -41,6 +47,20 @@ export class MessageDto {
   ): MessageDto {
     const dto = new MessageDto();
     const scannedAt = new Date();
+    const mentions = message.mentions.users.map((user) => ({
+      _id: user.id,
+      avatar: user.avatar,
+      bot: user.bot,
+      username: user.username,
+    }));
+
+    const attachments = message.attachments.map((file) => ({
+      _id: file.id,
+      name: file.name,
+      url: file.url,
+      contentType: file.contentType,
+    }));
+
     const createdAt = DateTime.fromMillis(
       SnowflakeUtil.timestampFrom(message.id),
     ).toJSDate();
@@ -57,6 +77,8 @@ export class MessageDto {
       guildId: message.guild.id,
       guildName: message.guild.name,
       scannedBy: chatUser.id,
+      mentions: isArrayPropertyGuard(mentions) ? mentions : undefined,
+      attachments: isArrayPropertyGuard(attachments) ? attachments : undefined,
       referenceMessageId: message.reference
         ? message.reference.messageId
         : undefined,

@@ -11,3 +11,27 @@ export const testQueue = {
   type: 'direct',
   createExchangeIfNotExists: true,
 };
+
+export const chatQueue = {
+  name: ORACULUM_QUEUE.CHAT,
+  type: 'direct',
+  createExchangeIfNotExists: true,
+};
+
+export const voiceQueue = {
+  name: ORACULUM_QUEUE.VOICE,
+  type: 'direct',
+  createExchangeIfNotExists: true,
+};
+
+export const messageQueue = {
+  name: ORACULUM_QUEUE.MESSAGES,
+  type: 'direct',
+  createExchangeIfNotExists: true,
+};
+
+export const eventsQueue = {
+  name: ORACULUM_QUEUE.EVENTS,
+  type: 'direct',
+  createExchangeIfNotExists: true,
+};

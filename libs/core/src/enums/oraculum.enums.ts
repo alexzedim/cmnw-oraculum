@@ -10,13 +10,15 @@ export enum ORACULUM_QUEUE {
   ORACULUM = 'oraculum',
   MESSAGES = 'message',
   EVENTS = 'events',
+  CHAT = 'chat',
+  VOICE = 'voice',
   SPEECH = 'speech',
   QUESTIONS = 'questions',
 }
 
 export enum STATUS_ENUM {
-  TAKEN = 'TAKEN',
   FREE = 'FREE',
+  BIND = 'BIND',
   ENABLED = 'ENABLED',
   ACTIVE = 'ACTIVE',
   DISABLED = 'DISABLED',
@@ -30,9 +32,15 @@ export enum GENDER_ENUM {
 }
 
 export enum ROLE_TAGS_ENUM {
+  SUPERVISOR = 'supervisor',
   BOT = 'bot',
   EYE = 'eye',
   ORACLE = 'oracle',
+  USER = 'user',
+  FEFENYA = 'fefenya',
+  CONTEST = 'contest',
+  FLOW_2 = 'flow-2',
+  FLOW_1 = 'flow-1',
 }
 
 export enum GUILD_TAGS_ENUM {

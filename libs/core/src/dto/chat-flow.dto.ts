@@ -26,4 +26,19 @@ export class ChatFlowDto {
     ];
     return dto;
   }
+
+  static fromPromptsFlow(prompts: Array<Prompts>): ChatFlowDto {
+    const dto = new ChatFlowDto();
+
+    const sortedPrompts = prompts.sort((a, b) => a.position - b.position);
+    const [promptModel] = sortedPrompts;
+
+    dto.prompt = promptModel;
+    dto.chatFlow = sortedPrompts.map((prompt) => ({
+      role: prompt.role,
+      content: prompt.text,
+    }));
+
+    return dto;
+  }
 }

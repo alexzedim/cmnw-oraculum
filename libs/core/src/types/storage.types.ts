@@ -14,3 +14,9 @@ export interface StorageTypes {
   roleStorage: Collection<string, RolesEntity>;
   userPermissionStorage: Collection<string, UserPermissionsEntity>;
 }
+
+export interface VotingCounter {
+  yes: number;
+  no: number;
+  voters: Set<string>;
+}

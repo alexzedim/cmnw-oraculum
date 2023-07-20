@@ -33,10 +33,10 @@ export enum PEPA_ROLL_CHANCE {
   IS_MEDIA = 85,
 }
 
-export enum PEPA_STORAGE_KEYS {
-  EMOJIS = 'PEPA_EMO',
-  STICKERS = 'PEPA_STICKER',
-  USER = 'PEPA_USER',
+export enum STORAGE_KEYS {
+  EMOJIS = 'EMO',
+  STICKERS = 'STICKER',
+  USER = 'USER',
 }
 
 export enum CHAT_KEYS {

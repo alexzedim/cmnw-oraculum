@@ -1,6 +1,6 @@
 import { GuildMember, SnowflakeUtil, User } from 'discord.js';
 import { DateTime } from 'luxon';
-import { Users, UsersFefenya } from '@cmnw/mongo';
+import { Users, Fefenya } from '@cmnw/mongo';
 import { Model } from 'mongoose';
 import { cryptoRandomIntBetween } from '@cmnw/core/utils';
 
@@ -38,10 +38,10 @@ export const indexUser = async (
 };
 
 export const indexFefenyaUser = async (
-  usersFefenyaModel: Model<UsersFefenya>,
+  usersFefenyaModel: Model<Fefenya>,
   guildMember: GuildMember,
 ) => {
-  let userFefenya = await usersFefenyaModel.findById<UsersFefenya>(
+  let userFefenya = await usersFefenyaModel.findById<Fefenya>(
     guildMember.user.id,
   );
   if (userFefenya) userFefenya.username = guildMember.user.username;
@@ -58,7 +58,7 @@ export const indexFefenyaUser = async (
 };
 
 export const pickRandomFefenyaUser = async (
-  usersFefenyaModel: Model<UsersFefenya>,
+  usersFefenyaModel: Model<Fefenya>,
   guildId: string,
 ) => {
   const int = await usersFefenyaModel.count({
@@ -67,17 +67,17 @@ export const pickRandomFefenyaUser = async (
 
   const randomInt = cryptoRandomIntBetween(0, int - 1);
 
-  return usersFefenyaModel.findOneAndUpdate(
-    {
+  const userFefenya = await usersFefenyaModel
+    .findOne({
       guildId: guildId,
-    },
+    })
+    .skip(randomInt);
+
+  return usersFefenyaModel.findOneAndUpdate(
+    { _id: userFefenya._id },
     {
       isGotd: true,
       $inc: { count: 1 },
-    },
-    {
-      skip: randomInt,
-      new: true,
     },
   );
 };

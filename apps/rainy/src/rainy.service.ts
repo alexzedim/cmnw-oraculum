@@ -15,7 +15,6 @@ import {
   DISCORD_REASON_BANS,
   DISCORD_SERVER_RENAME,
   EventDto,
-  EVENTS_QUEUE,
   indexGuildByRepository,
   loadKey,
 } from '@cmnw/core';

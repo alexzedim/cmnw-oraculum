@@ -1,7 +1,7 @@
 import { EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 import { SlashCommand } from '@cmnw/commands/types';
 import { FEFENYA_COMMANDS, FEFENYA_DESCRIPTION } from '@cmnw/core';
-import { UsersFefenya } from '@cmnw/mongo';
+import { Fefenya } from '@cmnw/mongo';
 import { COMMAND_DESCRIPTION_ENUMS, COMMAND_ENUMS } from '@cmnw/commands/enums';
 
 export const gotsStatsCommand: SlashCommand = {
@@ -17,7 +17,7 @@ export const gotsStatsCommand: SlashCommand = {
       const { usersFefenyaModel } = models;
 
       const usersFefenya = await usersFefenyaModel
-        .find<UsersFefenya>({ guildId: interaction.guildId })
+        .find<Fefenya>({ guildId: interaction.guildId })
         .limit(10)
         .sort({ count: -1 });
 

@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, TextChannel } from 'discord.js';
-import { UsersFefenya } from '@cmnw/mongo';
+import { Prompts, Fefenya } from '@cmnw/mongo';
 import {
   COMMAND_DESCRIPTION_ENUMS,
   COMMAND_ENUMS,
@@ -7,13 +7,19 @@ import {
 } from '@cmnw/commands';
 
 import {
+  ChatFlowDto,
+  chatQueue,
+  cryptoRandomIntBetween,
   FEFENYA_COMMANDS,
   FEFENYA_DESCRIPTION,
-  GOTD_GREETING_FLOW,
   GOTD_SELECTED_FLOW,
   gotdGreeter,
   gotdSelected,
   pickRandomFefenyaUser,
+  prettyGotd,
+  prettyReply,
+  ROLE_TAGS_ENUM,
+  waitForDelay,
 } from '@cmnw/core';
 
 export const gotdCommand: SlashCommand = {
@@ -23,12 +29,12 @@ export const gotdCommand: SlashCommand = {
     .setName(FEFENYA_COMMANDS.GOTD)
     .setDescription(FEFENYA_DESCRIPTION.GOTD),
 
-  async executeInteraction({ interaction, logger, models }) {
+  executeInteraction: async function ({ interaction, logger, models, rabbit }) {
     if (!interaction.isChatInputCommand()) return;
     try {
       logger.log(`${FEFENYA_COMMANDS.GOTD} has been triggered`);
 
-      let fefenyaUser = await models.usersFefenyaModel.findOne<UsersFefenya>({
+      let fefenyaUser = await models.usersFefenyaModel.findOne<Fefenya>({
         guildId: interaction.guildId,
         isGotd: true,
       });
@@ -48,6 +54,8 @@ export const gotdCommand: SlashCommand = {
         `Selecting gay lord of the day from: ${interaction.guild.id}`,
       );
 
+      await interaction.deferReply();
+
       fefenyaUser = await pickRandomFefenyaUser(
         models.usersFefenyaModel,
         interaction.guildId,
@@ -57,25 +65,51 @@ export const gotdCommand: SlashCommand = {
         `Fefenya pre-pick user as a gaylord: ${fefenyaUser._id} :: ${fefenyaUser.username}`,
       );
 
-      const greetingFlow = GOTD_GREETING_FLOW.random();
-      const arrLength = greetingFlow.length;
-      let content: string;
+      const prompts = await models.prompts
+        .find<Prompts>({
+          tags: {
+            $all: [
+              ROLE_TAGS_ENUM.FEFENYA,
+              ROLE_TAGS_ENUM.CONTEST,
+              ROLE_TAGS_ENUM.FLOW_2,
+            ],
+          },
+          position: { $in: [0, 1] },
+        })
+        .sort({ position: 1 });
 
-      for (let i = 0; i < arrLength; i++) {
-        content =
-          arrLength - 1 === i
-            ? gotdGreeter(greetingFlow[i], fefenyaUser.id)
-            : greetingFlow[i];
+      const chatFlow = ChatFlowDto.fromPromptsFlow(prompts);
 
-        if (i === 0) {
-          await interaction.reply({
-            content,
-            ephemeral: false,
-          });
-        } else {
-          await (interaction.channel as TextChannel).send({ content });
-        }
+      const response = await rabbit.request<string>({
+        exchange: chatQueue.name,
+        routingKey: 'v4',
+        payload: chatFlow,
+        timeout: 60 * 1000,
+      });
+
+      const names = [
+        'Фефеня',
+        'Ефхеня',
+        'Фефеничная',
+        'Расфуфеня',
+        'ваша любимая и неподраждаемая Фефенадзе',
+        'Ева Фефенистая',
+      ];
+      const i = cryptoRandomIntBetween(0, names.length - 1);
+      const replies = prettyGotd(response, names[i]);
+      const reply = replies.shift();
+      const userTag = gotdGreeter(fefenyaUser._id);
+      await interaction.editReply(reply);
+
+      for (const replyBack of replies) {
+        await (interaction.channel as TextChannel).send({
+          content: prettyReply(replyBack),
+        });
+        const randomInt = cryptoRandomIntBetween(3, 70);
+        await waitForDelay(randomInt);
       }
+
+      await interaction.channel.send(userTag);
     } catch (errorOrException) {
       logger.error(errorOrException);
       await interaction.reply({

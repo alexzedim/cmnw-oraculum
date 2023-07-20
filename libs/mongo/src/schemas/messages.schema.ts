@@ -1,10 +1,11 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types, Document } from 'mongoose';
-import { Mentions, MentionsSchema } from 'cmnw/mongo/schemas/mentions.schema';
 import {
   Attachments,
   AttachmentsSchema,
-} from 'cmnw/mongo/schemas/attachments.schema';
+  Mentions,
+  MentionsSchema,
+} from '@cmnw/mongo/schemas';
 
 @Schema()
 export class Messages extends Document {
@@ -70,4 +71,7 @@ export class Messages extends Document {
 }
 
 export const MessagesSchema = SchemaFactory.createForClass(Messages);
-MessagesSchema.index({ channelId: -1, createdAt: -1 }, { name: 'IdxChatThread' });
+MessagesSchema.index(
+  { channelId: -1, createdAt: -1 },
+  { name: 'IdxChatThread' },
+);

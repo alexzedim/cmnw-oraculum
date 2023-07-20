@@ -64,3 +64,8 @@ export const CMNW_MEMORIAL_DEDICATIONS = new Map<string, Memorials>([
     ],
   ],
 ]);
+
+export const EMOJIS_EVENT_KEYS = new Map([
+  ['messageReactionAdd', 1],
+  ['messageReactionRemove', -1],
+]);

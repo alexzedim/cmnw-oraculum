@@ -2,12 +2,13 @@ import { Module } from '@nestjs/common';
 import { ScheduleModule } from '@nestjs/schedule';
 import { FefenyaService } from './fefenya.service';
 import { RedisModule } from '@nestjs-modules/ioredis';
-import { mongoConfig, redisConfig } from '@cmnw/config';
+import { mongoConfig, rabbitConfig, redisConfig } from '@cmnw/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 import {
   Channels,
   ChannelsSchema,
-  FefenyaUsersSchema,
+  FefenyasSchema,
   Keys,
   KeysSchema,
   Event,
@@ -15,8 +16,12 @@ import {
   Permissions,
   PermissionsSchema,
   Users,
-  UsersFefenya,
+  Fefenya,
   UsersSchema,
+  Prompts,
+  Profiles,
+  PromptsSchema,
+  ProfilesSchema,
 } from '@cmnw/mongo';
 
 @Module({
@@ -25,7 +30,9 @@ import {
     MongooseModule.forRoot(mongoConfig.connectionString),
     MongooseModule.forFeature([
       { name: Keys.name, schema: KeysSchema },
-      { name: UsersFefenya.name, schema: FefenyaUsersSchema },
+      { name: Prompts.name, schema: PromptsSchema },
+      { name: Profiles.name, schema: ProfilesSchema },
+      { name: Fefenya.name, schema: FefenyasSchema },
       { name: Users.name, schema: UsersSchema },
       { name: Permissions.name, schema: PermissionsSchema },
       { name: Channels.name, schema: ChannelsSchema },
@@ -37,6 +44,10 @@ import {
         port: redisConfig.port,
         password: redisConfig.password,
       },
+    }),
+    RabbitMQModule.forRoot(RabbitMQModule, {
+      uri: rabbitConfig.uri,
+      connectionInitOptions: { wait: true },
     }),
   ],
   controllers: [],

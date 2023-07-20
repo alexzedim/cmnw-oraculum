@@ -19,6 +19,9 @@ export class Profiles extends Document {
   @Prop({ type: String })
   name: string;
 
+  @Prop({ type: [String] })
+  aliases: Types.Array<string>;
+
   @Prop({ type: Buffer })
   avatar: Buffer;
 

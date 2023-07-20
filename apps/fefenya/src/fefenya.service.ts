@@ -1,6 +1,7 @@
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { gotdCommand, gotsStatsCommand, SlashCommand } from '@cmnw/commands';
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
+import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { from, lastValueFrom, mergeMap } from 'rxjs';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -8,19 +9,24 @@ import { DateTime } from 'luxon';
 
 import {
   Channels,
-  Keys,
   Event,
+  Keys,
   Permissions,
+  Profiles,
+  Prompts,
   Users,
-  UsersFefenya,
+  Fefenya,
 } from '@cmnw/mongo';
 
 import {
+  GENDER_ENUM,
+  getProfile,
   GOTD_GREETING_FLOW,
   gotdGreeter,
-  loadKey,
   indexFefenyaUser,
+  loadKey,
   pickRandomFefenyaUser,
+  ROLE_TAGS_ENUM,
 } from '@cmnw/core';
 
 import {
@@ -42,16 +48,20 @@ export class FefenyaService implements OnApplicationBootstrap {
   private client: Client;
   private fefenyaKey: Keys;
   private commandsMessage: Collection<string, SlashCommand> = new Collection();
-  private commandSlash = [];
   private readonly rest = new REST({ version: '10' });
 
   constructor(
+    private readonly amqpConnection: AmqpConnection,
     @InjectModel(Keys.name)
     private readonly keysModel: Model<Keys>,
+    @InjectModel(Prompts.name)
+    private readonly promptsModel: Model<Prompts>,
+    @InjectModel(Profiles.name)
+    private readonly profilesModel: Model<Profiles>,
     @InjectModel(Users.name)
     private readonly usersModel: Model<Users>,
-    @InjectModel(UsersFefenya.name)
-    private readonly usersFefenyaModel: Model<UsersFefenya>,
+    @InjectModel(Fefenya.name)
+    private readonly usersFefenyaModel: Model<Fefenya>,
     @InjectModel(Permissions.name)
     private readonly permissionsModel: Model<Permissions>,
     @InjectModel(Channels.name)
@@ -87,7 +97,11 @@ export class FefenyaService implements OnApplicationBootstrap {
         },
       });
 
-      this.fefenyaKey = await loadKey(this.keysModel, 'Fefenya');
+      this.fefenyaKey = await loadKey(
+        this.keysModel,
+        ROLE_TAGS_ENUM.FEFENYA,
+        true,
+      );
 
       await this.client.login(this.fefenyaKey.token);
       this.rest.setToken(this.fefenyaKey.token);
@@ -98,12 +112,15 @@ export class FefenyaService implements OnApplicationBootstrap {
 
   private async loadCommands(): Promise<void> {
     this.commandsMessage.set(gotsStatsCommand.name, gotsStatsCommand);
-    this.commandSlash.push(gotsStatsCommand.slashCommand.toJSON());
     this.commandsMessage.set(gotdCommand.name, gotdCommand);
-    this.commandSlash.push(gotdCommand.slashCommand.toJSON());
+
+    const commands = [
+      gotdCommand.slashCommand.toJSON(),
+      gotsStatsCommand.slashCommand.toJSON(),
+    ];
 
     await this.rest.put(Routes.applicationCommands(this.client.user.id), {
-      body: this.commandSlash,
+      body: commands,
     });
 
     this.logger.log('Commands updated');
@@ -114,15 +131,18 @@ export class FefenyaService implements OnApplicationBootstrap {
       from(this.client.guilds.cache.values()).pipe(
         mergeMap(async (guild) => {
           try {
-            const fefenyaUsers = Array.from(guild.members.cache.values()).map(
-              (member) =>
-                new this.usersFefenyaModel({
-                  _id: member.id,
-                  username: member.displayName,
-                  guildId: member.guild.id,
-                  count: 0,
-                }),
-            );
+            const fefenyaUsers = Array.from(guild.members.cache.values())
+              .map((member) =>
+                member.user.bot === false
+                  ? new this.usersFefenyaModel({
+                      _id: member.id,
+                      username: member.displayName,
+                      guildId: member.guild.id,
+                      count: 0,
+                    })
+                  : undefined,
+              )
+              .filter(Boolean);
 
             await this.usersFefenyaModel.insertMany(fefenyaUsers, {
               ordered: false,
@@ -138,14 +158,22 @@ export class FefenyaService implements OnApplicationBootstrap {
 
   async bot(): Promise<void> {
     try {
-      this.client.on(Events.ClientReady, async () =>
-        this.logger.log(`Logged in as ${this.client.user.tag}!`),
-      );
+      this.client.on(Events.ClientReady, async () => {
+        this.logger.log(`Logged in as ${this.client.user.tag}!`);
+
+        await getProfile(this.logger, this.profilesModel, this.fefenyaKey, {
+          codename: 'Fefenya',
+          keyId: this.fefenyaKey._id,
+          userId: this.client.user.id,
+          username: this.client.user.username,
+          avatarUrl: this.client.user.avatarURL(),
+          gender: GENDER_ENUM.F,
+        });
+      });
 
       this.client.on(Events.GuildCreate, async (guild): Promise<void> => {
         try {
           // TODO index guild binding
-
           for (const guildMember of guild.members.cache.values()) {
             const isUserBot = guildMember.user.bot;
             if (isUserBot) return;
@@ -164,12 +192,12 @@ export class FefenyaService implements OnApplicationBootstrap {
               const command = this.commandsMessage.get(interaction.commandName);
               if (!command) return;
 
-              await this.channelsModel.findByIdAndUpdate(
+              /*              await this.channelsModel.findByIdAndUpdate(
                 interaction.channel.id,
                 {
-                  tags: { $addToSet: this.fefenyaKey.name },
+                  tags: { $addToSet: ROLE_TAGS_ENUM.FEFENYA },
                 },
-              );
+              );*/
 
               await command.executeInteraction({
                 interaction,
@@ -178,8 +206,10 @@ export class FefenyaService implements OnApplicationBootstrap {
                   eventModel: this.eventModel,
                   permissionsModel: this.permissionsModel,
                   channelsModel: this.channelsModel,
+                  prompts: this.promptsModel,
                 },
                 logger: this.logger,
+                rabbit: this.amqpConnection,
               });
             } catch (errorException) {
               this.logger.error(errorException);
@@ -204,13 +234,10 @@ export class FefenyaService implements OnApplicationBootstrap {
       from(guilds).pipe(
         mergeMap(async (guild) => {
           try {
-            let fefenyaUser =
-              await this.usersFefenyaModel.findOne<UsersFefenya>({
-                guildId: guild.id,
-                isGotd: true,
-              });
-
-            // TODO if hello world!
+            let fefenyaUser = await this.usersFefenyaModel.findOne<Fefenya>({
+              guildId: guild.id,
+              isGotd: true,
+            });
 
             if (fefenyaUser) {
               const isGotdTriggered =
@@ -245,22 +272,13 @@ export class FefenyaService implements OnApplicationBootstrap {
 
               const channelEntity = await this.channelsModel.findOne<Channels>({
                 guildId: guild.id,
-                tag: this.fefenyaKey.name,
+                tag: ROLE_TAGS_ENUM.FEFENYA,
               });
 
               const channel = guild.channels.cache.get(channelEntity._id);
 
               const isChannelText = channel.type !== ChannelType.GuildText;
               if (isChannelText) return;
-
-              for (let i = 0; i < arrLength; i++) {
-                const content =
-                  arrLength - 1 === i
-                    ? gotdGreeter(greetingFlow[i], fefenyaUser.id)
-                    : greetingFlow[i];
-
-                await channel.send({ content });
-              }
             }
           } catch (errorOrException) {
             this.logger.error(`idleReaction: ${errorOrException}`);

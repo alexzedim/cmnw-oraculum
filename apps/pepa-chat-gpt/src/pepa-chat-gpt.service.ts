@@ -2,7 +2,7 @@ import Redis from 'ioredis';
 import { REST } from '@discordjs/rest';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import { ChatService } from './chat/chat.service';
-import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
+import { AmqpConnection, RabbitSubscribe } from '@golevelup/nestjs-rabbitmq';
 import { DateTime } from 'luxon';
 import { Interval } from '@nestjs/schedule';
 import { Model } from 'mongoose';
@@ -11,19 +11,23 @@ import { Keys } from '@cmnw/mongo';
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import {
   cryptoCommand,
+  messageEmbed,
   SlashCommand,
   votingSanctionsCommand,
 } from '@cmnw/commands';
 
 import {
   formatRedisKey,
-  CHAT_KEYS,
-  PEPA_STORAGE_KEYS,
+  STORAGE_KEYS,
   MessageDto,
   ChatFlowDto,
   cryptoRandomIntBetween,
   loadKey,
   ORACULUM_QUEUE,
+  oraculumQueue,
+  waitForDelay,
+  chatQueue,
+  VotingCounter,
 } from '@cmnw/core';
 
 import {
@@ -38,6 +42,7 @@ import {
   Partials,
   Routes,
   Snowflake,
+  TextChannel,
 } from 'discord.js';
 
 @Injectable()
@@ -49,16 +54,11 @@ export class PepaChatGptService implements OnApplicationBootstrap {
 
   private client: Client;
   private chatUser: Keys;
-  private commandsMessage: Collection<string, SlashCommand> = new Collection();
-  private messageStorage: Collection<
+  private votingStorage = new Collection<string, VotingCounter>();
+  private commandsMessage = new Collection<string, SlashCommand>();
+  private messageStorage = new Collection<
     Snowflake,
     Collection<Snowflake, MessageDto>
-  > = new Collection();
-
-  // TODO remove
-  private votingStorage = new Collection<
-    string,
-    { yes: number; no: number; voters: Set<string> }
   >();
 
   constructor(
@@ -118,6 +118,22 @@ export class PepaChatGptService implements OnApplicationBootstrap {
     this.rest.setToken(this.chatUser.token);
   }
 
+  @RabbitSubscribe({
+    exchange: oraculumQueue.name,
+    queue: oraculumQueue.name,
+    routingKey: 'messages.all',
+    createQueueIfNotExists: true,
+  })
+  private async test(message: MessageDto) {
+    await waitForDelay(10);
+    const channel = this.client.channels.cache.get(
+      '1100433314101338202',
+    ) as TextChannel;
+
+    const embed = messageEmbed(message);
+    await channel.send({ embeds: [embed] });
+  }
+
   private async bot() {
     this.client.on(Events.ClientReady, async () => {
       this.logger.log(`Logged in as ${this.client.user.tag}!`);
@@ -131,7 +147,7 @@ export class PepaChatGptService implements OnApplicationBootstrap {
         newMember: GuildMember,
       ) => {
         // TODO index roles
-        const key = formatRedisKey(PEPA_STORAGE_KEYS.USER, 'PEPA');
+        const key = formatRedisKey(STORAGE_KEYS.USER, 'PEPA');
         const hasEvent = Boolean(await this.redisService.exists(key));
         if (hasEvent) {
           this.logger.warn(`${oldMember.id} has been triggered already!`);
@@ -210,20 +226,24 @@ export class PepaChatGptService implements OnApplicationBootstrap {
         }
       }
     });
-    /**
-     * @description Doesn't trigger itself & other bots as-well.
-     */
+
     this.client.on(Events.MessageCreate, async (message: Message<true>) => {
       let isIgnore: boolean;
       let isMentioned: boolean;
-      let isQuestion: boolean;
 
       try {
+        /**
+         * @description Form dto from message
+         * @description and pass it to queue
+         */
         const chatMessage = MessageDto.fromDiscordMessage(
           message,
           this.chatUser,
         );
-
+        /**
+         * @description create channel message storage
+         * @description and extract messages is it exists
+         */
         const channelId = message.channel.id;
         const isChannelExists = this.messageStorage.has(channelId);
         const messageStorage = isChannelExists
@@ -240,27 +260,23 @@ export class PepaChatGptService implements OnApplicationBootstrap {
           message,
           this.client,
         );
-        if (isIgnore) return;
+        if (isSelf || isBot) return;
+        // TODO isMultipleQuestions, isCertainQuestion
+        // const { isMultipleQuestions, isCertainQuestion } = await this.chatService.isQuestion(message);
 
-        await this.chatService.isQuestion(message);
-        // TODO if (isQuestion) return;
+        // isIgnore = await this.chatService.isIgnoreTriggered(this.chatUser.name);
+        // if (isIgnore) return;
 
-        isIgnore = await this.chatService.isIgnoreTriggered(this.chatUser.name);
-        if (isIgnore) return;
+        // await this.chatService.setChannelLastActive(message.channelId);
 
-        await this.chatService.setChannelLastActive(message.channelId);
+        const { content } = message;
 
-        const { id, author, reference, content, channel, guild } = message;
-        const key = formatRedisKey(CHAT_KEYS.MENTIONED, 'CHAT');
-
-        /*        isMentioned = await this.chatService.isUserMentioned(
+        isMentioned = await this.chatService.isUserMentioned(
           message.mentions,
           message.mentions.users,
           this.client.user.id,
           content,
-        );*/
-
-        isMentioned = Boolean(await this.redisService.exists(key));
+        );
 
         const isText = Boolean(content);
         const hasAttachment = Boolean(message.attachments.size);
@@ -275,7 +291,7 @@ export class PepaChatGptService implements OnApplicationBootstrap {
         const now = DateTime.now().setZone('Europe/Moscow');
         await this.amqpConnection.publish<MessageDto>(
           ORACULUM_QUEUE.MESSAGES,
-          'test-test',
+          'v4',
           chatMessage,
         );
 
@@ -290,11 +306,10 @@ export class PepaChatGptService implements OnApplicationBootstrap {
           );
 
         const response = await this.amqpConnection.request<string>({
-          exchange: 'rpc-queue',
-          routingKey: 'rpc',
+          exchange: chatQueue.name,
+          routingKey: 'v4',
           payload: dialogFrom,
-          timeout: 30000, // optional timeout for how long the request
-          // should wait before failing if no response is received
+          timeout: 60 * 1000,
         });
 
         console.log(response);

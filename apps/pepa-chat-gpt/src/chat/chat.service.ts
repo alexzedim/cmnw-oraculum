@@ -1,7 +1,6 @@
 import Redis from 'ioredis';
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRedis } from '@nestjs-modules/ioredis';
-import { Identity } from '@cmnw/mongo';
 import {
   ChannelType,
   Client,
@@ -16,9 +15,10 @@ import {
   formatRedisKey,
   CHAT_KEYS,
   PEPA_ROLL_CHANCE,
-  PEPA_STORAGE_KEYS,
+  STORAGE_KEYS,
   ACTION_TRIGGER_FLAG,
 } from '@cmnw/core';
+import { Prompts } from '@cmnw/mongo';
 
 @Injectable()
 export class ChatService {
@@ -37,7 +37,7 @@ export class ChatService {
     const anchorRandomElement = cryptoRandomIntBetween(min, max);
     const rangeAnchorElement = cryptoRandomIntBetween(min, 4);
     const emojiPepeArrayId = await this.redisService.lrange(
-      formatRedisKey(PEPA_STORAGE_KEYS.EMOJIS, 'PEPA'),
+      formatRedisKey(STORAGE_KEYS.EMOJIS, 'PEPA'),
       anchorRandomElement - rangeAnchorElement,
       anchorRandomElement,
     );
@@ -148,7 +148,7 @@ export class ChatService {
   }
 
   public async isUserMentioned(
-    user: Identity,
+    promptModel: Prompts,
     mentions: MessageMentions<boolean>,
     mentionUsers: Collection<string, User>,
     clientId: string,

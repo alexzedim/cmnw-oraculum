@@ -22,6 +22,10 @@ import {
   Profiles,
   PromptsSchema,
   ProfilesSchema,
+  Roles,
+  RolesSchema,
+  Guilds,
+  GuildsSchema,
 } from '@cmnw/mongo';
 
 @Module({
@@ -37,6 +41,8 @@ import {
       { name: Permissions.name, schema: PermissionsSchema },
       { name: Channels.name, schema: ChannelsSchema },
       { name: Event.name, schema: EventsSchema },
+      { name: Roles.name, schema: RolesSchema },
+      { name: Guilds.name, schema: GuildsSchema },
     ]),
     RedisModule.forRoot({
       config: {

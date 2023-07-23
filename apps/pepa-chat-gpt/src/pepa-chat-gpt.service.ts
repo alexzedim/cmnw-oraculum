@@ -21,7 +21,7 @@ import {
   STORAGE_KEYS,
   MessageDto,
   ChatFlowDto,
-  cryptoRandomIntBetween,
+  randomMixMax,
   loadKey,
   ORACULUM_QUEUE,
   oraculumQueue,
@@ -295,7 +295,7 @@ export class PepaChatGptService implements OnApplicationBootstrap {
           chatMessage,
         );
 
-        const n = cryptoRandomIntBetween(1, 7);
+        const n = randomMixMax(1, 7);
         if (n < 6) return;
 
         const messageCollection = this.messageStorage.get(channelId);

@@ -15,7 +15,7 @@ import {
   DISCORD_REASON_BANS,
   DISCORD_SERVER_RENAME,
   EventDto,
-  indexGuildByRepository,
+  indexGuild,
   loadKey,
 } from '@cmnw/core';
 
@@ -117,7 +117,7 @@ export class RainyService implements OnApplicationBootstrap {
 
       this.client.on(Events.GuildCreate, async (guild) => {
         try {
-          await indexGuildByRepository(
+          await indexGuild(
             this.guildsModel,
             guild,
             this.client.user.id,

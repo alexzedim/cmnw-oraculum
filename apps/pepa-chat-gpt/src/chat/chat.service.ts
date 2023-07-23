@@ -11,7 +11,7 @@ import {
 } from 'discord.js';
 
 import {
-  cryptoRandomIntBetween,
+  randomMixMax,
   formatRedisKey,
   CHAT_KEYS,
   PEPA_ROLL_CHANCE,
@@ -34,8 +34,8 @@ export class ChatService {
     min: number,
     max: number,
   ) {
-    const anchorRandomElement = cryptoRandomIntBetween(min, max);
-    const rangeAnchorElement = cryptoRandomIntBetween(min, 4);
+    const anchorRandomElement = randomMixMax(min, max);
+    const rangeAnchorElement = randomMixMax(min, 4);
     const emojiPepeArrayId = await this.redisService.lrange(
       formatRedisKey(STORAGE_KEYS.EMOJIS, 'PEPA'),
       anchorRandomElement - rangeAnchorElement,
@@ -62,7 +62,7 @@ export class ChatService {
     }
 
     try {
-      const triggerChance = cryptoRandomIntBetween(0, 100);
+      const triggerChance = randomMixMax(0, 100);
 
       if (isMedia && triggerChance > PEPA_ROLL_CHANCE.IS_MEDIA) {
         return {
@@ -131,7 +131,7 @@ export class ChatService {
   }
 
   public async setTriggerIgnore(): Promise<void> {
-    const timeout = cryptoRandomIntBetween(30, 600);
+    const timeout = randomMixMax(30, 600);
     const key = formatRedisKey(CHAT_KEYS.FULL_TILT_IGNORE, 'CHAT');
     await this.redisService.set(key, 1, 'EX', timeout);
     this.logger.debug(`Pepa will ignore everything for ${timeout} seconds`);
@@ -166,7 +166,7 @@ export class ChatService {
 
     if (isMentioned) {
       const key = formatRedisKey(CHAT_KEYS.MENTIONED, 'PEPA');
-      await this.redisService.set(key, 1, 'EX', cryptoRandomIntBetween(7, 10));
+      await this.redisService.set(key, 1, 'EX', randomMixMax(7, 10));
     }
 
     return isMentioned;

@@ -90,6 +90,15 @@
       "compilerOptions": {
         "tsConfigPath": "libs/commands/tsconfig.lib.json"
       }
+    },
+    "riven": {
+      "type": "application",
+      "root": "apps/riven",
+      "entryFile": "main",
+      "sourceRoot": "apps/riven/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/riven/tsconfig.app.json"
+      }
     }
   }
 }

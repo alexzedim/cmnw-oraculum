@@ -3,8 +3,9 @@ export enum FEFENYA_KEYS {
   GOTD_TOD_SUMMARY_STATUS = 'GOTD_TOD_SUMMARY_STATUS',
 }
 
-export enum FEFENYA_TEXT_KEYS {
-  ALREADY_TRIGGERED = 'ALREADY_TRIGGERED',
+export enum FEFENYA_HOLIDAY {
+  COMMAND = 'command',
+  GOTD = 'gotd',
 }
 
 export enum FEFENYA_COMMANDS {

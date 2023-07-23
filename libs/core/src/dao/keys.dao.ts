@@ -1,6 +1,6 @@
 import { Model } from 'mongoose';
 import { Keys } from '@cmnw/mongo';
-import { ROLE_TAGS_ENUM, STATUS_ENUM } from '@cmnw/core/enums';
+import { TAGS_ENUM, STATUS_ENUM } from '@cmnw/core/enums';
 import { Logger } from '@nestjs/common';
 
 export const loadKey = async (
@@ -8,7 +8,7 @@ export const loadKey = async (
   query: string,
   forceTake = true,
 ) => {
-  const isTag = Object.values(ROLE_TAGS_ENUM).includes(query as ROLE_TAGS_ENUM);
+  const isTag = Object.values(TAGS_ENUM).includes(query as TAGS_ENUM);
   const exclude = isTag && !forceTake ? ` -${STATUS_ENUM.BIND}` : '';
 
   const key = await model
@@ -54,8 +54,7 @@ export async function updateKey(
     partialKeys.tags.forEach((tag) => key.tags.addToSet(tag));
   }
 
-  if (isSuperVisor)
-    key.tags.addToSet(ROLE_TAGS_ENUM.SUPERVISOR, ROLE_TAGS_ENUM.USER);
+  if (isSuperVisor) key.tags.addToSet(TAGS_ENUM.SUPERVISOR, TAGS_ENUM.USER);
 
   key.status = partialKeys.status;
 

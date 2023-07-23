@@ -5,7 +5,7 @@ import { setTimeout } from 'node:timers/promises';
 /**
  * @description Gives a random int number in-between requested values
  */
-export const cryptoRandomIntBetween = (
+export const randomMixMax = (
   min = 0,
   max = 100,
   divider?: number | undefined,

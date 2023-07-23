@@ -10,15 +10,17 @@ import {
   Channels,
   Roles,
   Prompts,
+  Guilds,
 } from '@cmnw/mongo';
 
 export interface IModels {
-  usersFefenyaModel: Model<Fefenya>;
+  fefenyaModel: Model<Fefenya>;
   permissionsModel: Model<Permissions>;
   channelsModel: Model<Channels>;
   eventModel: Model<Event>;
   rolesModel: Model<Roles>;
-  prompts: Model<Prompts>;
+  promptsModel: Model<Prompts>;
+  guildsModel: Model<Guilds>;
 }
 
 export interface ISlashCommandArgs {
@@ -33,5 +35,5 @@ export interface ISlashCommand {
   name: string;
   description: string;
   slashCommand: any; // TODO SlashCommandBuilder
-  executeInteraction(args: ISlashCommandArgs): Promise<void>;
+  executeInteraction(args: ISlashCommandArgs): Promise<unknown>;
 }

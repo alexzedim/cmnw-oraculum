@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 @Schema({ timestamps: true })
 export class Roles extends Document {
@@ -23,6 +23,9 @@ export class Roles extends Document {
 
   @Prop({ type: Number })
   position: number;
+
+  @Prop({ type: [String] })
+  tags: Types.Array<string>;
 
   @Prop({ type: String, ref: 'Users' })
   scannedBy: string;

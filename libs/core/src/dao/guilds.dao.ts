@@ -4,7 +4,7 @@ import { Guilds } from '@cmnw/mongo';
 import { Model } from 'mongoose';
 import { isDurationNotPass } from '@cmnw/core/utils';
 
-export const indexGuildByRepository = async (
+export const indexGuild = async (
   model: Model<Guilds>,
   guild: Guild,
   scannedBy: string,
@@ -37,9 +37,7 @@ export const indexGuildByRepository = async (
 
     const isReadyToUpdate = isDurationNotPass(guildEntity.updatedAt, 1);
     if (isReadyToUpdate) {
-      throw new Error(
-        `Guild :: ${guildEntity._id} :: ${guildEntity.name} has been updated in last interval`,
-      );
+      return;
     }
   }
 

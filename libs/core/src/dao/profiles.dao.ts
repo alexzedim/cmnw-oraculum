@@ -1,6 +1,6 @@
 import { Model } from 'mongoose';
 import { Keys, Profiles } from '@cmnw/mongo';
-import { ROLE_TAGS_ENUM, STATUS_ENUM } from '@cmnw/core';
+import { TAGS_ENUM, STATUS_ENUM } from '@cmnw/core';
 import { Logger } from '@nestjs/common';
 
 export const getProfile = async (
@@ -40,7 +40,7 @@ export const getProfile = async (
   }
 
   if (!profile) {
-    const isBot = key.tags.includes(ROLE_TAGS_ENUM.BOT);
+    const isBot = key.tags.includes(TAGS_ENUM.BOT);
     logger.warn(`profile ${query} not found! isBot :: ${isBot}`);
     if (isBot) {
       await model.create({

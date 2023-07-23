@@ -18,6 +18,9 @@ export class Fefenya extends Document {
   @Prop({ type: Number })
   count: number;
 
+  @Prop({ type: String })
+  status: string;
+
   @Prop({ type: Date })
   updatedAt: Date;
 

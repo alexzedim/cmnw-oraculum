@@ -1,14 +1,26 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { GENDER_ENUM, Role } from '@cmnw/core';
+import { PROMPT_TYPE_ENUM, Role } from '@cmnw/core';
 
-@Schema()
+@Schema({ timestamps: true })
 export class Prompts extends Document {
-  @Prop({ type: String })
-  profileId: string;
+  @Prop({ type: Types.ObjectId, ref: 'Profiles' })
+  profileId: Types.ObjectId;
 
-  @Prop({ type: String, unique: true })
-  codename: string;
+  @Prop({ type: Types.ObjectId })
+  previousPrompt?: Types.ObjectId;
+
+  @Prop({ type: Types.ObjectId })
+  nextPrompt?: Types.ObjectId;
+
+  @Prop({ type: String })
+  name: string;
+
+  @Prop({ type: String })
+  model: string;
+
+  @Prop({ type: String })
+  event: string;
 
   @Prop({ type: String })
   role: Role;
@@ -19,17 +31,32 @@ export class Prompts extends Document {
   @Prop({ type: Number })
   position: number;
 
+  @Prop({ type: String, enum: PROMPT_TYPE_ENUM })
+  type: PROMPT_TYPE_ENUM;
+
+  @Prop({ type: Boolean })
+  isGenerated: boolean;
+
+  @Prop({ type: Boolean })
+  isUsed: boolean;
+
+  @Prop({ type: Boolean })
+  isLast: boolean;
+
   @Prop({ type: Number })
   temperature?: number;
 
   @Prop({ type: String })
   text: string;
 
-  @Prop({ type: String, enum: GENDER_ENUM })
-  gender?: GENDER_ENUM;
-
   @Prop({ type: [String] })
   tags: Types.Array<string>;
+
+  @Prop({ type: Date })
+  updatedAt: Date;
+
+  @Prop({ type: Date })
+  createdAt: Date;
 }
 
 export const PromptsSchema = SchemaFactory.createForClass(Prompts);

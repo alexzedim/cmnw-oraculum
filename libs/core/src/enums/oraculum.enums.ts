@@ -31,7 +31,7 @@ export enum GENDER_ENUM {
   N = 'None',
 }
 
-export enum ROLE_TAGS_ENUM {
+export enum TAGS_ENUM {
   SUPERVISOR = 'supervisor',
   BOT = 'bot',
   EYE = 'eye',
@@ -41,9 +41,21 @@ export enum ROLE_TAGS_ENUM {
   CONTEST = 'contest',
   FLOW_2 = 'flow-2',
   FLOW_1 = 'flow-1',
+  COMMAND = 'command',
+  WARM = 'warm',
+  IGNORE = 'ignore',
+  ERROR = 'error',
 }
 
-export enum GUILD_TAGS_ENUM {
+export enum PROMPT_TYPE_ENUM {
+  DIALOG = 'dialog',
+  PROMPT = 'prompt',
+  COMMAND = 'command',
+  IGNORE = 'ignore',
+  ERROR = 'error',
+}
+
+export enum VECTOR_TAGS_ENUM {
   CLASS_HALL = 'class-hall',
   COMMUNITY = 'community',
   MODER_HALL = 'moder',
@@ -62,6 +74,12 @@ export enum GUILD_TAGS_ENUM {
   PRIEST = 'priest',
   ACHIEVEMENTS = 'achievements',
   EVOKER = 'evoker',
+}
+
+export enum OPENAI_MODEL {
+  ChatGPT_3 = 'text-davinci-003',
+  ChatGPT_3_5 = 'gpt-3.5-turbo',
+  ChatGPT_4 = 'gpt-4',
 }
 
 export enum PERMISSIONS_ENUM {

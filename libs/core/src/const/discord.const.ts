@@ -6,7 +6,7 @@ import {
   DISCORD_MONK_ROLES,
   DISCORD_SERVER_RENAME_ENUM,
   DISCORD_SERVERS_ENUM,
-  GUILD_TAGS_ENUM,
+  VECTOR_TAGS_ENUM,
 } from '@cmnw/core/enums';
 
 export const DISCORD_CLASS_HALLS: Map<DISCORD_SERVERS_ENUM, ClassHall> =
@@ -15,9 +15,9 @@ export const DISCORD_CLASS_HALLS: Map<DISCORD_SERVERS_ENUM, ClassHall> =
       DISCORD_SERVERS_ENUM.SanctumOfLight,
       {
         tags: [
-          GUILD_TAGS_ENUM.CLASS_HALL,
-          GUILD_TAGS_ENUM.COMMUNITY,
-          GUILD_TAGS_ENUM.PALADINS,
+          VECTOR_TAGS_ENUM.CLASS_HALL,
+          VECTOR_TAGS_ENUM.COMMUNITY,
+          VECTOR_TAGS_ENUM.PALADINS,
         ],
         emoji: '741997711678636074',
       },
@@ -26,9 +26,9 @@ export const DISCORD_CLASS_HALLS: Map<DISCORD_SERVERS_ENUM, ClassHall> =
       DISCORD_SERVERS_ENUM.TempleOfFiveDawns,
       {
         tags: [
-          GUILD_TAGS_ENUM.CLASS_HALL,
-          GUILD_TAGS_ENUM.COMMUNITY,
-          GUILD_TAGS_ENUM.MONKS,
+          VECTOR_TAGS_ENUM.CLASS_HALL,
+          VECTOR_TAGS_ENUM.COMMUNITY,
+          VECTOR_TAGS_ENUM.MONKS,
         ],
         emoji: '741997711926100018',
       },
@@ -37,9 +37,9 @@ export const DISCORD_CLASS_HALLS: Map<DISCORD_SERVERS_ENUM, ClassHall> =
       DISCORD_SERVERS_ENUM.Maelstorm,
       {
         tags: [
-          GUILD_TAGS_ENUM.CLASS_HALL,
-          GUILD_TAGS_ENUM.COMMUNITY,
-          GUILD_TAGS_ENUM.SHAMAN,
+          VECTOR_TAGS_ENUM.CLASS_HALL,
+          VECTOR_TAGS_ENUM.COMMUNITY,
+          VECTOR_TAGS_ENUM.SHAMAN,
         ],
         emoji: '741997712035020860',
       },
@@ -48,9 +48,9 @@ export const DISCORD_CLASS_HALLS: Map<DISCORD_SERVERS_ENUM, ClassHall> =
       DISCORD_SERVERS_ENUM.Akerus,
       {
         tags: [
-          GUILD_TAGS_ENUM.CLASS_HALL,
-          GUILD_TAGS_ENUM.COMMUNITY,
-          GUILD_TAGS_ENUM.DEATH_KNIGHT,
+          VECTOR_TAGS_ENUM.CLASS_HALL,
+          VECTOR_TAGS_ENUM.COMMUNITY,
+          VECTOR_TAGS_ENUM.DEATH_KNIGHT,
         ],
         emoji: '741997712022438018',
       },
@@ -59,9 +59,9 @@ export const DISCORD_CLASS_HALLS: Map<DISCORD_SERVERS_ENUM, ClassHall> =
       DISCORD_SERVERS_ENUM.DreamGroove,
       {
         tags: [
-          GUILD_TAGS_ENUM.CLASS_HALL,
-          GUILD_TAGS_ENUM.COMMUNITY,
-          GUILD_TAGS_ENUM.DRUID,
+          VECTOR_TAGS_ENUM.CLASS_HALL,
+          VECTOR_TAGS_ENUM.COMMUNITY,
+          VECTOR_TAGS_ENUM.DRUID,
         ],
         emoji: '741997711779168328',
       },
@@ -70,9 +70,9 @@ export const DISCORD_CLASS_HALLS: Map<DISCORD_SERVERS_ENUM, ClassHall> =
       DISCORD_SERVERS_ENUM.HuntersLounge,
       {
         tags: [
-          GUILD_TAGS_ENUM.CLASS_HALL,
-          GUILD_TAGS_ENUM.COMMUNITY,
-          GUILD_TAGS_ENUM.HUNTER,
+          VECTOR_TAGS_ENUM.CLASS_HALL,
+          VECTOR_TAGS_ENUM.COMMUNITY,
+          VECTOR_TAGS_ENUM.HUNTER,
         ],
         emoji: '741997711548612610',
       },
@@ -81,9 +81,9 @@ export const DISCORD_CLASS_HALLS: Map<DISCORD_SERVERS_ENUM, ClassHall> =
       DISCORD_SERVERS_ENUM.FelHammer,
       {
         tags: [
-          GUILD_TAGS_ENUM.CLASS_HALL,
-          GUILD_TAGS_ENUM.COMMUNITY,
-          GUILD_TAGS_ENUM.DH,
+          VECTOR_TAGS_ENUM.CLASS_HALL,
+          VECTOR_TAGS_ENUM.COMMUNITY,
+          VECTOR_TAGS_ENUM.DH,
         ],
         emoji: '895343481491423332',
       },
@@ -92,10 +92,10 @@ export const DISCORD_CLASS_HALLS: Map<DISCORD_SERVERS_ENUM, ClassHall> =
       DISCORD_SERVERS_ENUM.BlackTemple,
       {
         tags: [
-          GUILD_TAGS_ENUM.CLASS_HALL,
-          GUILD_TAGS_ENUM.COMMUNITY,
-          GUILD_TAGS_ENUM.DH,
-          GUILD_TAGS_ENUM.RODRIGA,
+          VECTOR_TAGS_ENUM.CLASS_HALL,
+          VECTOR_TAGS_ENUM.COMMUNITY,
+          VECTOR_TAGS_ENUM.DH,
+          VECTOR_TAGS_ENUM.RODRIGA,
         ],
         emoji: '741997711888351312',
       },
@@ -104,9 +104,9 @@ export const DISCORD_CLASS_HALLS: Map<DISCORD_SERVERS_ENUM, ClassHall> =
       DISCORD_SERVERS_ENUM.HallOfTheGuardian,
       {
         tags: [
-          GUILD_TAGS_ENUM.CLASS_HALL,
-          GUILD_TAGS_ENUM.COMMUNITY,
-          GUILD_TAGS_ENUM.MAGE,
+          VECTOR_TAGS_ENUM.CLASS_HALL,
+          VECTOR_TAGS_ENUM.COMMUNITY,
+          VECTOR_TAGS_ENUM.MAGE,
         ],
         emoji: '741997711955460116',
       },
@@ -115,9 +115,9 @@ export const DISCORD_CLASS_HALLS: Map<DISCORD_SERVERS_ENUM, ClassHall> =
       DISCORD_SERVERS_ENUM.SkyholdCitadel,
       {
         tags: [
-          GUILD_TAGS_ENUM.CLASS_HALL,
-          GUILD_TAGS_ENUM.COMMUNITY,
-          GUILD_TAGS_ENUM.WARRIOR,
+          VECTOR_TAGS_ENUM.CLASS_HALL,
+          VECTOR_TAGS_ENUM.COMMUNITY,
+          VECTOR_TAGS_ENUM.WARRIOR,
         ],
         emoji: '741997711775236127',
       },
@@ -126,9 +126,9 @@ export const DISCORD_CLASS_HALLS: Map<DISCORD_SERVERS_ENUM, ClassHall> =
       DISCORD_SERVERS_ENUM.TempleOfVoidLight,
       {
         tags: [
-          GUILD_TAGS_ENUM.CLASS_HALL,
-          GUILD_TAGS_ENUM.COMMUNITY,
-          GUILD_TAGS_ENUM.PRIEST,
+          VECTOR_TAGS_ENUM.CLASS_HALL,
+          VECTOR_TAGS_ENUM.COMMUNITY,
+          VECTOR_TAGS_ENUM.PRIEST,
         ],
         emoji: '741997711854665798',
       },
@@ -137,9 +137,9 @@ export const DISCORD_CLASS_HALLS: Map<DISCORD_SERVERS_ENUM, ClassHall> =
       DISCORD_SERVERS_ENUM.HallOfShadows,
       {
         tags: [
-          GUILD_TAGS_ENUM.CLASS_HALL,
-          GUILD_TAGS_ENUM.COMMUNITY,
-          GUILD_TAGS_ENUM.ROGUE,
+          VECTOR_TAGS_ENUM.CLASS_HALL,
+          VECTOR_TAGS_ENUM.COMMUNITY,
+          VECTOR_TAGS_ENUM.ROGUE,
         ],
         emoji: '741997712198860870',
       },
@@ -148,9 +148,9 @@ export const DISCORD_CLASS_HALLS: Map<DISCORD_SERVERS_ENUM, ClassHall> =
       DISCORD_SERVERS_ENUM.BlackScar,
       {
         tags: [
-          GUILD_TAGS_ENUM.CLASS_HALL,
-          GUILD_TAGS_ENUM.COMMUNITY,
-          GUILD_TAGS_ENUM.WARLOCK,
+          VECTOR_TAGS_ENUM.CLASS_HALL,
+          VECTOR_TAGS_ENUM.COMMUNITY,
+          VECTOR_TAGS_ENUM.WARLOCK,
         ],
         emoji: '741997712198860870',
       },
@@ -159,9 +159,9 @@ export const DISCORD_CLASS_HALLS: Map<DISCORD_SERVERS_ENUM, ClassHall> =
       DISCORD_SERVERS_ENUM.Achievements,
       {
         tags: [
-          GUILD_TAGS_ENUM.CLASS_HALL,
-          GUILD_TAGS_ENUM.COMMUNITY,
-          GUILD_TAGS_ENUM.ACHIEVEMENTS,
+          VECTOR_TAGS_ENUM.CLASS_HALL,
+          VECTOR_TAGS_ENUM.COMMUNITY,
+          VECTOR_TAGS_ENUM.ACHIEVEMENTS,
         ],
         emoji: '741997712198860870',
       },
@@ -170,9 +170,9 @@ export const DISCORD_CLASS_HALLS: Map<DISCORD_SERVERS_ENUM, ClassHall> =
       DISCORD_SERVERS_ENUM.TempleOfWyrm,
       {
         tags: [
-          GUILD_TAGS_ENUM.CLASS_HALL,
-          GUILD_TAGS_ENUM.COMMUNITY,
-          GUILD_TAGS_ENUM.EVOKER,
+          VECTOR_TAGS_ENUM.CLASS_HALL,
+          VECTOR_TAGS_ENUM.COMMUNITY,
+          VECTOR_TAGS_ENUM.EVOKER,
         ],
         emoji: '1129072439947690034',
       },
@@ -180,7 +180,7 @@ export const DISCORD_CLASS_HALLS: Map<DISCORD_SERVERS_ENUM, ClassHall> =
     [
       DISCORD_SERVERS_ENUM.CrossClass,
       {
-        tags: [GUILD_TAGS_ENUM.MODER_HALL],
+        tags: [VECTOR_TAGS_ENUM.MODER_HALL],
       },
     ],
   ]);

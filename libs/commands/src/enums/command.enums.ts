@@ -22,6 +22,14 @@ export enum COMMAND_DESCRIPTION_ENUMS {
   CRYPTO = 'Зашифровать или дешифровать выбранное сообщение',
 }
 
+export enum GOTD_PARAMS_ENUM {
+  ROLE = 'role',
+}
+
+export enum GOTD_PARAMS_DESCRIPTION_ENUM {
+  ROLE = 'Выбери подарочную роль для победителя',
+}
+
 export enum BINDING_PARAMS_ENUM {
   ROLE = 'role',
   USER = 'user',

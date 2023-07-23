@@ -6,6 +6,7 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
     "target": "es2017",
     "sourceMap": true,
     "outDir": "./dist",
@@ -24,17 +25,29 @@
       "@cmnw/pg/*": [
         "libs/pg/src/*"
       ],
-      "@cmnw/shared": [
-        "libs/shared/src"
-      ],
-      "@cmnw/shared/*": [
-        "libs/shared/src/*"
-      ],
       "@cmnw/config": [
         "libs/config/src"
       ],
       "@cmnw/config/*": [
         "libs/config/src/*"
+      ],
+      "@cmnw/mongo": [
+        "libs/mongo/src"
+      ],
+      "@cmnw/mongo/*": [
+        "libs/mongo/src/*"
+      ],
+      "@cmnw/core": [
+        "libs/core/src"
+      ],
+      "@cmnw/core/*": [
+        "libs/core/src/*"
+      ],
+      "@cmnw/commands": [
+        "libs/commands/src"
+      ],
+      "@cmnw/commands/*": [
+        "libs/commands/src/*"
       ]
     }
   }

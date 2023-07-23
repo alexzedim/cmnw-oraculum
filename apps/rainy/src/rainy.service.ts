@@ -1,82 +1,59 @@
-import {
-  Inject,
-  Injectable,
-  Logger,
-  NotFoundException,
-  OnApplicationBootstrap,
-} from '@nestjs/common';
-
-import {
-  ChannelsEntity,
-  CoreUsersEntity,
-  GuildsEntity,
-  UsersEntity,
-} from '@cmnw/pg';
-
+import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { capitalizeFirstLetter } from 'normalize-text';
 import { InjectRedis, Redis } from '@nestjs-modules/ioredis';
 import { REST } from '@discordjs/rest';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { ButtonStyle, GatewayIntentBits, Routes } from 'discord-api-types/v10';
-import { MessageActionRowComponentBuilder } from '@discordjs/builders';
+import { GatewayIntentBits, Routes } from 'discord-api-types/v10';
 import { Ban, Clearance, PovCommand, VoteUnban, Whoami } from './commands';
-import { SeederService } from './seeder/seeder.service';
+import { InjectModel } from '@nestjs/mongoose';
+import { Bans, Channels, Guilds, Keys, Permissions, Users } from '@cmnw/mongo';
+import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
+import { banButtons, banEmbed, SlashCommand } from '@cmnw/commands';
+import { Model } from 'mongoose';
 
 import {
-  DISCORD_CHANNELS_ENUM,
-  DISCORD_EMOJI,
+  DISCORD_CLASS_HALLS,
   DISCORD_REASON_BANS,
   DISCORD_SERVER_RENAME,
-  ISlashCommand,
-  StorageTypes,
-} from '@cmnw/shared';
+  EventDto,
+  indexGuild,
+  loadKey,
+} from '@cmnw/core';
 
 import {
   Client,
   TextChannel,
   Collection,
-  ButtonBuilder,
-  ChannelType,
   EmbedBuilder,
-  ActionRowBuilder,
   Events,
   Partials,
+  GuildBan,
 } from 'discord.js';
 
 @Injectable()
 export class RainyService implements OnApplicationBootstrap {
   private client: Client;
-
-  private rainyUser: CoreUsersEntity;
-
-  private logsChannel: TextChannel;
-
-  private coreChannel: TextChannel;
-
-  private localStorage: StorageTypes;
-
-  private commandsMessage: Collection<string, ISlashCommand> = new Collection();
-
-  private commandSlash = [];
+  private rainyUser: Keys;
+  private commandsMessage: Collection<string, SlashCommand> = new Collection();
 
   private readonly rest = new REST({ version: '10' });
-
   private readonly logger = new Logger(RainyService.name, { timestamp: true });
 
   constructor(
+    private readonly amqpConnection: AmqpConnection,
     @InjectRedis()
     private readonly redisService: Redis,
-    @Inject(SeederService)
-    private readonly seederService: SeederService,
-    @InjectRepository(UsersEntity)
-    private readonly usersRepository: Repository<UsersEntity>,
-    @InjectRepository(GuildsEntity)
-    private readonly guildsRepository: Repository<GuildsEntity>,
-    @InjectRepository(ChannelsEntity)
-    private readonly channelsRepository: Repository<ChannelsEntity>,
-    @InjectRepository(CoreUsersEntity)
-    private readonly coreUsersRepository: Repository<CoreUsersEntity>,
+    @InjectModel(Keys.name)
+    private readonly keysModel: Model<Keys>,
+    @InjectModel(Users.name)
+    private readonly usersModel: Model<Users>,
+    @InjectModel(Permissions.name)
+    private readonly permissionsModel: Model<Permissions>,
+    @InjectModel(Channels.name)
+    private readonly channelsModel: Model<Channels>,
+    @InjectModel(Guilds.name)
+    private readonly guildsModel: Model<Guilds>,
+    @InjectModel(Bans.name)
+    private readonly bansModel: Model<Bans>,
   ) {}
   async onApplicationBootstrap(): Promise<void> {
     try {
@@ -94,9 +71,7 @@ export class RainyService implements OnApplicationBootstrap {
       });
 
       await this.loadRainy();
-
       await this.loadCommands();
-
       await this.bot();
     } catch (errorOrException) {
       this.logger.error(`Application: ${errorOrException}`);
@@ -105,24 +80,7 @@ export class RainyService implements OnApplicationBootstrap {
 
   private async loadRainy(): Promise<void> {
     try {
-      const rainyUserEntity = await this.coreUsersRepository.findOneBy({
-        name: 'Rainy',
-      });
-
-      if (!rainyUserEntity) throw new NotFoundException(-'Rainy not found!');
-
-      if (!rainyUserEntity.token)
-        throw new NotFoundException('Rainy token not found!');
-
-      this.rainyUser = rainyUserEntity;
-
-      await this.client.login(this.rainyUser.token);
-
-      this.rest.setToken(this.rainyUser.token);
-
-      await this.seederService.init(this.client, false);
-
-      this.localStorage = this.seederService.extract();
+      this.rainyUser = await loadKey(this.keysModel, 'Rainy');
     } catch (errorOrException) {
       this.logger.error(`loadRainy: ${errorOrException}`);
     }
@@ -130,17 +88,25 @@ export class RainyService implements OnApplicationBootstrap {
 
   private async loadCommands(): Promise<void> {
     this.commandsMessage.set(Ban.name, Ban);
-    this.commandSlash.push(Ban.slashCommand.toJSON());
     this.commandsMessage.set(Whoami.name, Whoami);
-    this.commandSlash.push(Whoami.slashCommand.toJSON());
     this.commandsMessage.set(Clearance.name, Clearance);
-    this.commandSlash.push(Clearance.slashCommand.toJSON());
     this.commandsMessage.set(PovCommand.name, PovCommand);
-    this.commandSlash.push(PovCommand.slashCommand.toJSON());
+
+    const commandsBody = [
+      Ban.slashCommand.toJSON(),
+      Whoami.slashCommand.toJSON(),
+      Clearance.slashCommand.toJSON(),
+      PovCommand.slashCommand.toJSON(),
+    ];
 
     await this.rest.put(Routes.applicationCommands(this.client.user.id), {
-      body: this.commandSlash,
+      body: commandsBody,
     });
+  }
+
+  private async seed() {
+    // TODO add binding
+    await this.guildsModel.updateMany({}, {});
   }
 
   async bot(): Promise<void> {
@@ -149,29 +115,13 @@ export class RainyService implements OnApplicationBootstrap {
         this.logger.log(`Logged in as ${this.client.user.tag}!`),
       );
 
-      const channelCoreEntity = this.localStorage.channelStorage.get(
-        DISCORD_CHANNELS_ENUM.Core,
-      );
-      this.coreChannel = (await this.client.channels.fetch(
-        channelCoreEntity.id,
-      )) as TextChannel;
-
-      if (!this.coreChannel || this.coreChannel.type !== ChannelType.GuildText)
-        return;
-
-      const channelLogsEntity = this.localStorage.channelStorage.get(
-        DISCORD_CHANNELS_ENUM.Logs,
-      );
-      this.logsChannel = (await this.client.channels.fetch(
-        channelLogsEntity.id,
-      )) as TextChannel;
-
-      if (!this.coreChannel || this.coreChannel.type !== ChannelType.GuildText)
-        return;
-
       this.client.on(Events.GuildCreate, async (guild) => {
         try {
-          await this.seederService.createGuildDiscordProfile(guild);
+          await indexGuild(
+            this.guildsModel,
+            guild,
+            this.client.user.id,
+          );
         } catch (errorOrException) {
           this.logger.error(`${Events.GuildCreate}: ${errorOrException}`);
         }
@@ -180,20 +130,16 @@ export class RainyService implements OnApplicationBootstrap {
       this.client.on(
         Events.InteractionCreate,
         async (interaction): Promise<void> => {
-          /**
-           * @description IF button is pressed
-           */
-          if (
-            interaction.isButton() &&
-            this.localStorage.userPermissionStorage.has(interaction.user.id)
-          ) {
-            const userPermissionsEntity =
-              this.localStorage.userPermissionStorage.get(interaction.user.id);
+          const isButton = interaction.isButton();
+          const isCommand = interaction.isCommand();
+          if (isButton) {
+            // TODO check permissions
 
-            const isBanExists = !!(await this.redisService.get(
-              interaction.customId,
-            ));
-            if (isBanExists) {
+            const banEntity = await this.bansModel.findOne<Bans>({
+              userId: interaction.customId,
+            });
+
+            if (banEntity) {
               /**
                * @description Receive state of button clicked
                * @description By each discord representative
@@ -209,7 +155,7 @@ export class RainyService implements OnApplicationBootstrap {
                 );
 
                 const emojiEdit = this.client.emojis.cache.get(
-                  DISCORD_EMOJI.get(userPermissionsEntity.guildId),
+                  DISCORD_CLASS_HALLS.get(userPermissionsEntity.guildId),
                 );
 
                 const [embed] = interaction.message.embeds;
@@ -282,10 +228,14 @@ export class RainyService implements OnApplicationBootstrap {
             }
           }
 
-          if (interaction.isCommand()) {
+          if (isCommand) {
             try {
               const command = this.commandsMessage.get(interaction.commandName);
-              if (!command) return;
+              if (!command) {
+                throw new Error(
+                  `Команда ${interaction.commandName} не найдена`,
+                );
+              }
 
               const hasPermission = [Ban.name, VoteUnban.name, Clearance.name];
 
@@ -304,14 +254,13 @@ export class RainyService implements OnApplicationBootstrap {
 
               await command.executeInteraction({
                 interaction,
-                localStorage: this.localStorage,
                 redis: this.redisService,
                 logger: this.logger,
               });
             } catch (errorException) {
               this.logger.error(errorException);
               await interaction.reply({
-                content: 'There was an error while executing this command!',
+                content: errorException,
                 ephemeral: true,
               });
             }
@@ -319,90 +268,98 @@ export class RainyService implements OnApplicationBootstrap {
         },
       );
 
-      this.client.on(Events.GuildBanAdd, async (ban) => {
+      this.client.on(Events.GuildBanAdd, async (ban: GuildBan) => {
         try {
           const guildBan = await ban.fetch();
 
-          if (
+          const eventDto = EventDto.fromGuildBan(guildBan, Events.GuildBanAdd);
+          await this.amqpConnection.publish<EventDto>(
+            EVENTS_QUEUE,
+            'test-test',
+            eventDto,
+          );
+
+          const isBanTrigger =
             guildBan.reason &&
-            DISCORD_REASON_BANS.has(guildBan.reason.toLowerCase())
-          ) {
-            const banOnGuildIcon = this.client.emojis.cache.get(
-              DISCORD_EMOJI.get(guildBan.guild.id),
+            DISCORD_REASON_BANS.has(guildBan.reason.toLowerCase());
+
+          if (!isBanTrigger) {
+            this.logger.warn(`Guild ban doesn't have appropriate reason`);
+            return;
+          }
+
+          const banEntity = await this.bansModel.findOne<Bans>({
+            userId: guildBan.user.id,
+          });
+
+          const banOnGuildIcon = this.client.emojis.cache.get(
+            DISCORD_CLASS_HALLS.get(guildBan.guild.id),
+          );
+
+          const [logsChannel, coreChannel] = await Promise.all([
+            this.channelsModel.findOne<Channels>({
+              tags: { $all: ['Rainy', 'logs'] },
+            }),
+            this.channelsModel.findOne<Channels>({
+              tags: { $all: ['Rainy', 'core'] },
+            }),
+          ]);
+
+          const [channelBanLogs, channelCore] = [
+            this.client.channels.cache.get(logsChannel._id) as TextChannel,
+            this.client.channels.cache.get(coreChannel._id) as TextChannel,
+          ];
+          if (channelBanLogs && channelBanLogs.isTextBased) {
+            await channelBanLogs.send(
+              `${guildBan.user.id} - ${banOnGuildIcon} ${guildBan.guild.name}`,
+            );
+          }
+
+          const emoji = this.client.emojis.cache.get(
+            DISCORD_CLASS_HALLS.get(guildBan.guild.id),
+          );
+
+          if (!banEntity) {
+            const embed = banEmbed(guildBan, emoji);
+            const buttons = banButtons(guildBan, logsChannel);
+
+            const message = await channelCore.send({
+              content: `⁣!ban ${guildBan.user.id} CrossBan⁣`,
+              embeds: [embed],
+              components: [buttons],
+            });
+
+            await this.bansModel.create({
+              userId: guildBan.user.id,
+              guildId: guildBan.guild.id,
+              reason: guildBan.reason,
+              votingMessageId: message.id,
+            });
+          } else {
+            const message = await channelCore.messages.fetch(
+              banEntity.votingMessageId,
             );
 
-            const { id } = this.localStorage.channelStorage.get(
-              DISCORD_CHANNELS_ENUM.Logs,
-            );
-            const channelBanLogs = await this.client.channels.fetch(id);
-            if (channelBanLogs && channelBanLogs.isTextBased) {
-              await (channelBanLogs as TextChannel).send(
-                `${guildBan.user.id} - ${banOnGuildIcon} ${guildBan.guild.name}`,
-              );
-            }
+            const isMessageExists =
+              message && message.embeds && message.embeds.length;
 
-            const userBanExists = await this.redisService.get(guildBan.user.id);
-            if (!userBanExists) {
-              const buttons = new ActionRowBuilder().addComponents(
-                new ButtonBuilder()
-                  .setCustomId(guildBan.user.id)
-                  .setLabel('Заблокировать')
-                  .setStyle(ButtonStyle.Danger),
-                new ButtonBuilder()
-                  .setLabel('История банов')
-                  .setURL(
-                    'https://discord.com/channels/474036493061718016/896513694488477767',
-                  )
-                  .setStyle(ButtonStyle.Secondary),
-              ) as ActionRowBuilder<MessageActionRowComponentBuilder>;
-
-              const emoji = this.client.emojis.cache.get(
-                DISCORD_EMOJI.get(guildBan.guild.id),
+            if (!isMessageExists)
+              new Error(
+                `Unable to fetch exists voting message ${banEntity.votingMessageId}`,
               );
 
-              const embed = new EmbedBuilder()
-                .setDescription(
-                  `**${guildBan.user.username}** заблокирован на:`,
-                )
-                .setColor('#2b2d31')
-                .addFields({
-                  name: '\u200B',
-                  value: `${emoji} - ✅`,
-                  inline: true,
-                });
+            const [embed] = message.embeds;
 
-              const message = await this.coreChannel.send({
-                content: `⁣!ban ${guildBan.user.id} CrossBan⁣`,
-                embeds: [embed],
-                components: [buttons],
-              });
+            const updatedEmbed = new EmbedBuilder(embed).addFields({
+              name: '\u200B',
+              value: `${emoji} - ✅`,
+              inline: true,
+            });
 
-              await this.redisService.set(guildBan.user.id, message.id);
-            } else {
-              const message = await this.coreChannel.messages.fetch(
-                userBanExists,
-              );
-              if (message && message.embeds) {
-                const [embed] = message.embeds;
+            await message.edit({ embeds: [updatedEmbed] });
 
-                const emoji = this.client.emojis.cache.get(
-                  DISCORD_EMOJI.get(guildBan.guild.id),
-                );
-
-                const newEmbed = new EmbedBuilder(embed).addFields({
-                  name: '\u200B',
-                  value: `${emoji} - ✅`,
-                  inline: true,
-                });
-
-                await message.edit({ embeds: [newEmbed] });
-
-                await this.redisService.sadd(
-                  `${guildBan.user.id}:button`,
-                  guildBan.guild.id,
-                );
-              }
-            }
+            banEntity.votingGuildRepresentatives.addToSet(guildBan.guild.id);
+            await banEntity.save();
           }
         } catch (errorOrException) {
           this.logger.error(`${Events.GuildBanAdd}: ${errorOrException}`);
@@ -411,6 +368,7 @@ export class RainyService implements OnApplicationBootstrap {
 
       this.client.on(Events.GuildBanRemove, async (ban) => {
         try {
+          // TODO
           if (!!(await this.redisService.get(ban.user.id))) {
             await this.redisService.del(ban.user.id);
             await this.redisService.del(`${ban.user.id}:button`);
@@ -422,6 +380,7 @@ export class RainyService implements OnApplicationBootstrap {
 
       this.client.on(Events.GuildMemberAdd, async (guildMember) => {
         try {
+          // TODO rethink - remove
           if (DISCORD_SERVER_RENAME.has(guildMember.guild.id)) {
             const usernameBefore = guildMember.user.username;
             const username = guildMember.user.username

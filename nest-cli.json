@@ -28,15 +28,6 @@
         "tsConfigPath": "libs/pg/tsconfig.lib.json"
       }
     },
-    "shared": {
-      "type": "library",
-      "root": "libs/shared",
-      "entryFile": "index",
-      "sourceRoot": "libs/shared/src",
-      "compilerOptions": {
-        "tsConfigPath": "libs/shared/tsconfig.lib.json"
-      }
-    },
     "fefenya": {
       "type": "application",
       "root": "apps/fefenya",
@@ -71,6 +62,33 @@
       "sourceRoot": "apps/rodriga/src",
       "compilerOptions": {
         "tsConfigPath": "apps/rodriga/tsconfig.app.json"
+      }
+    },
+    "mongo": {
+      "type": "library",
+      "root": "libs/mongo",
+      "entryFile": "index",
+      "sourceRoot": "libs/mongo/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/mongo/tsconfig.lib.json"
+      }
+    },
+    "core": {
+      "type": "library",
+      "root": "libs/core",
+      "entryFile": "index",
+      "sourceRoot": "libs/core/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/core/tsconfig.lib.json"
+      }
+    },
+    "commands": {
+      "type": "library",
+      "root": "libs/commands",
+      "entryFile": "index",
+      "sourceRoot": "libs/commands/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/commands/tsconfig.lib.json"
       }
     }
   }

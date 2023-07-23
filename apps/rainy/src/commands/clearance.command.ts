@@ -1,4 +1,4 @@
-import { ISlashCommand, ISlashCommandArgs } from '@cmnw/shared';
+import { ISlashCommand, ISlashCommandArgs } from '@cmnw/core';
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { Collection, EmbedBuilder, TextChannel } from 'discord.js';
 

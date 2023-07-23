@@ -1,31 +1,28 @@
-import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { readFileSync } from 'fs';
-import { join } from 'path';
-import { util } from 'config';
-import { PostgresInterface } from '@cmnw/config/types';
+import config from 'config';
+import { decrypt } from '@cmnw/core';
+import { TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { PostgresConfigInterface } from '@cmnw/config/types';
 import {
   ChannelsEntity,
   CoreUsersEntity,
-  FefenyaUsersEntity,
   GuildsEntity,
-  PepaIdentityEntity,
-  PepaQuestionsEntity,
   PermissionsEntity,
+  PepaIdentityEntity,
   RolesEntity,
   UserPermissionsEntity,
   UsersEntity,
 } from '@cmnw/pg';
 
-const configDir = join(__dirname, '..', '..', '..', 'config');
-const { postgres }: PostgresInterface = util.loadFileConfigs(configDir);
+const POSTGRES_CONFIG = config.get<PostgresConfigInterface>('postgres');
 
 export const postgresConfig: TypeOrmModuleOptions = {
   type: 'postgres',
-  host: postgres.host,
-  port: postgres.port,
-  username: postgres.username,
-  password: postgres.password,
-  database: postgres.database,
+  host: decrypt(POSTGRES_CONFIG.host),
+  port: POSTGRES_CONFIG.port,
+  username: decrypt(POSTGRES_CONFIG.username),
+  password: decrypt(POSTGRES_CONFIG.password),
+  database: POSTGRES_CONFIG.database,
   logging: true,
   entities: [
     ChannelsEntity,
@@ -35,20 +32,18 @@ export const postgresConfig: TypeOrmModuleOptions = {
     RolesEntity,
     CoreUsersEntity,
     UserPermissionsEntity,
-    FefenyaUsersEntity,
-    PepaQuestionsEntity,
     PepaIdentityEntity,
   ],
   synchronize: false,
   keepConnectionAlive: true,
-  ssl: !!postgres.ssl
+  ssl: !!POSTGRES_CONFIG.ssl
     ? {
-        ca: readFileSync(postgres.ssl?.ca, 'utf-8'),
-        key: postgres.ssl?.key
-          ? readFileSync(postgres.ssl?.key, 'utf-8')
+        ca: readFileSync(POSTGRES_CONFIG.ssl?.ca, 'utf-8'),
+        key: POSTGRES_CONFIG.ssl?.key
+          ? readFileSync(POSTGRES_CONFIG.ssl?.key, 'utf-8')
           : null,
-        cert: postgres.ssl?.cert
-          ? readFileSync(postgres.ssl?.cert, 'utf-8')
+        cert: POSTGRES_CONFIG.ssl?.cert
+          ? readFileSync(POSTGRES_CONFIG.ssl?.cert, 'utf-8')
           : null,
       }
     : null,

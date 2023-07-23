@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  Logger,
-  NotFoundException,
-  OnApplicationBootstrap,
-} from '@nestjs/common';
+import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 
 import {
   Client,
@@ -16,18 +11,12 @@ import {
   PermissionsBitField,
 } from 'discord.js';
 
-import {
-  CoreUsersEntity,
-  GuildsEntity,
-  RolesEntity,
-  VECTOR_ENUM,
-} from '@cmnw/pg';
-
 import Redis from 'ioredis';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { InjectRedis } from '@nestjs-modules/ioredis';
-import { RODRIGA_ENUM, formatRedisKey } from '@cmnw/shared';
+import { RODRIGA_ENUM, formatRedisKey, loadKey } from '@cmnw/core';
+import { InjectModel } from '@nestjs/mongoose';
+import { Guilds, Keys, Roles } from '@cmnw/mongo';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class RodrigaService implements OnApplicationBootstrap {
@@ -35,18 +24,18 @@ export class RodrigaService implements OnApplicationBootstrap {
     timestamp: true,
   });
   private client: Client;
-  private blackTempleUser: CoreUsersEntity;
+  private blackTempleUser: Keys;
   private blackTempleGuild: Guild;
-  private blackTempleRoles: Array<RolesEntity>;
+  private blackTempleRoles: Array<Roles>;
   constructor(
     @InjectRedis()
     private readonly redisService: Redis,
-    @InjectRepository(CoreUsersEntity)
-    private readonly coreUsersRepository: Repository<CoreUsersEntity>,
-    @InjectRepository(RolesEntity)
-    private readonly rolesRepository: Repository<RolesEntity>,
-    @InjectRepository(GuildsEntity)
-    private readonly guildsRepository: Repository<GuildsEntity>,
+    @InjectModel(Keys.name)
+    private readonly keysModel: Model<Keys>,
+    @InjectModel(Guilds.name)
+    private readonly guildsModel: Model<Guilds>,
+    @InjectModel(Roles.name)
+    private readonly rolesModel: Model<Roles>,
   ) {}
   async onApplicationBootstrap() {
     await this.loadBot();
@@ -62,92 +51,43 @@ export class RodrigaService implements OnApplicationBootstrap {
       },
     });
 
-    const rodrigaUserEntity = await this.coreUsersRepository.findOneBy({
-      name: 'Rodriga',
-    });
-
-    if (!rodrigaUserEntity) throw new NotFoundException('Rodriga not found!');
-
-    if (!rodrigaUserEntity.token)
-      throw new NotFoundException('Rodriga token not found!');
-
-    this.blackTempleUser = rodrigaUserEntity;
+    this.blackTempleUser = await loadKey(this.keysModel, 'Гачикостас');
 
     await this.client.login(this.blackTempleUser.token);
   }
 
-  private async indexGuild() {
-    let guildEntity = await this.guildsRepository.findOneBy({
-      name: 'Black Temple',
+  private async bindGuild() {
+    const blackTemple = await this.guildsModel.findOne<Guilds>({
+      tags: 'Rodriga',
     });
 
-    if (!guildEntity) {
-      this.blackTempleGuild =
-        this.client.guilds.cache.get('736173202979422271');
+    this.blackTempleGuild = this.client.guilds.cache.get(blackTemple._id);
 
-      guildEntity = this.guildsRepository.create({
-        id: this.blackTempleGuild.id,
-        name: this.blackTempleGuild.name,
-        icon: this.blackTempleGuild.icon,
-        ownerId: this.blackTempleGuild.ownerId,
-        membersNumber: this.blackTempleGuild.memberCount,
-        tags: [VECTOR_ENUM.CLASS_HALL],
-        scannedBy: this.client.user.id,
-      });
-
-      guildEntity = await this.guildsRepository.save(guildEntity);
-    }
-
-    this.blackTempleGuild = this.client.guilds.cache.get(guildEntity.id);
-
-    for (const [roleId, role] of this.blackTempleGuild.roles.cache) {
-      let roleEntity = await this.rolesRepository.findOneBy({
-        id: roleId,
-      });
-      if (!roleEntity) {
-        roleEntity = this.rolesRepository.create({
-          id: role.id,
-          name: role.name,
-          guildId: role.guild.id,
-          position: role.position,
-          bitfield: role.permissions.bitfield.toString(),
-          isMentionable: role.mentionable,
-          createdBy: this.client.user.id,
-        });
-
-        await this.rolesRepository.save(roleEntity);
-      } else {
-        await this.rolesRepository.update(
-          { id: role.id },
+    this.blackTempleRoles = await this.rolesModel
+      .find<Roles>({
+        $and: [
           {
-            name: role.name,
-            position: role.position,
-            bitfield: role.permissions.bitfield.toString(),
-            isMentionable: role.mentionable,
+            $or: [
+              { name: 'Поддержка сервера' },
+              { name: 'Member' },
+              { name: 'Отряд токси' },
+              { name: 'Иллидари' },
+              { name: 'Тень Акамы' },
+              { name: 'Совет Иллидари' },
+            ],
           },
-        );
-      }
-    }
+          { guildId: this.blackTempleGuild.id },
+        ],
+      })
+      .sort({ position: 1 });
 
-    this.blackTempleRoles = await this.rolesRepository.find({
-      where: [
-        { guildId: guildEntity.id, name: 'Поддержка сервера' },
-        { guildId: guildEntity.id, name: 'Member' },
-        { guildId: guildEntity.id, name: 'Отряд токси' },
-        { guildId: guildEntity.id, name: 'Иллидари' },
-        { guildId: guildEntity.id, name: 'Тень Акамы' },
-        { guildId: guildEntity.id, name: 'Совет Иллидари' },
-      ],
-      order: {
-        position: 'ASC',
-      },
-    });
+    console.log(this.blackTempleRoles);
   }
 
   private async bot() {
     this.client.on(Events.ClientReady, async () => {
       this.logger.log(`Logged in as ${this.client.user.tag}!`);
-      await this.indexGuild();
+      await this.bindGuild();
     });
 
     this.client.on(

@@ -34,7 +34,7 @@ export const Identity: ISlashCommand = {
         .setColor(0x0099ff)
         .setTitle(`Identity model ${name} not found!`)
         .setFooter({
-          text: 'Managed & operated by CMNW',
+          text: 'Managed & operated by CMNW. Dedicated to Kristina | LisaeL',
           iconURL: 'https://i.imgur.com/OBDcu7K.png',
         });
 
@@ -69,7 +69,7 @@ export const Identity: ISlashCommand = {
         .setTimestamp(identityEntity.updatedAt)
         .setThumbnail(identityEntity.avatar)
         .setFooter({
-          text: 'Managed & operated by CMNW.',
+          text: 'Managed & operated by CMNW. Dedicated to Kristina | LisaeL',
           iconURL: 'https://i.imgur.com/OBDcu7K.png',
         });
 

@@ -1,13 +1,23 @@
 import { Module } from '@nestjs/common';
 import { RodrigaService } from './rodriga.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { postgresConfig, redisConfig } from '@cmnw/config';
-import { CoreUsersEntity, GuildsEntity, RolesEntity } from '@cmnw/pg';
+import { mongoConfig, redisConfig } from '@cmnw/config';
 import { RedisModule } from '@nestjs-modules/ioredis';
+import { MongooseModule } from '@nestjs/mongoose';
+import {
+  Channels,
+  ChannelsSchema,
+  Guilds,
+  GuildsSchema,
+  Keys,
+  KeysSchema,
+  Roles,
+  RolesSchema,
+  Users,
+  UsersSchema,
+} from '@cmnw/mongo';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot(postgresConfig),
     RedisModule.forRoot({
       config: {
         host: redisConfig.host,
@@ -15,7 +25,14 @@ import { RedisModule } from '@nestjs-modules/ioredis';
         password: redisConfig.password,
       },
     }),
-    TypeOrmModule.forFeature([CoreUsersEntity, RolesEntity, GuildsEntity]),
+    MongooseModule.forRoot(mongoConfig.connectionString),
+    MongooseModule.forFeature([
+      { name: Keys.name, schema: KeysSchema },
+      { name: Guilds.name, schema: GuildsSchema },
+      { name: Users.name, schema: UsersSchema },
+      { name: Channels.name, schema: ChannelsSchema },
+      { name: Roles.name, schema: RolesSchema },
+    ]),
   ],
   controllers: [],
   providers: [RodrigaService],

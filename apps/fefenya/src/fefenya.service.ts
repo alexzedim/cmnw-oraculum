@@ -418,7 +418,7 @@ export class FefenyaService implements OnApplicationBootstrap {
       const fefenyaUser = await this.fefenyasModel.findOne<Fefenya>({
         guildId: guildId,
         isGotd: true,
-        updatedAt: { $lte: tod },
+        updatedAt: { $gte: tod },
       });
 
       if (fefenyaUser) {

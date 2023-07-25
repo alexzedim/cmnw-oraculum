@@ -80,7 +80,7 @@ export const gotdCommand: SlashCommand = {
       const isFefenyaUserTod = await models.fefenyaModel.findOne<Fefenya>({
         guildId: guildId,
         isGotd: true,
-        updatedAt: { $lte: tod },
+        updatedAt: { $gte: tod },
       });
 
       if (isFefenyaUserTod) {

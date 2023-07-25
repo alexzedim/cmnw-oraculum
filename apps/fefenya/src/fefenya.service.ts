@@ -26,7 +26,6 @@ import {
   ChatFlowDto,
   chatQueue,
   CMNW_ORACULUM_PROJECTS,
-  randomMixMax,
   FEFENYA_HOLIDAY,
   FEFENYA_NAMING,
   formatNaming,
@@ -45,9 +44,10 @@ import {
   prettyGotd,
   prettyReply,
   PROMPT_TYPE_ENUM,
+  randomMixMax,
   setLastDialog,
-  TAGS_ENUM,
   STATUS_ENUM,
+  TAGS_ENUM,
 } from '@cmnw/core';
 
 import {
@@ -289,6 +289,15 @@ export class FefenyaService implements OnApplicationBootstrap {
       ],
       [PROMPT_TYPE_ENUM.IGNORE, [TAGS_ENUM.FEFENYA, TAGS_ENUM.IGNORE]],
       [PROMPT_TYPE_ENUM.ERROR, [TAGS_ENUM.FEFENYA, TAGS_ENUM.ERROR]],
+      [
+        PROMPT_TYPE_ENUM.GOTD,
+        [
+          TAGS_ENUM.FEFENYA,
+          TAGS_ENUM.CONTEST,
+          TAGS_ENUM.COMMAND,
+          TAGS_ENUM.GOTD,
+        ],
+      ],
     ]);
 
     for (const [promptType, tags] of sets.entries()) {

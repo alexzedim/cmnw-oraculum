@@ -258,6 +258,7 @@ export class FefenyaService implements OnApplicationBootstrap {
                 promptsModel: this.promptsModel,
                 guildsModel: this.guildsModel,
               },
+              redis: this.redisService,
               logger: this.logger,
               rabbit: this.amqpConnection,
             });

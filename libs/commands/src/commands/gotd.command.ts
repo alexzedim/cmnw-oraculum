@@ -9,6 +9,7 @@ import { DateTime } from 'luxon';
 import {
   COMMAND_DESCRIPTION_ENUMS,
   COMMAND_ENUMS,
+  generateKey,
   GOTD_PARAMS_DESCRIPTION_ENUM,
   GOTD_PARAMS_ENUM,
   SlashCommand,
@@ -49,42 +50,79 @@ export const gotdCommand: SlashCommand = {
   executeInteraction: async function ({ interaction, logger, models, redis }) {
     if (!interaction.isChatInputCommand()) return;
 
-    const [gotdRole, guildId, channelId] = [
+    const {
+      channelsModel,
+      guildsModel,
+      fefenyaModel,
+      promptsModel,
+      rolesModel,
+    } = models;
+
+    const [gotdRole, guildId, channelId, userId] = [
       interaction.options.getRole(GOTD_PARAMS_ENUM.ROLE, false),
       interaction.guildId,
       interaction.channelId,
+      interaction.user.id,
     ];
 
-    const guildCommandKey = `${gotdCommand.name}:${guildId}`;
+    const { guildKey, userKey } = generateKey({
+      command: COMMAND_ENUMS.FEFENYA_GOTD,
+      guildId,
+      userId,
+    });
 
     try {
       logger.log(`${FEFENYA_COMMANDS.GOTD} has been triggered`);
 
-      const ignorePrompt = await getRandomDialog(
-        models.promptsModel,
-        PROMPT_TYPE_ENUM.IGNORE,
-      );
-
-      const isCommandInProgress = Boolean(await redis.exists(guildCommandKey));
+      const isCommandInProgress = Boolean(await redis.exists(guildKey));
       if (isCommandInProgress) {
-        return await interaction.channel.send({ content: ignorePrompt.text });
+        const isProgressPrompt = await getRandomDialog(
+          models.promptsModel,
+          PROMPT_TYPE_ENUM.IGNORE,
+        );
+
+        return await interaction.reply({
+          content: isProgressPrompt.text,
+          ephemeral: true,
+        });
       }
 
-      await redis.set(guildCommandKey, 1, 'EX', 60);
+      await redis.set(guildKey, 1, 'EX', 120);
+
+      const incrGuildMember = await redis.incr(userKey);
+      if (incrGuildMember >= 2) {
+        const ignorePrompt = await getRandomDialog(
+          models.promptsModel,
+          PROMPT_TYPE_ENUM.IGNORE,
+        );
+
+        return await interaction.reply({
+          content: ignorePrompt.text,
+          ephemeral: true,
+        });
+      }
 
       const tod = DateTime.now()
         .setZone('Europe/Moscow')
         .startOf('day')
         .toJSDate();
 
-      const isFefenyaUserTod = await models.fefenyaModel.findOne<Fefenya>({
+      const isFefenyaUserTod = await fefenyaModel.findOne<Fefenya>({
         guildId: guildId,
         isGotd: true,
         updatedAt: { $gte: tod },
       });
 
       if (isFefenyaUserTod) {
-        return await interaction.channel.send({ content: ignorePrompt.text });
+        const commandPrompt = await getRandomDialog(
+          models.promptsModel,
+          PROMPT_TYPE_ENUM.GOTD,
+        );
+
+        return await interaction.reply({
+          content: commandPrompt.text,
+          ephemeral: isCommandInProgress,
+        });
       }
 
       const tags = [TAGS_ENUM.CONTEST, TAGS_ENUM.FEFENYA];
@@ -93,42 +131,33 @@ export const gotdCommand: SlashCommand = {
       const scannedBy = interaction.client.user.id;
 
       await Promise.all([
-        indexGuild(
-          models.guildsModel,
-          interaction.guild,
-          interaction.client.user.id,
-        ),
+        indexGuild(guildsModel, interaction.guild, interaction.client.user.id),
         indexChannel(
-          models.channelsModel,
+          channelsModel,
           interaction.channel as TextChannel,
           guildId,
           scannedBy,
         ),
       ]);
 
-      await bindChannelTags(models.channelsModel, guildId, channelId, tags);
+      await bindChannelTags(channelsModel, guildId, channelId, tags);
 
       if (gotdRole) {
         const addRole = interaction.guild.roles.cache.get(gotdRole.id);
-        await indexRoles(models.rolesModel, guildId, addRole, scannedBy);
+        await indexRoles(rolesModel, guildId, addRole, scannedBy);
 
-        role = await bindRoleTags(
-          models.rolesModel,
-          guildId,
-          gotdRole.id,
-          tags,
-        );
+        role = await bindRoleTags(rolesModel, guildId, gotdRole.id, tags);
       }
 
       const dialogContestFlow = await getFlowDialogs(
-        models.promptsModel,
+        promptsModel,
         FEFENYA_HOLIDAY.GOTD,
       );
 
       const isInit = !dialogContestFlow.length;
       if (isInit) {
         const commandDialog = await getRandomDialog(
-          models.promptsModel,
+          promptsModel,
           PROMPT_TYPE_ENUM.COMMAND,
         );
 
@@ -148,7 +177,7 @@ export const gotdCommand: SlashCommand = {
         ),
       );
 
-      if (!role) role = await getRoleByTags(models.rolesModel, guildId, tags);
+      if (!role) role = await getRoleByTags(rolesModel, guildId, tags);
 
       const hasPermissions = interaction.guild.members.me.permissions.has(
         PermissionsBitField.Flags.ManageRoles,
@@ -157,7 +186,7 @@ export const gotdCommand: SlashCommand = {
       const isRoleExists = role && hasPermissions;
 
       if (isRoleExists) {
-        const fefenyaUser = await models.fefenyaModel.findOneAndUpdate<Fefenya>(
+        const fefenyaUser = await fefenyaModel.findOneAndUpdate<Fefenya>(
           {
             guildId: guildId,
             isGotd: true,
@@ -176,10 +205,7 @@ export const gotdCommand: SlashCommand = {
         }
       }
 
-      const fefenyaUser = await pickRandomFefenyaUser(
-        models.fefenyaModel,
-        guildId,
-      );
+      const fefenyaUser = await pickRandomFefenyaUser(fefenyaModel, guildId);
       const pickedGuildMember = interaction.guild.members.cache.get(
         fefenyaUser._id,
       );
@@ -194,7 +220,7 @@ export const gotdCommand: SlashCommand = {
       logger.error(errorOrException);
 
       const errorPrompt = await getRandomDialog(
-        models.promptsModel,
+        promptsModel,
         PROMPT_TYPE_ENUM.ERROR,
       );
       return await interaction.reply({
@@ -202,7 +228,7 @@ export const gotdCommand: SlashCommand = {
         ephemeral: false,
       });
     } finally {
-      await redis.del(guildCommandKey);
+      await redis.del(guildKey);
     }
   },
 };

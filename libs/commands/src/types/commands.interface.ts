@@ -12,6 +12,7 @@ import {
   Prompts,
   Guilds,
 } from '@cmnw/mongo';
+import { COMMAND_ENUMS } from '@cmnw/commands/enums';
 
 export interface IModels {
   fefenyaModel: Model<Fefenya>;
@@ -36,4 +37,16 @@ export interface ISlashCommand {
   description: string;
   slashCommand: any; // TODO SlashCommandBuilder
   executeInteraction(args: ISlashCommandArgs): Promise<unknown>;
+}
+
+export interface ICacheArgs {
+  command: COMMAND_ENUMS;
+  guildId: string;
+  userId: string;
+}
+
+export interface ICacheResult {
+  userKey: string;
+  guildKey: string;
+  commandKey: string;
 }

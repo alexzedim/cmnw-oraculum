@@ -45,6 +45,7 @@ export enum TAGS_ENUM {
   WARM = 'warm',
   IGNORE = 'ignore',
   ERROR = 'error',
+  GOTD = 'gotd',
 }
 
 export enum PROMPT_TYPE_ENUM {
@@ -53,6 +54,7 @@ export enum PROMPT_TYPE_ENUM {
   COMMAND = 'command',
   IGNORE = 'ignore',
   ERROR = 'error',
+  GOTD = 'gotd',
 }
 
 export enum VECTOR_TAGS_ENUM {
@@ -101,4 +103,11 @@ export enum SUBJECT_ENUM {
   CHANNEL = 'CHANNEL',
   ROLE = 'ROLE',
   USER = 'USER',
+}
+
+export enum PROMPT_GENDER_ENUM {
+  F = 'девушка',
+  FD = 'женщина',
+  M = 'парень',
+  MD = 'мужчина',
 }

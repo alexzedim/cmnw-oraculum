@@ -11,6 +11,7 @@ import {
   FEFENYA_DESCRIPTION,
   getRandomDialog,
   PROMPT_TYPE_ENUM,
+  randomMixMax,
 } from '@cmnw/core';
 
 export const gotsStatsCommand: SlashCommand = {
@@ -20,24 +21,38 @@ export const gotsStatsCommand: SlashCommand = {
     .setName(FEFENYA_COMMANDS.GOTS_STATS)
     .setDescription(FEFENYA_DESCRIPTION.GOTD_STATS),
 
-  async executeInteraction({ interaction, models, logger, redis }) {
+  executeInteraction: async function ({ interaction, models, logger, redis }) {
     if (!interaction.isChatInputCommand()) return;
 
     const [guildId, userId] = [interaction.guildId, interaction.user.id];
+    const { fefenyaModel } = models;
 
     try {
-      const { fefenyaModel } = models;
+      const ignoreSeconds = randomMixMax(60 * 30, 60 * 60);
+      const guildIgnoreKey = `${COMMAND_ENUMS.FEFENYA_GOTS_STATS}:${guildId}`;
+      const userIgnoreKey = `${COMMAND_ENUMS.FEFENYA_GOTS_STATS}:${guildId}:${userId}`;
 
-      const userIgnoreKey = `${guildId}:${userId}`;
-      const incr = await redis.incr(userIgnoreKey);
-      await redis.expire(userIgnoreKey, 60 * 60 * 10);
-      if (incr) {
+      const [incrGuild, incrGuildMember] = await Promise.all([
+        redis.incr(guildIgnoreKey),
+        redis.incr(userIgnoreKey),
+      ]);
+
+      await Promise.all([
+        redis.expire(userIgnoreKey, ignoreSeconds),
+        redis.expire(guildIgnoreKey, ignoreSeconds),
+      ]);
+
+      const isIgnore = incrGuild > 1 || incrGuildMember > 1;
+      if (isIgnore) {
         const ignorePrompt = await getRandomDialog(
           models.promptsModel,
           PROMPT_TYPE_ENUM.IGNORE,
         );
 
-        return await interaction.channel.send({ content: ignorePrompt.text });
+        return await interaction.reply({
+          content: ignorePrompt.text,
+          ephemeral: incrGuild > 3,
+        });
       }
 
       const usersFefenya = await fefenyaModel

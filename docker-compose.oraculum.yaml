@@ -7,6 +7,7 @@ services:
     command: [ 'node', 'dist/apps/rainy/main.js' ]
     environment:
       - NODE_ENV=${NODE_ENV}
+      - KEY=${KEY}
 
   pepa-chat-gpt:
     image: ghcr.io/alexzedim/pepa-chat-gpt:latest
@@ -15,6 +16,7 @@ services:
     command: [ 'node', 'dist/apps/pepa-chat-gpt/main.js' ]
     environment:
       - NODE_ENV=${NODE_ENV}
+      - KEY=${KEY}
 
   fefenya:
     image: ghcr.io/alexzedim/fefenya:latest
@@ -23,6 +25,7 @@ services:
     command: [ 'node', 'dist/apps/fefenya/main.js' ]
     environment:
       - NODE_ENV=${NODE_ENV}
+      - KEY=${KEY}
 
   rodriga:
     image: ghcr.io/alexzedim/rodriga:latest
@@ -31,3 +34,4 @@ services:
     command: [ 'node', 'dist/apps/rodriga/main.js' ]
     environment:
       - NODE_ENV=${NODE_ENV}
+      - KEY=${KEY}

@@ -1,4 +1,8 @@
-import { gotdCommand, gotsStatsCommand, SlashCommand } from '@cmnw/commands';
+import {
+  topStatsCommand,
+  SlashCommand,
+  trophyContestCommand,
+} from '@cmnw/commands';
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { from, lastValueFrom, mergeMap } from 'rxjs';
@@ -9,45 +13,30 @@ import { InjectRedis } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
 import { DateTime } from 'luxon';
 
-import {
-  Channels,
-  Event,
-  Fefenya,
-  Guilds,
-  Keys,
-  Permissions,
-  Profiles,
-  Prompts,
-  Roles,
-  Users,
-} from '@cmnw/mongo';
+import { Contests, Fefenya, Keys, Profiles, Prompts } from '@cmnw/mongo';
 
 import {
+  CHAT_ROLE_ENUM,
   ChatFlowDto,
   chatQueue,
   CMNW_ORACULUM_PROJECTS,
-  randomMixMax,
-  FEFENYA_HOLIDAY,
   FEFENYA_NAMING,
-  formatNaming,
-  formatRedisKey,
+  FEFENYA_PROMPTS,
   GENDER_ENUM,
-  getChannelByTags,
-  getDialogPromptsByTags,
-  getLastDialog,
   getProfile,
-  getRoleByTags,
-  gotdGreeter,
+  getSystemPrompt,
   indexFefenyas,
   loadKey,
   OPENAI_MODEL,
-  pickRandomFefenyaUser,
-  prettyGotd,
-  prettyReply,
+  pickRandomFefenya,
+  prettyContestReply,
+  prettyContestPrompt,
   PROMPT_TYPE_ENUM,
-  setLastDialog,
+  randomMixMax,
+  resetContestByGuildId,
+  setContestUserActive,
   TAGS_ENUM,
-  STATUS_ENUM,
+  getRandomReplyByEvent,
 } from '@cmnw/core';
 
 import {
@@ -55,10 +44,10 @@ import {
   Collection,
   Events,
   GatewayIntentBits,
+  Guild,
   Partials,
   PermissionsBitField,
   REST,
-  Role,
   Routes,
   TextChannel,
 } from 'discord.js';
@@ -71,6 +60,7 @@ export class FefenyaService implements OnApplicationBootstrap {
   private client: Client;
   private fefenyaKey: Keys;
   private fefenyaProfile: Profiles;
+  private fefenyaLocalMessage: Collection<string, string> = new Collection();
   private commandsMessage: Collection<string, SlashCommand> = new Collection();
   private readonly rest = new REST({ version: '10' });
 
@@ -84,20 +74,10 @@ export class FefenyaService implements OnApplicationBootstrap {
     private readonly promptsModel: Model<Prompts>,
     @InjectModel(Profiles.name)
     private readonly profilesModel: Model<Profiles>,
-    @InjectModel(Users.name)
-    private readonly usersModel: Model<Users>,
     @InjectModel(Fefenya.name)
     private readonly fefenyasModel: Model<Fefenya>,
-    @InjectModel(Permissions.name)
-    private readonly permissionsModel: Model<Permissions>,
-    @InjectModel(Channels.name)
-    private readonly channelsModel: Model<Channels>,
-    @InjectModel(Guilds.name)
-    private readonly guildsModel: Model<Guilds>,
-    @InjectModel(Event.name)
-    private readonly eventModel: Model<Event>,
-    @InjectModel(Roles.name)
-    private readonly rolesModel: Model<Roles>,
+    @InjectModel(Contests.name)
+    private readonly contestsModel: Model<Contests>,
   ) {}
 
   async onApplicationBootstrap(): Promise<void> {
@@ -153,12 +133,12 @@ export class FefenyaService implements OnApplicationBootstrap {
   }
 
   private async loadCommands(): Promise<void> {
-    this.commandsMessage.set(gotsStatsCommand.name, gotsStatsCommand);
-    this.commandsMessage.set(gotdCommand.name, gotdCommand);
+    this.commandsMessage.set(topStatsCommand.name, topStatsCommand);
+    this.commandsMessage.set(trophyContestCommand.name, trophyContestCommand);
 
     const commands = [
-      gotdCommand.slashCommand.toJSON(),
-      gotsStatsCommand.slashCommand.toJSON(),
+      trophyContestCommand.slashCommand.toJSON(),
+      topStatsCommand.slashCommand.toJSON(),
     ];
 
     await this.rest.put(Routes.applicationCommands(this.client.user.id), {
@@ -169,10 +149,6 @@ export class FefenyaService implements OnApplicationBootstrap {
   }
 
   @Cron(CronExpression.EVERY_30_MINUTES_BETWEEN_10AM_AND_7PM)
-  private async proc() {
-    await this.loadFefenyas();
-  }
-
   private async loadFefenyas() {
     await lastValueFrom(
       from(this.client.guilds.cache.values()).pipe(
@@ -181,36 +157,29 @@ export class FefenyaService implements OnApplicationBootstrap {
             const chance50 = randomMixMax(0, 1);
             if (chance50 > 0) return;
 
-            await this.fefenyasModel.updateMany(
-              {
-                guildId: guild.id,
-              },
-              {
-                status: STATUS_ENUM.DISABLED,
-              },
-            );
+            await resetContestByGuildId(this.fefenyasModel, guild.id);
 
+            const isBig = guild.memberCount > 1000;
+            if (isBig) return;
+
+            // TODO for large servers pick random index
             await lastValueFrom(
               from(guild.members.cache.values()).pipe(
                 await mergeMap(async (member) => {
                   const isBot = member.user.bot;
                   if (isBot) return;
 
-                  await this.fefenyasModel.findByIdAndUpdate(
+                  await setContestUserActive(
+                    this.fefenyasModel,
                     member.id,
-                    {
-                      _id: member.id,
-                      username: member.displayName,
-                      guildId: member.guild.id,
-                      status: STATUS_ENUM.ACTIVE,
-                    },
-                    { upsert: true, new: true },
+                    member.displayName,
+                    guild.id,
                   );
                 }),
               ),
             );
 
-            await this.gotdContestFlow(guild.id);
+            // await this.gotdContestFlow(guild.id);
           } catch (errorException) {
             this.logger.error(errorException);
           }
@@ -251,12 +220,8 @@ export class FefenyaService implements OnApplicationBootstrap {
               interaction,
               models: {
                 fefenyaModel: this.fefenyasModel,
-                eventModel: this.eventModel,
-                permissionsModel: this.permissionsModel,
-                channelsModel: this.channelsModel,
-                rolesModel: this.rolesModel,
                 promptsModel: this.promptsModel,
-                guildsModel: this.guildsModel,
+                contestModel: this.contestsModel,
               },
               redis: this.redisService,
               logger: this.logger,
@@ -277,42 +242,44 @@ export class FefenyaService implements OnApplicationBootstrap {
   }
 
   async loadDialog() {
-    const sets = new Map([
-      [
-        PROMPT_TYPE_ENUM.COMMAND,
-        [
-          TAGS_ENUM.FEFENYA,
-          TAGS_ENUM.CONTEST,
-          TAGS_ENUM.COMMAND,
-          TAGS_ENUM.WARM,
-        ],
-      ],
-      [PROMPT_TYPE_ENUM.IGNORE, [TAGS_ENUM.FEFENYA, TAGS_ENUM.IGNORE]],
-      [PROMPT_TYPE_ENUM.ERROR, [TAGS_ENUM.FEFENYA, TAGS_ENUM.ERROR]],
-    ]);
+    const dialogPrompts: Array<Prompts> = [];
+    const profileName = ['Efhenya', 'Fefenya'][randomMixMax(0, 1)];
 
-    for (const [promptType, tags] of sets.entries()) {
-      const promptsCount = await this.promptsModel.count({
-        name: CMNW_ORACULUM_PROJECTS.FEFENYA,
-        event: promptType,
-        type: promptType,
+    const systemCorePrompt = await getSystemPrompt(
+      this.promptsModel,
+      profileName,
+    );
+
+    for (const fefenyaPrompt of FEFENYA_PROMPTS) {
+      const prompt = await this.promptsModel.findOneAndUpdate<Prompts>(
+        {
+          type: fefenyaPrompt.type,
+          role: CHAT_ROLE_ENUM.USER,
+          position: 1,
+        },
+        fefenyaPrompt,
+        {
+          upsert: true,
+          new: true,
+        },
+      );
+
+      const countGeneratedPrompts = await this.promptsModel.count({
+        type: fefenyaPrompt.type,
+        role: CHAT_ROLE_ENUM.ASSISTANT,
+        isGenerated: true,
       });
 
-      const isPromptsCount = promptsCount > 10;
-      if (isPromptsCount) {
+      const control = 20;
+      const isGeneratedPromptExists = countGeneratedPrompts >= control;
+      if (isGeneratedPromptExists) {
         this.logger.log(
-          `Messages for ${promptType} :: ${promptsCount} > 10 :: ${isPromptsCount}`,
+          `Messages for ${fefenyaPrompt.type} :: ${countGeneratedPrompts} >= ${control} :: ${isGeneratedPromptExists}`,
         );
         continue;
       }
 
-      const prompts = await getDialogPromptsByTags(this.promptsModel, tags);
-      const name = FEFENYA_NAMING.random();
-      const chatFlow = ChatFlowDto.fromPromptsFlow(
-        prompts.map((p) =>
-          Object.assign(p, { text: formatNaming(p.text, name) }),
-        ),
-      );
+      const chatFlow = ChatFlowDto.fromPromptsFlow([systemCorePrompt, prompt]);
       const response = await this.amqpConnection.request<string>({
         exchange: chatQueue.name,
         routingKey: 'v4',
@@ -320,206 +287,208 @@ export class FefenyaService implements OnApplicationBootstrap {
         timeout: 60 * 1000,
       });
 
-      await this.promptsModel.create({
-        profileId: this.fefenyaProfile._id,
-        name: CMNW_ORACULUM_PROJECTS.FEFENYA,
-        event: promptType,
-        type: promptType,
-        text: response,
-        temperature: 50,
-        isGenerated: true,
-        version: 4,
-        model: OPENAI_MODEL.ChatGPT_4,
-      });
+      const isContest = fefenyaPrompt.type === PROMPT_TYPE_ENUM.CONTEST;
 
-      this.logger.log(`Generated ${promptType} reply for ${name}`);
+      const prompts = isContest
+        ? prettyContestReply(response)
+            .map(
+              (text, i) =>
+                new this.promptsModel({
+                  profileId: this.fefenyaProfile._id,
+                  event: fefenyaPrompt.event,
+                  type: fefenyaPrompt.type,
+                  text,
+                  role: CHAT_ROLE_ENUM.ASSISTANT,
+                  isGenerated: true,
+                  version: 4,
+                  position: i + 1,
+                  tags: fefenyaPrompt.tags,
+                  model: OPENAI_MODEL.ChatGPT_4,
+                }),
+            )
+            .map((document, index, array) => {
+              const isPrevious = array[index - 1];
+              if (isPrevious) document.previousPrompt = isPrevious._id;
+              const isNext = array[index + 1];
+              if (isNext) document.nextPrompt = isNext._id;
+              if (!isNext) document.isLast = true;
+              return document;
+            })
+        : [
+            new this.promptsModel({
+              profileId: this.fefenyaProfile._id,
+              event: fefenyaPrompt.event,
+              type: fefenyaPrompt.type,
+              text: response,
+              role: CHAT_ROLE_ENUM.ASSISTANT,
+              isGenerated: true,
+              version: 4,
+              tags: fefenyaPrompt.tags,
+              model: OPENAI_MODEL.ChatGPT_4,
+            }),
+          ];
+
+      dialogPrompts.push(...prompts);
+
+      this.logger.log(`Generated ${fefenyaPrompt.type} reply`);
     }
+    await this.promptsModel.insertMany(dialogPrompts);
+    this.logger.log(`Prompts has been inserted to collection`);
   }
 
-  async generateContestDialog(guildId: string) {
-    const tags = [TAGS_ENUM.FEFENYA, TAGS_ENUM.CONTEST, TAGS_ENUM.FLOW_2];
-    const channel = await this.channelsModel.findOne<Channels>({
-      guildId: guildId,
-      tags: { $all: [TAGS_ENUM.CONTEST, TAGS_ENUM.FEFENYA] },
+  @Cron(CronExpression.EVERY_30_MINUTES_BETWEEN_10AM_AND_7PM)
+  private async trophyContestFlow() {
+    await lastValueFrom(
+      from(this.client.guilds.cache.values()).pipe(
+        mergeMap(async (guild) => {
+          try {
+            const isProcNegative = randomMixMax(0, 1);
+            if (isProcNegative > 0) return;
+
+            await resetContestByGuildId(this.fefenyasModel, guild.id);
+
+            const isGuildBig = guild.memberCount > 1000;
+            if (isGuildBig) return;
+
+            await lastValueFrom(
+              from(guild.members.cache.values()).pipe(
+                await mergeMap(async (member) => {
+                  const isBot = member.user.bot;
+                  if (isBot) return;
+
+                  await setContestUserActive(
+                    this.fefenyasModel,
+                    member.user.id,
+                    member.displayName,
+                    guild.id,
+                  );
+                }),
+              ),
+            );
+
+            await this.loadDialog();
+            await this.contestFlow(guild);
+          } catch (errorException) {
+            this.logger.error(errorException);
+          }
+        }, 5),
+      ),
+    );
+  }
+
+  async contestFlow(guild: Guild) {
+    const contest = await this.contestsModel.findOne<Contests>({
+      codename: CMNW_ORACULUM_PROJECTS.FEFENYA,
+      guildId: guild.id,
     });
 
-    if (!channel)
-      throw new Error(
-        `channel not exists for ${TAGS_ENUM.CONTEST} :: ${TAGS_ENUM.FEFENYA}`,
-      );
+    const isNextPromptSet = Boolean(contest.promptId);
 
-    const prompts = await getDialogPromptsByTags(this.promptsModel, tags);
-    const chatFlow = ChatFlowDto.fromPromptsFlow(prompts);
-    const response = await this.amqpConnection.request<string>({
-      exchange: chatQueue.name,
-      routingKey: 'v4',
-      payload: chatFlow,
-      timeout: 60 * 1000,
-    });
+    const prompt = isNextPromptSet
+      ? await this.promptsModel.findById<Prompts>(contest.promptId)
+      : await this.promptsModel.findOne<Prompts>({
+          event: PROMPT_TYPE_ENUM.TROPHY,
+          type: PROMPT_TYPE_ENUM.CONTEST,
+          role: CHAT_ROLE_ENUM.ASSISTANT,
+          position: 1,
+        });
+
+    if (prompt.nextPrompt) {
+      contest.promptId = prompt.nextPrompt;
+    }
 
     const name = FEFENYA_NAMING.random();
+    const isCapPromptsHistory = contest.promptsHistory.length >= 10;
+    const isCapWinnerHistory = contest.winnerHistory.length >= 10;
+    if (isCapWinnerHistory) {
+      contest.winnerHistory.pop();
+    }
 
-    const prettyReplies = await prettyGotd(
-      this.fefenyasModel,
-      guildId,
-      response,
-      name,
-    );
+    if (isCapPromptsHistory) {
+      contest.promptsHistory.pop();
+    }
 
-    const replies = prettyReplies
-      .map(
-        (eventPrompt, i, l) =>
-          new this.promptsModel({
-            profileId: this.fefenyaProfile._id,
-            name: `${CMNW_ORACULUM_PROJECTS.FEFENYA}:${FEFENYA_HOLIDAY.GOTD}`,
-            type: PROMPT_TYPE_ENUM.DIALOG,
-            temperature: 50,
-            isGenerated: true,
-            version: 4,
-            model: OPENAI_MODEL.ChatGPT_4,
-            event: FEFENYA_HOLIDAY.GOTD,
-            isUsed: false,
-            isLast: l.length - 1 === i,
-            text: eventPrompt.trim(),
-            // TODO tags?
-            position: i,
-          }),
-      )
-      .map((document, index, array) => {
-        const isPrevious = array[index - 1];
-        if (isPrevious) document.previousPrompt = isPrevious._id;
-        const isNext = array[index + 1];
-        if (isNext) document.nextPrompt = isNext._id;
-        return document;
-      });
+    let winner = '';
+    let promoContent = '';
 
-    this.logger.log(`Replies receive ${replies.length}`);
-    await this.promptsModel.insertMany(replies);
+    if (prompt.isLast) {
+      const winnerAt = new Date();
 
-    await setLastDialog(this.promptsModel, FEFENYA_HOLIDAY.GOTD);
-    this.logger.log(`Last dialog set ${FEFENYA_HOLIDAY.GOTD}`);
-  }
+      let role;
+      let hasPermissions = false;
 
-  async gotdContestFlow(guildId: string) {
-    const key = formatRedisKey('gotdContestFlow', guildId);
-    try {
-      const isContestInProgress = Boolean(await this.redisService.exists(key));
-      if (isContestInProgress) {
-        throw new Error(`contest is already in progress`);
-      }
-
-      await this.redisService.set(key, 1, 'EX', 70);
-
-      const tod = DateTime.now()
-        .setZone('Europe/Moscow')
-        .startOf('day')
-        .toJSDate();
-
-      const fefenyaUser = await this.fefenyasModel.findOne<Fefenya>({
-        guildId: guildId,
-        isGotd: true,
-        updatedAt: { $gte: tod },
-      });
-
-      if (fefenyaUser) {
-        throw new Error(
-          `fefenya user already found ${fefenyaUser._id} :: ${fefenyaUser.username}`,
+      if (contest.roleId) {
+        role = guild.roles.cache.get(contest.roleId);
+        hasPermissions = guild.members.me.permissions.has(
+          PermissionsBitField.Flags.ManageRoles,
         );
       }
 
-      const lastDialog = await getLastDialog(
-        this.promptsModel,
-        FEFENYA_HOLIDAY.GOTD,
+      const isRoleExists = role && hasPermissions;
+      if (isRoleExists) {
+        const oldTrophyUser = guild.members.cache.get(contest.winnerUserId);
+        await oldTrophyUser.roles.remove(role.id);
+      }
+
+      const trophyWinner = await pickRandomFefenya(
+        this.fefenyasModel,
+        guild.id,
       );
 
-      const isGenerate = !lastDialog && !fefenyaUser;
-      if (isGenerate) await this.generateContestDialog(guildId);
-
-      if (!lastDialog) {
-        throw new Error(`last dialog ${FEFENYA_HOLIDAY.GOTD} not found`);
+      if (isRoleExists) {
+        const oldTrophyUser = guild.members.cache.get(trophyWinner.userId);
+        await oldTrophyUser.roles.add(role.id);
       }
 
-      const tags = [TAGS_ENUM.CONTEST, TAGS_ENUM.FEFENYA];
+      winner = trophyWinner.username;
 
-      const fefenyaChannel = await getChannelByTags(this.channelsModel, tags);
-      if (!fefenyaChannel) throw new Error(`bind channel not found`);
-      let channel = this.client.channels.cache.get(fefenyaChannel._id);
-      if (!channel)
-        channel = await this.client.channels.fetch(fefenyaChannel._id);
-      if (!channel) {
-        throw new Error(`channel ${fefenyaChannel._id} not found`);
-      }
+      const trophyStartPrompts = await this.promptsModel.find<Prompts>({
+        event: PROMPT_TYPE_ENUM.TROPHY,
+        type: PROMPT_TYPE_ENUM.CONTEST,
+        role: CHAT_ROLE_ENUM.ASSISTANT,
+        position: 1,
+      });
 
-      const content = prettyReply(lastDialog.text);
-      await (channel as TextChannel).send({ content });
+      const trophyStartingPrompt =
+        trophyStartPrompts[randomMixMax(0, trophyStartPrompts.length - 1)];
 
-      if (!lastDialog.isLast) {
-        this.logger.log(
-          `Contest flow successfully ended ${lastDialog.event} :: ${lastDialog.position}`,
-        );
-        return;
-      }
+      contest.promptId = trophyStartingPrompt._id;
+      contest.winnerHistory.push(trophyWinner.userId);
+      contest.winnerUserId = trophyWinner.userId;
+      contest.winnerAt = winnerAt;
 
-      const gotdMember = await this.transitRole(guildId);
-      const userTag = gotdGreeter(gotdMember._id);
-      await (channel as TextChannel).send({ content: userTag });
-    } catch (errorOrException) {
-      this.logger.error(`gotdContestFlow :: ${errorOrException}`);
-    } finally {
-      await this.redisService.del(key);
-    }
-  }
+      const promoPrompt = await getRandomReplyByEvent(
+        this.promptsModel,
+        PROMPT_TYPE_ENUM.PROMO,
+      );
 
-  async transitRole(guildId: string) {
-    const gotdRole = await getRoleByTags(this.rolesModel, guildId, [
-      TAGS_ENUM.FEFENYA,
-      TAGS_ENUM.CONTEST,
-    ]);
-
-    if (!gotdRole) {
-      this.logger.warn(`role with ${TAGS_ENUM.FEFENYA} not found!`);
+      promoContent = prettyContestPrompt(
+        promoPrompt.text,
+        name,
+        contest.trophy,
+        winner,
+      );
     }
 
-    let role: Role | undefined;
-
-    const guild = this.client.guilds.cache.get(guildId);
-    const hasPermissions = guild.members.me.permissions.has(
-      PermissionsBitField.Flags.ManageRoles,
+    const content = prettyContestPrompt(
+      prompt.text,
+      name,
+      contest.trophy,
+      winner,
     );
 
-    const isTransit = hasPermissions && gotdRole;
-    if (isTransit) {
-      role = guild.roles.cache.get(gotdRole._id);
-      if (role) {
-        const fefenyaUser = await this.fefenyasModel.findOne<Fefenya>(
-          {
-            guildId: guildId,
-            isGotd: true,
-          },
-          {
-            isGotd: false,
-          },
-        );
-        const membersId = Array.from(role.members.keys());
-        if (fefenyaUser) membersId.push(fefenyaUser._id);
-
-        for (const memberId of membersId) {
-          const gotdGuildMember = guild.members.cache.get(memberId);
-          await gotdGuildMember.roles.remove(role);
-        }
-      }
+    const channel = this.client.channels.cache.get(contest.channelId);
+    if (!channel) {
+      throw new Error(`Channel ${contest.channelId} not found!`);
     }
 
-    const fefenyaUser = await pickRandomFefenyaUser(
-      this.fefenyasModel,
-      guildId,
-    );
+    await (channel as TextChannel).send({ content });
 
-    if (isTransit && role) {
-      const member = guild.members.cache.get(fefenyaUser._id);
-      await member.roles.add(role);
-    }
+    if (promoContent)
+      await (channel as TextChannel).send({ content: promoContent });
 
-    return fefenyaUser;
+    contest.promptsHistory.push(prompt._id);
+
+    await contest.save();
   }
 }

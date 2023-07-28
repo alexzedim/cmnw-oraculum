@@ -9,7 +9,7 @@ import {
 
 export const bindingCommand: SlashCommand = {
   name: COMMAND_ENUMS.BINDING,
-  description: COMMAND_DESCRIPTION_ENUMS.FEFENYA_GOTD,
+  description: COMMAND_DESCRIPTION_ENUMS.FEFENYA_TROPHY,
   slashCommand: new SlashCommandBuilder()
     .setName(COMMAND_ENUMS.BINDING)
     .setDescription(COMMAND_ENUMS.BINDING)

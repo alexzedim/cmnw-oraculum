@@ -50,7 +50,7 @@ export class Prompts extends Document {
   text: string;
 
   @Prop({ type: [String] })
-  tags: Types.Array<string>;
+  tags: Types.Array<string> | Array<string>;
 
   @Prop({ type: Date })
   updatedAt: Date;

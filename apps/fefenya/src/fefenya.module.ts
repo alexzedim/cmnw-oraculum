@@ -6,26 +6,16 @@ import { mongoConfig, rabbitConfig, redisConfig } from '@cmnw/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 import {
-  Channels,
-  ChannelsSchema,
   FefenyasSchema,
   Keys,
   KeysSchema,
-  Event,
-  EventsSchema,
-  Permissions,
-  PermissionsSchema,
-  Users,
   Fefenya,
-  UsersSchema,
   Prompts,
   Profiles,
   PromptsSchema,
   ProfilesSchema,
-  Roles,
-  RolesSchema,
-  Guilds,
-  GuildsSchema,
+  Contests,
+  ContestsSchema,
 } from '@cmnw/mongo';
 
 @Module({
@@ -37,12 +27,7 @@ import {
       { name: Prompts.name, schema: PromptsSchema },
       { name: Profiles.name, schema: ProfilesSchema },
       { name: Fefenya.name, schema: FefenyasSchema },
-      { name: Users.name, schema: UsersSchema },
-      { name: Permissions.name, schema: PermissionsSchema },
-      { name: Channels.name, schema: ChannelsSchema },
-      { name: Event.name, schema: EventsSchema },
-      { name: Roles.name, schema: RolesSchema },
-      { name: Guilds.name, schema: GuildsSchema },
+      { name: Contests.name, schema: ContestsSchema },
     ]),
     RedisModule.forRoot({
       config: {

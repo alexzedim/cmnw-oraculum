@@ -45,14 +45,22 @@ export enum TAGS_ENUM {
   WARM = 'warm',
   IGNORE = 'ignore',
   ERROR = 'error',
+  GOTD = 'gotd',
 }
 
 export enum PROMPT_TYPE_ENUM {
   DIALOG = 'dialog',
   PROMPT = 'prompt',
-  COMMAND = 'command',
-  IGNORE = 'ignore',
-  ERROR = 'error',
+  PROMO = 'promo',
+  CONTEST = 'contest',
+  TROPHY = 'trophy',
+  PROGRESS = 'onProgress',
+  IGNORE = 'onIgnore',
+  ERROR = 'onError',
+  VALIDATION = 'onValidation',
+  COMPLETE = 'onComplete',
+  INIT = 'onInit',
+  REGISTRATION = 'registration',
 }
 
 export enum VECTOR_TAGS_ENUM {
@@ -69,6 +77,7 @@ export enum VECTOR_TAGS_ENUM {
   WARLOCK = 'warlock',
   DH = 'dh',
   RODRIGA = 'rodriga',
+  AMURESS = 'amuress',
   MAGE = 'mage',
   WARRIOR = 'warrior',
   PRIEST = 'priest',
@@ -101,4 +110,17 @@ export enum SUBJECT_ENUM {
   CHANNEL = 'CHANNEL',
   ROLE = 'ROLE',
   USER = 'USER',
+}
+
+export enum PROMPT_GENDER_ENUM {
+  F = 'девушка',
+  FD = 'женщина',
+  M = 'парень',
+  MD = 'мужчина',
+}
+
+export enum CHAT_ROLE_ENUM {
+  SYSTEM = 'system',
+  USER = 'user',
+  ASSISTANT = 'assistant',
 }

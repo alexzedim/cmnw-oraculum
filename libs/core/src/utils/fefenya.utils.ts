@@ -1,45 +1,27 @@
 import { randomMixMax } from '@cmnw/core/utils/discord.utils';
-import { Fefenya } from '@cmnw/mongo';
-import { Model } from 'mongoose';
 
-/**
- * @description Generate random greeting for GotD command
- * @param userId {string} id of discord guild member
- * */
-export const gotdGreeter = (userId: string) => `<@${userId}>`;
-
-export const gotdSelected = (greeting: string, username: string) =>
-  `${greeting} ${username}`;
-
-export const prettyGotd = async (
-  model: Model<Fefenya>,
-  guildId: string,
-  replyBack: string,
-  name: string,
-) => {
-  const max = await model.count({ guildId });
-  const skip = randomMixMax(0, max);
-  const random = await model.findOne<Fefenya>({ guildId }).skip(skip);
-
-  const [r, s, n, u] = [
-    new RegExp('"', 'g'),
-    new RegExp('\\s\\d.', 'g'),
-    new RegExp('{name}', 'g'),
-    new RegExp('(@username)\\w+', 'g'),
-  ];
+export const prettyContestReply = (replyBack: string) => {
+  const [r, s] = [new RegExp('"', 'g'), new RegExp('\\s\\d.', 'g')];
 
   return replyBack
     .replace(r, '')
     .replace(s, (str) => `\n${str}`)
-    .replace(n, name)
-    .replace(u, `<@${random._id}>`)
-    .split('\n');
+    .split('\n')
+    .map((s) => s.trim());
 };
 
-export const formatNaming = (text: string, name: string) =>
-  text.replace(`{name}`, name);
+export const prettyContestPrompt = (
+  text: string,
+  name?: string,
+  trophy?: string,
+  winner?: string,
+) =>
+  text
+    .replace(new RegExp(`{name}`, 'g'), name)
+    .replace(new RegExp(`{trophy}`, 'g'), trophy)
+    .replace(new RegExp(`{winner}`, 'g'), winner);
 
-export const prettyReply = (replyBack: string) => {
+export const randomStyleReply = (replyBack: string) => {
   const i = randomMixMax(0, 3);
   const trimmed = replyBack.trim();
   if (i > 2) return `***${trimmed}***`;

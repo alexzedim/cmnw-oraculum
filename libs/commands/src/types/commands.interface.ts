@@ -3,6 +3,7 @@ import { Logger } from '@nestjs/common';
 import { Redis } from '@nestjs-modules/ioredis';
 import { Model } from 'mongoose';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
+import { COMMAND_ENUMS } from '@cmnw/commands/enums';
 import {
   Fefenya,
   Permissions,
@@ -11,6 +12,7 @@ import {
   Roles,
   Prompts,
   Guilds,
+  Contests,
 } from '@cmnw/mongo';
 
 export interface IModels {
@@ -21,6 +23,7 @@ export interface IModels {
   rolesModel: Model<Roles>;
   promptsModel: Model<Prompts>;
   guildsModel: Model<Guilds>;
+  contestModel: Model<Contests>;
 }
 
 export interface ISlashCommandArgs {
@@ -36,4 +39,16 @@ export interface ISlashCommand {
   description: string;
   slashCommand: any; // TODO SlashCommandBuilder
   executeInteraction(args: ISlashCommandArgs): Promise<unknown>;
+}
+
+export interface ICacheArgs {
+  command: COMMAND_ENUMS;
+  guildId: string;
+  userId: string;
+}
+
+export interface ICacheResult {
+  userKey: string;
+  guildKey: string;
+  commandKey: string;
 }

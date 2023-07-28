@@ -1,14 +1,14 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { STATUS_ENUM, KEY_STATUS_ARRAY } from '@cmnw/core';
+import { STATUS_ENUM } from '@cmnw/core';
 
 @Schema({ timestamps: true })
 export class Keys extends Document {
-  @Prop({ type: String })
-  id: string;
+  @Prop({ type: String, refs: 'Users' })
+  userId: string;
 
   @Prop({ type: String })
-  login: string;
+  name: string;
 
   @Prop({ type: String })
   password: string;
@@ -31,7 +31,7 @@ export class Keys extends Document {
   @Prop({
     default: STATUS_ENUM.FREE,
     type: String,
-    enum: KEY_STATUS_ARRAY,
+    enum: STATUS_ENUM,
   })
   status: STATUS_ENUM;
 

@@ -1,95 +1,67 @@
 import Redis from 'ioredis';
 import { REST } from '@discordjs/rest';
 import { InjectRedis } from '@nestjs-modules/ioredis';
-import { ChatService } from './chat/chat.service';
-import { AmqpConnection, RabbitSubscribe } from '@golevelup/nestjs-rabbitmq';
+import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { DateTime } from 'luxon';
-import { Interval } from '@nestjs/schedule';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { Keys } from '@cmnw/mongo';
+import { Keys, Profiles, Prompts } from '@cmnw/mongo';
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
-import {
-  cryptoCommand,
-  messageEmbed,
-  SlashCommand,
-  votingSanctionsCommand,
-} from '@cmnw/commands';
 
 import {
-  formatRedisKey,
-  STORAGE_KEYS,
-  MessageDto,
+  ACTION_TRIGGER_FLAG,
+  CHAT_ROLE_ENUM,
   ChatFlowDto,
-  randomMixMax,
-  loadKey,
-  ORACULUM_QUEUE,
-  oraculumQueue,
-  waitForDelay,
   chatQueue,
-  VotingCounter,
+  getProfile,
+  loadKey,
+  MessageDto,
+  messageQueue,
+  PEPA_ROLL_CHANCE,
+  randomMixMax,
 } from '@cmnw/core';
 
 import {
+  ChannelType,
   Client,
   Collection,
-  EmbedBuilder,
   Events,
   GatewayIntentBits,
-  GuildMember,
   Message,
-  PartialGuildMember,
   Partials,
-  Routes,
   Snowflake,
-  TextChannel,
 } from 'discord.js';
 
 @Injectable()
 export class PepaChatGptService implements OnApplicationBootstrap {
+  private readonly rest = new REST({ version: '10' });
   private readonly logger = new Logger(PepaChatGptService.name, {
     timestamp: true,
   });
-  private readonly rest = new REST({ version: '10' });
 
   private client: Client;
-  private chatUser: Keys;
-  private votingStorage = new Collection<string, VotingCounter>();
-  private commandsMessage = new Collection<string, SlashCommand>();
+  private pepaKey: Keys;
+  private pepaProfile: Profiles;
+  private pepaPrompt: Prompts;
   private messageStorage = new Collection<
     Snowflake,
     Collection<Snowflake, MessageDto>
   >();
 
   constructor(
-    private chatService: ChatService,
     private readonly amqpConnection: AmqpConnection,
     @InjectRedis()
     private readonly redisService: Redis,
     @InjectModel(Keys.name)
     private readonly keysModel: Model<Keys>,
+    @InjectModel(Prompts.name)
+    private readonly promptsModel: Model<Prompts>,
+    @InjectModel(Profiles.name)
+    private readonly profilesModel: Model<Profiles>,
   ) {}
   async onApplicationBootstrap() {
     await this.loadBot();
-    await this.loadCommands();
     await this.bot();
-  }
-
-  private async loadCommands(): Promise<void> {
-    this.commandsMessage.set(
-      votingSanctionsCommand.name,
-      votingSanctionsCommand,
-    );
-    this.commandsMessage.set(cryptoCommand.name, cryptoCommand);
-
-    const commandsBody = [
-      votingSanctionsCommand.slashCommand.toJSON(),
-      cryptoCommand.slashCommand.toJSON(),
-    ];
-
-    await this.rest.put(Routes.applicationCommands(this.client.user.id), {
-      body: commandsBody,
-    });
   }
 
   private async loadBot(resetContext = false) {
@@ -112,138 +84,38 @@ export class PepaChatGptService implements OnApplicationBootstrap {
       this.logger.warn(`resetContext set to ${resetContext}`);
     }
 
-    this.chatUser = await loadKey(this.keysModel, 'Janisse');
+    this.pepaKey = await loadKey(this.keysModel, 'PepaChatGpt');
+    this.pepaPrompt = await this.promptsModel.findOneAndUpdate<Prompts>({
+      role: CHAT_ROLE_ENUM.SYSTEM,
+    });
 
-    await this.client.login(this.chatUser.token);
-    this.rest.setToken(this.chatUser.token);
-  }
-
-  @RabbitSubscribe({
-    exchange: oraculumQueue.name,
-    queue: oraculumQueue.name,
-    routingKey: 'messages.all',
-    createQueueIfNotExists: true,
-  })
-  private async test(message: MessageDto) {
-    await waitForDelay(10);
-    const channel = this.client.channels.cache.get(
-      '1100433314101338202',
-    ) as TextChannel;
-
-    const embed = messageEmbed(message);
-    await channel.send({ embeds: [embed] });
+    await this.client.login(this.pepaKey.token);
+    this.rest.setToken(this.pepaKey.token);
   }
 
   private async bot() {
     this.client.on(Events.ClientReady, async () => {
       this.logger.log(`Logged in as ${this.client.user.tag}!`);
-      // await this.storage();
-    });
-
-    this.client.on(
-      Events.GuildMemberUpdate,
-      async (
-        oldMember: GuildMember | PartialGuildMember,
-        newMember: GuildMember,
-      ) => {
-        // TODO index roles
-        const key = formatRedisKey(STORAGE_KEYS.USER, 'PEPA');
-        const hasEvent = Boolean(await this.redisService.exists(key));
-        if (hasEvent) {
-          this.logger.warn(`${oldMember.id} has been triggered already!`);
-          return;
-        }
-
-        await this.redisService.set(key, oldMember.id, 'EX', 10);
-      },
-    );
-
-    this.client.on(Events.InteractionCreate, async (interaction) => {
-      try {
-        if (interaction.isCommand()) {
-          const command = this.commandsMessage.get(interaction.commandName);
-          if (!command) return;
-
-          await command.executeInteraction({
-            interaction,
-            logger: this.logger,
-          });
-        }
-
-        if (interaction.isButton()) {
-          const votingId = interaction.message.id;
-          const isVotingStorages = this.votingStorage.has(votingId);
-          const currentVote = isVotingStorages
-            ? this.votingStorage.get(votingId)
-            : { yes: 0, no: 0, voters: new Set<string>() };
-
-          if (isVotingStorages) {
-            const isUserVote = currentVote.voters.has(interaction.user.id);
-            if (isUserVote) {
-              await interaction.reply({
-                content: 'Вы уже участвовали в данном голосовании!',
-                ephemeral: true,
-              });
-
-              return;
-            }
-          }
-
-          const isYes = interaction.customId === 'Yes';
-          const currentVoteCount = isYes
-            ? (currentVote.yes = currentVote.yes + 1)
-            : (currentVote.no = currentVote.no + 1);
-
-          currentVote.voters.add(interaction.user.id);
-
-          this.votingStorage.set(votingId, currentVote);
-
-          const [embed] = interaction.message.embeds;
-
-          const [index, name, space] = isYes
-            ? [0, 'За', '⠀⠀⠀⠀⠀']
-            : [-1, 'Против', '⠀⠀⠀'];
-
-          const updatedEmbed = new EmbedBuilder(embed).spliceFields(index, 1, {
-            name: `───────────────`,
-            value: `${space}${name}: ${currentVoteCount}\n───────────────`,
-            inline: true,
-          });
-
-          await interaction.update({ embeds: [updatedEmbed] });
-          await interaction.reply({
-            content: 'Ваш голос был учтен!',
-            ephemeral: true,
-          });
-        }
-      } catch (errorException) {
-        this.logger.error(errorException);
-        if (interaction.isCommand()) {
-          await interaction.reply({
-            content: 'There was an error while executing this command!',
-            ephemeral: true,
-          });
-        }
-      }
+      this.pepaProfile = await getProfile(
+        this.logger,
+        this.profilesModel,
+        this.pepaKey,
+        {
+          userId: this.client.user.id,
+          keyId: this.pepaKey._id,
+          name: this.client.user.username,
+          avatarUrl: this.client.user.avatarURL(),
+        },
+      );
     });
 
     this.client.on(Events.MessageCreate, async (message: Message<true>) => {
-      let isIgnore: boolean;
-      let isMentioned: boolean;
-
       try {
-        /**
-         * @description Form dto from message
-         * @description and pass it to queue
-         */
         const chatMessage = MessageDto.fromDiscordMessage(
           message,
-          this.chatUser,
+          this.pepaKey,
         );
-        /**
-         * @description create channel message storage
-         * @description and extract messages is it exists
-         */
+
         const channelId = message.channel.id;
         const isChannelExists = this.messageStorage.has(channelId);
         const messageStorage = isChannelExists
@@ -253,84 +125,111 @@ export class PepaChatGptService implements OnApplicationBootstrap {
             ]);
 
         if (!isChannelExists) {
-          this.messageStorage.set(message.channel.id, messageStorage);
+          this.messageStorage.set(channelId, messageStorage);
         }
 
-        const { isBot, isSelf, isGuild } = this.chatService.isIgnore(
-          message,
-          this.client,
-        );
-        if (isSelf || isBot) return;
-        // TODO isMultipleQuestions, isCertainQuestion
-        // const { isMultipleQuestions, isCertainQuestion } = await this.chatService.isQuestion(message);
+        const { isBot, isSelf, isGuild } = this.isIgnore(message, this.client);
 
-        // isIgnore = await this.chatService.isIgnoreTriggered(this.chatUser.name);
-        // if (isIgnore) return;
-
-        // await this.chatService.setChannelLastActive(message.channelId);
+        if (isSelf || isBot || !isGuild) return;
 
         const { content } = message;
-
-        isMentioned = await this.chatService.isUserMentioned(
-          message.mentions,
-          message.mentions.users,
-          this.client.user.id,
-          content,
-        );
 
         const isText = Boolean(content);
         const hasAttachment = Boolean(message.attachments.size);
 
-        const { flag } = await this.chatService.rollDiceFullHouse({
+        const { flag } = await this.rollDiceFullHouse({
           isText,
           hasAttachment,
-          isMentioned,
         });
 
-        // TODO throw prompt personality flag length context (channel | user)
-        const now = DateTime.now().setZone('Europe/Moscow');
         await this.amqpConnection.publish<MessageDto>(
-          ORACULUM_QUEUE.MESSAGES,
-          'v4',
+          messageQueue.name,
+          'messages.all',
           chatMessage,
         );
 
-        const n = randomMixMax(1, 7);
-        if (n < 6) return;
-
-        const messageCollection = this.messageStorage.get(channelId);
-        const dialogFrom = messageCollection
-          .last(n)
-          .map((message) =>
-            ChatFlowDto.fromMessageDto(message, this.client.user.id),
-          );
-
-        const response = await this.amqpConnection.request<string>({
-          exchange: chatQueue.name,
-          routingKey: 'v4',
-          payload: dialogFrom,
-          timeout: 60 * 1000,
-        });
-
-        console.log(response);
-
-        await message.channel.send({ content: response });
+        if (flag === ACTION_TRIGGER_FLAG.MESSAGE_REPLY) {
+          await this.messageReply(message, channelId);
+        }
       } catch (errorOrException) {
         this.logger.error(errorOrException);
       }
     });
   }
 
-  @Interval(10_000)
-  async eventManagement() {
-    const now = DateTime.now().setZone('Europe/Moscow');
-    // TODO check current event at a moment of time
+  async messageReply(message: Message, channelId: string) {
+    const n = randomMixMax(1, 7);
+    if (n < 6) return;
 
-    // TODO increase chance of inactivity for each period
+    const messageCollection = this.messageStorage.get(channelId);
+    const dialogFrom = messageCollection
+      .last(n)
+      .map((message) =>
+        ChatFlowDto.fromMessageDto(
+          message,
+          this.pepaPrompt,
+          this.client.user.id,
+        ),
+      );
 
-    // TODO Redis Pepa inactivity flag value
+    const response = await this.amqpConnection.request<string>({
+      exchange: chatQueue.name,
+      routingKey: 'v3',
+      payload: dialogFrom,
+      timeout: 60 * 1000,
+    });
 
-    // TODO check chance
-    // const questions = await this.chatService.answerQuestion();
+    await message.channel.send({ content: response });
+  }
+
+  async rollDiceFullHouse({
+    isText = false,
+    isMentioned = false,
+    isMedia = false,
+    isTest = false,
+    hasAttachment = false,
+  }) {
+    if (isTest) {
+      return { flag: ACTION_TRIGGER_FLAG.TEST, context: `Привет, я Пепа` };
+    }
+
+    try {
+      const triggerChance = randomMixMax(0, 100);
+
+      if (isMedia && triggerChance > PEPA_ROLL_CHANCE.IS_MEDIA) {
+        return {
+          flag: ACTION_TRIGGER_FLAG.MESSAGE_REPLY,
+        };
+      }
+
+      if (
+        !isText &&
+        hasAttachment &&
+        triggerChance > PEPA_ROLL_CHANCE.ATTACHMENT_ONLY_EMOJI
+      ) {
+        return { flag: ACTION_TRIGGER_FLAG.EMOJI };
+      }
+
+      if (isMentioned) {
+        return { flag: ACTION_TRIGGER_FLAG.MESSAGE_REPLY };
+      }
+
+      if (isText && triggerChance >= PEPA_ROLL_CHANCE.TEXT_ONLY_EMOJI) {
+        return { flag: ACTION_TRIGGER_FLAG.EMOJI };
+      }
+
+      return { flag: ACTION_TRIGGER_FLAG.EMPTY };
+    } catch (errorException) {
+      this.logger.error(errorException);
+      return { flag: ACTION_TRIGGER_FLAG.EMPTY };
+    }
+  }
+
+  public isIgnore(message: Message, client: Client) {
+    const isSelf = message.author.id === client.user.id;
+    const isBot = message.author.bot;
+    const isGuild = message.channel.type !== ChannelType.GuildText;
+
+    return { isSelf, isBot, isGuild };
   }
 }

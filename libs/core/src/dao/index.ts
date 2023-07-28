@@ -6,3 +6,5 @@ export * from './profiles.dao';
 export * from './channels.dao';
 export * from './roles.dao';
 export * from './prompts.dao';
+export * from './fefenyas.dao';
+export * from './contests.dao';

@@ -1,5 +1,5 @@
 import { EmbedBuilder, SlashCommandBuilder } from 'discord.js';
-import { Fefenya } from '@cmnw/mongo';
+import { Contests, Fefenya } from '@cmnw/mongo';
 import {
   COMMAND_DESCRIPTION_ENUMS,
   COMMAND_ENUMS,
@@ -7,30 +7,28 @@ import {
 } from '@cmnw/commands';
 
 import {
-  FEFENYA_COMMANDS,
-  FEFENYA_DESCRIPTION,
-  getRandomDialog,
+  getRandomReplyByEvent,
   PROMPT_TYPE_ENUM,
   randomMixMax,
 } from '@cmnw/core';
 
-export const gotsStatsCommand: SlashCommand = {
-  name: COMMAND_ENUMS.FEFENYA_GOTS_STATS,
-  description: COMMAND_DESCRIPTION_ENUMS.FEFENYA_GOTD_STATS,
+export const topStatsCommand: SlashCommand = {
+  name: COMMAND_ENUMS.FEFENYA_TOP,
+  description: COMMAND_DESCRIPTION_ENUMS.FEFENYA_TOP,
   slashCommand: new SlashCommandBuilder()
-    .setName(FEFENYA_COMMANDS.GOTS_STATS)
-    .setDescription(FEFENYA_DESCRIPTION.GOTD_STATS),
+    .setName(COMMAND_ENUMS.FEFENYA_TOP)
+    .setDescription(COMMAND_DESCRIPTION_ENUMS.FEFENYA_TOP),
 
   executeInteraction: async function ({ interaction, models, logger, redis }) {
     if (!interaction.isChatInputCommand()) return;
 
     const [guildId, userId] = [interaction.guildId, interaction.user.id];
-    const { fefenyaModel } = models;
+    const { fefenyaModel, contestModel } = models;
 
     try {
       const ignoreSeconds = randomMixMax(60 * 30, 60 * 60);
-      const guildIgnoreKey = `${COMMAND_ENUMS.FEFENYA_GOTS_STATS}:${guildId}`;
-      const userIgnoreKey = `${COMMAND_ENUMS.FEFENYA_GOTS_STATS}:${guildId}:${userId}`;
+      const guildIgnoreKey = `${COMMAND_ENUMS.FEFENYA_TOP}:${guildId}`;
+      const userIgnoreKey = `${COMMAND_ENUMS.FEFENYA_TOP}:${guildId}:${userId}`;
 
       const [incrGuild, incrGuildMember] = await Promise.all([
         redis.incr(guildIgnoreKey),
@@ -44,7 +42,7 @@ export const gotsStatsCommand: SlashCommand = {
 
       const isIgnore = incrGuild > 1 || incrGuildMember > 1;
       if (isIgnore) {
-        const ignorePrompt = await getRandomDialog(
+        const ignorePrompt = await getRandomReplyByEvent(
           models.promptsModel,
           PROMPT_TYPE_ENUM.IGNORE,
         );
@@ -55,26 +53,30 @@ export const gotsStatsCommand: SlashCommand = {
         });
       }
 
-      const usersFefenya = await fefenyaModel
+      const fefenyas = await fefenyaModel
         .find<Fefenya>({ guildId: interaction.guildId })
         .limit(10)
         .sort({ count: -1 });
 
       const now = new Date();
+      const contest = await contestModel.findOne<Contests>({
+        guildId,
+      });
 
       const embed = new EmbedBuilder()
         .setColor(0x0099ff)
-        .setTitle(':rainbow_flag: Зал славы :transgender_flag: ')
+        .setTitle(contest.trophy)
+        .setDescription('Топ')
         .setTimestamp(now)
         .setFooter({
           text: 'CMNW',
           iconURL: 'https://i.imgur.com/OBDcu7K.png',
         });
 
-      for (const gotdEntity of usersFefenya) {
+      for (const fefenya of fefenyas) {
         embed.addFields({
-          name: `${gotdEntity.username}`,
-          value: `${gotdEntity.count}`,
+          name: `${fefenya.username}`,
+          value: `${fefenya.count}`,
           inline: true,
         });
       }
@@ -86,7 +88,7 @@ export const gotsStatsCommand: SlashCommand = {
     } catch (errorOrException) {
       logger.error(errorOrException);
 
-      const errorPrompt = await getRandomDialog(
+      const errorPrompt = await getRandomReplyByEvent(
         models.promptsModel,
         PROMPT_TYPE_ENUM.ERROR,
       );

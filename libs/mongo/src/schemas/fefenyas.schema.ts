@@ -3,17 +3,14 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 @Schema({ timestamps: true })
 export class Fefenya extends Document {
-  @Prop({ required: true, type: String })
-  _id: string;
-
   @Prop({ type: String })
   username: string;
 
-  @Prop({ type: String, ref: 'Guilds' })
-  guildId: string;
+  @Prop({ type: String, ref: 'Users', index: true })
+  userId: string;
 
-  @Prop({ type: Boolean })
-  isGotd: boolean;
+  @Prop({ type: String, ref: 'Guilds', index: true })
+  guildId: string;
 
   @Prop({ type: Number })
   count: number;

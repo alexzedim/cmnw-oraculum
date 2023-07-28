@@ -1,8 +1,8 @@
 export enum COMMAND_ENUMS {
-  FEFENYA_GOTD = 'gay',
-  FEFENYA_GOTD_RU = 'пидор',
-  FEFENYA_GOTS_STATS = 'gaylords',
-  FEFENYA_GOTS_STATS_RU = 'пидоры дня',
+  FEFENYA_TROPHY = 'trophy',
+  FEFENYA_TROPHY_RU = 'приз',
+  FEFENYA_TOP = 'top',
+  FEFENYA_TOP_RU = 'топ-дня',
   BINDING = 'bind',
   VOTING = 'vote',
   VOTING_SANCTIONS = 'vote-sanction',
@@ -11,10 +11,10 @@ export enum COMMAND_ENUMS {
 }
 
 export enum COMMAND_DESCRIPTION_ENUMS {
-  FEFENYA_GOTD = 'Choose hero of the day',
-  FEFENYA_GOTD_RU = 'Выбрать пидора дня',
-  FEFENYA_GOTD_STATS = 'Show heroes of glory hall',
-  FEFENYA_GOTD_STATS_RU = 'Показать пидоров дня',
+  FEFENYA_TROPHY = 'Choose winner of the day',
+  FEFENYA_TROPHY_RU = 'Выбрать победителя дня',
+  FEFENYA_TOP = 'Show top ladder',
+  FEFENYA_TOP_RU = 'Показать топ победителей',
   BINDING = 'Bind or make visible selected entity role | user | channel to bot',
   VOTING = 'Start voting for the selected proposal',
   VOTING_SANCTIONS = 'Инициировать процедуру голосования за применение санкций к участнику сервера',
@@ -22,12 +22,14 @@ export enum COMMAND_DESCRIPTION_ENUMS {
   CRYPTO = 'Зашифровать или дешифровать выбранное сообщение',
 }
 
-export enum GOTD_PARAMS_ENUM {
+export enum TROPHY_PARAMS_ENUM {
   ROLE = 'role',
+  TROPHY = 'trophy',
 }
 
 export enum GOTD_PARAMS_DESCRIPTION_ENUM {
   ROLE = 'Выбери подарочную роль для победителя',
+  TROPHY = 'Назови что разыгрываем, требуется только 1 раз!',
 }
 
 export enum BINDING_PARAMS_ENUM {

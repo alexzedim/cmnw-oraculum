@@ -3,6 +3,7 @@ import { Logger } from '@nestjs/common';
 import { Redis } from '@nestjs-modules/ioredis';
 import { Model } from 'mongoose';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
+import { COMMAND_ENUMS } from '@cmnw/commands/enums';
 import {
   Fefenya,
   Permissions,
@@ -11,8 +12,8 @@ import {
   Roles,
   Prompts,
   Guilds,
+  Contests,
 } from '@cmnw/mongo';
-import { COMMAND_ENUMS } from '@cmnw/commands/enums';
 
 export interface IModels {
   fefenyaModel: Model<Fefenya>;
@@ -22,6 +23,7 @@ export interface IModels {
   rolesModel: Model<Roles>;
   promptsModel: Model<Prompts>;
   guildsModel: Model<Guilds>;
+  contestModel: Model<Contests>;
 }
 
 export interface ISlashCommandArgs {

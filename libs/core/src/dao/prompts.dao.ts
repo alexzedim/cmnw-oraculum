@@ -1,15 +1,38 @@
 import { Model } from 'mongoose';
 import { Prompts } from '@cmnw/mongo';
-import { PROMPT_TYPE_ENUM } from '@cmnw/core/enums';
+import { CHAT_ROLE_ENUM, PROMPT_TYPE_ENUM } from '@cmnw/core/enums';
 import { randomMixMax } from '@cmnw/core/utils';
 
-export const getFlowDialogs = async (model: Model<Prompts>, event: string) =>
-  await model.find<Prompts>({
-    event,
-    isUsed: false,
+export const getSystemPrompt = async (model: Model<Prompts>, name: string) =>
+  await model.findOne<Prompts>({
+    name,
+    role: CHAT_ROLE_ENUM.SYSTEM,
   });
 
-export const getDialogPromptsByTags = async (
+export const buildDialogFlow = async (
+  model: Model<Prompts>,
+  name: string,
+  event: string,
+) => {
+  const [profilePrompt, prompts] = await Promise.all([
+    model.findOne<Prompts>({
+      name,
+      role: CHAT_ROLE_ENUM.SYSTEM,
+    }),
+    model
+      .find<Prompts>({
+        event,
+        isUsed: false,
+      })
+      .sort({ position: 1 }),
+  ]);
+
+  if (!profilePrompt) throw new Error(`Prompt from name ${name} not found!`);
+
+  return [profilePrompt, ...prompts];
+};
+
+export const getDialogPromptsByAllTags = async (
   model: Model<Prompts>,
   tags: Array<string>,
 ) =>
@@ -21,9 +44,14 @@ export const getDialogPromptsByTags = async (
     })
     .sort({ position: 1 });
 
-export const getRandomDialog = async (model: Model<Prompts>, event: string) => {
+export const getRandomReplyByEvent = async (
+  model: Model<Prompts>,
+  event: string,
+) => {
   const max = await model.count({
     event,
+    isGenerated: true,
+    role: CHAT_ROLE_ENUM.ASSISTANT,
   });
 
   const skip = randomMixMax(0, max);
@@ -31,11 +59,13 @@ export const getRandomDialog = async (model: Model<Prompts>, event: string) => {
   return model
     .findOne<Prompts>({
       event,
+      isGenerated: true,
+      role: CHAT_ROLE_ENUM.ASSISTANT,
     })
     .skip(skip);
 };
 
-export const getLastDialog = async (model: Model<Prompts>, event: string) =>
+export const getLastDialogFlow = async (model: Model<Prompts>, event: string) =>
   await model.findOneAndUpdate<Prompts>(
     {
       event,

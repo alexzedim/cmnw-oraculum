@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { RivenService } from './riven.service';
+import { RivenService, ChatService } from './services';
 
 @Module({
   imports: [],
   controllers: [],
-  providers: [RivenService],
+  providers: [RivenService, ChatService],
 })
 export class RivenModule {}

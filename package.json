@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "@anchan828/nest-bullmq": "^3.1.22",
-    "@aws-sdk/client-s3": "^3.435.0",
+    "@aws-sdk/client-s3": "^3.441.0",
     "@discordjs/rest": "1.6.0",
     "@golevelup/nestjs-rabbitmq": "^3.6.0",
     "@nestjs-modules/ioredis": "1.0.1",
@@ -57,6 +57,7 @@
     "ioredis": "5.3.1",
     "luxon": "3.3.0",
     "mongoose": "^7.3.1",
+    "nestjs-s3": "^2.0.1",
     "normalize-text": "2.4.1",
     "octokit": "2.0.14",
     "pg": "8.10.0",

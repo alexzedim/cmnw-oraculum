@@ -4,3 +4,4 @@ export * from './postgres.config';
 export * from './rabbit.config';
 export * from './mongo.config';
 export * from './github.config';
+export * from './yandex.config';

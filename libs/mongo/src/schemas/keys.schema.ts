@@ -55,7 +55,7 @@ export const KeysSchema = SchemaFactory.createForClass(Keys);
 KeysSchema.index(
   {
     tags: 'text',
-    login: 'text',
+    name: 'text',
     email: 'text',
     status: 'text',
   },
@@ -63,7 +63,7 @@ KeysSchema.index(
     default_language: 'english',
     weights: {
       login: 1,
-      email: 1,
+      name: 1,
       status: 2,
       tags: 3,
     },

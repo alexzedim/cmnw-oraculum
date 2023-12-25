@@ -8,7 +8,7 @@ export class Keys extends Document {
   userId: string;
 
   @Prop({ type: String })
-  name: string;
+  codename: string;
 
   @Prop({ type: String })
   password: string;
@@ -62,8 +62,7 @@ KeysSchema.index(
   {
     default_language: 'english',
     weights: {
-      login: 1,
-      name: 1,
+      codename: 1,
       status: 2,
       tags: 3,
     },

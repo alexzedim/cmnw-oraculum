@@ -1,9 +1,8 @@
 import { Module } from '@nestjs/common';
-import { PepaChatGptService } from './pepa-chat-gpt.service';
+import { PepaService } from './pepa.service';
 import { ScheduleModule } from '@nestjs/schedule';
 import { RedisModule } from '@nestjs-modules/ioredis';
 import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
-import { ChatService } from './chat/chat.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { mongoConfig, rabbitConfig, redisConfig } from '@cmnw/config';
 
@@ -12,12 +11,12 @@ import {
   ChannelsSchema,
   Guilds,
   GuildsSchema,
-  Identity,
-  IdentitySchema,
   Keys,
   KeysSchema,
   Messages,
   MessagesSchema,
+  Profiles,
+  ProfilesSchema,
   Roles,
   RolesSchema,
   Users,
@@ -35,7 +34,7 @@ import {
       { name: Channels.name, schema: ChannelsSchema },
       { name: Roles.name, schema: RolesSchema },
       { name: Messages.name, schema: MessagesSchema },
-      { name: Identity.name, schema: IdentitySchema },
+      { name: Profiles.name, schema: ProfilesSchema },
     ]),
     RedisModule.forRoot({
       config: {
@@ -50,6 +49,6 @@ import {
     }),
   ],
   controllers: [],
-  providers: [PepaChatGptService, ChatService],
+  providers: [PepaService],
 })
-export class PepaChatGptModule {}
+export class PepaModule {}

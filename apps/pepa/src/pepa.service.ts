@@ -2,7 +2,6 @@ import Redis from 'ioredis';
 import { REST } from '@discordjs/rest';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
-import { DateTime } from 'luxon';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Keys, Profiles, Prompts } from '@cmnw/mongo';
@@ -33,9 +32,9 @@ import {
 } from 'discord.js';
 
 @Injectable()
-export class PepaChatGptService implements OnApplicationBootstrap {
+export class PepaService implements OnApplicationBootstrap {
   private readonly rest = new REST({ version: '10' });
-  private readonly logger = new Logger(PepaChatGptService.name, {
+  private readonly logger = new Logger(PepaService.name, {
     timestamp: true,
   });
 
@@ -84,7 +83,7 @@ export class PepaChatGptService implements OnApplicationBootstrap {
       this.logger.warn(`resetContext set to ${resetContext}`);
     }
 
-    this.pepaKey = await loadKey(this.keysModel, 'PepaChatGpt');
+    this.pepaKey = await loadKey(this.keysModel, 'Pepa');
     this.pepaPrompt = await this.promptsModel.findOneAndUpdate<Prompts>({
       role: CHAT_ROLE_ENUM.SYSTEM,
     });
@@ -141,7 +140,7 @@ export class PepaChatGptService implements OnApplicationBootstrap {
           isText,
           hasAttachment,
         });
-
+        // TODO what?
         await this.amqpConnection.publish<MessageDto>(
           messageQueue.name,
           'messages.all',
@@ -210,7 +209,7 @@ export class PepaChatGptService implements OnApplicationBootstrap {
         return { flag: ACTION_TRIGGER_FLAG.EMOJI };
       }
 
-      if (isMentioned) {
+      if (isMentioned && triggerChance > PEPA_ROLL_CHANCE.IS_SOFT_MENTIONED) {
         return { flag: ACTION_TRIGGER_FLAG.MESSAGE_REPLY };
       }
 

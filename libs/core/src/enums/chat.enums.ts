@@ -31,6 +31,7 @@ export enum PEPA_ROLL_CHANCE {
   TEXT_ONLY_PROVOKE = 5,
   TEXT_ONLY_EMOJI = 98,
   IS_MEDIA = 85,
+  IS_SOFT_MENTIONED = 12,
 }
 
 export enum STORAGE_KEYS {

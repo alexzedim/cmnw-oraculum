@@ -1,5 +1,5 @@
 import { SlashCommand } from '@cmnw/commands/types';
-import { COMMAND_DESCRIPTION_ENUMS, COMMAND_ENUMS } from '@cmnw/commands/enums';
+import { COMMAND_DESCRIPTION_ENUMS, COMMAND_ENUMS } from '@cmnw/commands/const';
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { Octokit } from 'octokit';
 import { githubConfig } from '@cmnw/config';

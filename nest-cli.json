@@ -46,13 +46,13 @@
         "tsConfigPath": "libs/config/tsconfig.lib.json"
       }
     },
-    "pepa-chat-gpt": {
+    "pepa": {
       "type": "application",
-      "root": "apps/pepa-chat-gpt",
+      "root": "apps/pepa",
       "entryFile": "main",
-      "sourceRoot": "apps/pepa-chat-gpt/src",
+      "sourceRoot": "apps/pepa/src",
       "compilerOptions": {
-        "tsConfigPath": "apps/pepa-chat-gpt/tsconfig.app.json"
+        "tsConfigPath": "apps/pepa/tsconfig.app.json"
       }
     },
     "rodriga": {

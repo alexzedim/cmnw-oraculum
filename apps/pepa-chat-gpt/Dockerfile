@@ -30,9 +30,9 @@ RUN yarn install
 
 COPY . .
 
-RUN nest build pepa-chat-gpt
+RUN nest build pepa
 
-CMD wait && ["node", "dist/apps/pepa-chat-gpt/main.js"]
+CMD wait && ["node", "dist/apps/pepa/main.js"]
 
 
 

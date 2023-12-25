@@ -5,7 +5,7 @@ import {
   BINDING_PARAMS_ENUM,
   COMMAND_DESCRIPTION_ENUMS,
   COMMAND_ENUMS,
-} from '@cmnw/commands/enums';
+} from '@cmnw/commands/const';
 
 export const bindingCommand: SlashCommand = {
   name: COMMAND_ENUMS.BINDING,

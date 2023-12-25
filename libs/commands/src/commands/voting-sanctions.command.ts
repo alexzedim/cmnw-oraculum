@@ -14,7 +14,7 @@ import {
   VOTING_ACTION_PARAMS,
   VOTING_SANCTIONS_DESCRIPTION,
   VOTING_SANCTIONS_PARAMS,
-} from '@cmnw/commands/enums';
+} from '@cmnw/commands/const';
 
 import {
   MessageActionRowComponentBuilder,

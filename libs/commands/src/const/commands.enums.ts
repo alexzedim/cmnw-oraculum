@@ -6,6 +6,7 @@ export enum COMMAND_ENUMS {
   BINDING = 'bind',
   VOTING = 'vote',
   VOTING_SANCTIONS = 'vote-sanction',
+  VOTING_NOMINATION = 'vote-nomination',
   MEMORIAL = 'memorial',
   CRYPTO = 'crypto',
 }
@@ -17,7 +18,8 @@ export enum COMMAND_DESCRIPTION_ENUMS {
   FEFENYA_TOP_RU = 'Показать топ победителей',
   BINDING = 'Bind or make visible selected entity role | user | channel to bot',
   VOTING = 'Start voting for the selected proposal',
-  VOTING_SANCTIONS = 'Инициировать процедуру голосования за применение санкций к участнику сервера',
+  VOTING_NOMINATION = 'Инициировать процедуру голосования за присвоение роли к выбранному участнику сообщества',
+  VOTING_SANCTIONS = 'Инициировать процедуру голосования за применение санкций к участнику сообщества',
   MEMORIAL = 'Show memorial wall',
   CRYPTO = 'Зашифровать или дешифровать выбранное сообщение',
 }
@@ -46,6 +48,16 @@ export enum BINDING_PARAMS_DESCRIPTION_ENUM {
   GUILD = 'Binds guild, allowing bot to operate with selected entity',
 }
 
+export enum VOTING_NOMINATION_PARAMS {
+  USER = 'участник',
+  ROLE = 'роль',
+}
+
+export enum VOTING_NOMINATION_DESCRIPTION {
+  ROLE_DESCRIPTION = 'номинированная роль',
+  USER_DESCRIPTION = 'участник сообщества',
+}
+
 export enum VOTING_SANCTIONS_PARAMS {
   ACTION = 'санкции',
   USER = 'участник',
@@ -53,7 +65,7 @@ export enum VOTING_SANCTIONS_PARAMS {
 
 export enum VOTING_SANCTIONS_DESCRIPTION {
   ACTION_DESCRIPTION = 'санкционированное действие',
-  USER_DESCRIPTION = 'участник сервера',
+  USER_DESCRIPTION = 'участник сообщества',
 }
 
 export enum VOTING_ACTION_PARAMS {

@@ -3,7 +3,7 @@ import { Logger } from '@nestjs/common';
 import { Redis } from '@nestjs-modules/ioredis';
 import { Model } from 'mongoose';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
-import { COMMAND_ENUMS } from '@cmnw/commands/enums';
+import { COMMAND_ENUMS } from '@cmnw/commands/const';
 import {
   Fefenya,
   Permissions,

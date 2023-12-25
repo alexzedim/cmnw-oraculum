@@ -8,7 +8,7 @@ import {
   CRYPTO_DESCRIPTION_PARAMS,
   CRYPTO_PARAMS,
   CRYPTO_VECTOR_ENUMS,
-} from '@cmnw/commands/enums';
+} from '@cmnw/commands/const';
 
 export const cryptoCommand: SlashCommand = {
   name: COMMAND_ENUMS.CRYPTO,
@@ -78,6 +78,8 @@ export const cryptoCommand: SlashCommand = {
         interaction.options.getString(CRYPTO_PARAMS.CIPHER, true),
         interaction.options.getString(CRYPTO_PARAMS.KEY, true),
       ];
+
+      // TODO build on modals
 
       const message = await interaction.channel.messages.fetch(messageId);
       if (!message) {

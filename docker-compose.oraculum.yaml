@@ -10,10 +10,10 @@ services:
       - KEY=${KEY}
 
   pepa-chat-gpt:
-    image: ghcr.io/alexzedim/pepa-chat-gpt:latest
-    container_name: pepa-chat-gpt
+    image: ghcr.io/alexzedim/pepa:latest
+    container_name: pepa
     restart: always
-    command: [ 'node', 'dist/apps/pepa-chat-gpt/main.js' ]
+    command: [ 'node', 'dist/apps/pepa/main.js' ]
     environment:
       - NODE_ENV=${NODE_ENV}
       - KEY=${KEY}

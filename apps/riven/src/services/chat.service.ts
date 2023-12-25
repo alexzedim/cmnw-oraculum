@@ -42,7 +42,7 @@ export class ChatService {
       anchorRandomElement,
     );
     for (const emojiId of emojiPepeArrayId) {
-      const emoji = await client.emojis.cache.get(emojiId);
+      const emoji = client.emojis.cache.get(emojiId);
       await message.react(emoji);
     }
   }
@@ -154,6 +154,7 @@ export class ChatService {
     clientId: string,
     content: string,
   ): Promise<boolean> {
+    const user = mentionUsers.get('1');
     const precursor = user.username.toLowerCase().slice(0, 3);
     const regex = new RegExp(`^${precursor}`);
     const isMentioned =

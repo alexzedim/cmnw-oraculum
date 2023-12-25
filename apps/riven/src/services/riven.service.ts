@@ -12,38 +12,33 @@ import {
   cryptoCommand,
   messageEmbed,
   SlashCommand,
-  votingSanctionsCommand,
+  votingNominationCommand,
 } from '@cmnw/commands';
 
 import {
-  formatRedisKey,
-  STORAGE_KEYS,
   MessageDto,
-  ChatFlowDto,
-  randomMixMax,
   loadKey,
-  ORACULUM_QUEUE,
-  oraculumQueue,
   waitForDelay,
-  chatQueue,
   VotingCounter,
+  messageQueue,
 } from '@cmnw/core';
 
 import {
   Client,
   Collection,
-  EmbedBuilder,
   Events,
   GatewayIntentBits,
   GuildMember,
   Message,
-  PartialGuildMember,
   Partials,
   Routes,
   Snowflake,
   TextChannel,
 } from 'discord.js';
+
 import { ChatService } from './chat.service';
+import { StorageService } from './storage.service';
+import { capitalizeFirstLetter } from 'normalize-text';
 
 @Injectable()
 export class RivenService implements OnApplicationBootstrap {
@@ -62,6 +57,7 @@ export class RivenService implements OnApplicationBootstrap {
   >();
 
   constructor(
+    private storageService: StorageService,
     private chatService: ChatService,
     private readonly amqpConnection: AmqpConnection,
     @InjectRedis()
@@ -70,6 +66,7 @@ export class RivenService implements OnApplicationBootstrap {
     private readonly keysModel: Model<Keys>,
   ) {}
   async onApplicationBootstrap() {
+    // await this.storageService.get();
     await this.loadBot();
     await this.loadCommands();
     await this.bot();
@@ -77,13 +74,13 @@ export class RivenService implements OnApplicationBootstrap {
 
   private async loadCommands(): Promise<void> {
     this.commandsMessage.set(
-      votingSanctionsCommand.name,
-      votingSanctionsCommand,
+      votingNominationCommand.name,
+      votingNominationCommand,
     );
     this.commandsMessage.set(cryptoCommand.name, cryptoCommand);
 
     const commandsBody = [
-      votingSanctionsCommand.slashCommand.toJSON(),
+      votingNominationCommand.slashCommand.toJSON(),
       cryptoCommand.slashCommand.toJSON(),
     ];
 
@@ -112,19 +109,19 @@ export class RivenService implements OnApplicationBootstrap {
       this.logger.warn(`resetContext set to ${resetContext}`);
     }
 
-    this.chatUser = await loadKey(this.keysModel, 'Janisse');
+    this.chatUser = await loadKey(this.keysModel, 'Riven');
 
     await this.client.login(this.chatUser.token);
     this.rest.setToken(this.chatUser.token);
   }
 
   @RabbitSubscribe({
-    exchange: oraculumQueue.name,
-    queue: oraculumQueue.name,
+    exchange: messageQueue.name,
+    queue: messageQueue.name,
     routingKey: 'messages.all',
     createQueueIfNotExists: true,
   })
-  private async test(message: MessageDto) {
+  private async putInQueue(message: MessageDto) {
     await waitForDelay(10);
     const channel = this.client.channels.cache.get(
       '1100433314101338202',
@@ -137,188 +134,66 @@ export class RivenService implements OnApplicationBootstrap {
   private async bot() {
     this.client.on(Events.ClientReady, async () => {
       this.logger.log(`Logged in as ${this.client.user.tag}!`);
-      // await this.storage();
+    });
+
+    this.client.on(Events.GuildMemberAdd, async (member: GuildMember) => {
+      await this.renameGuildMember(member, false);
+    });
+
+    this.client.on(Events.GuildMemberUpdate, async (member: GuildMember) => {
+      await this.renameGuildMember(member, true);
+    });
+
+    this.client.on(Events.MessageCreate, async (message: Message<true>) => {
+      await this.renameGuildMember(message.member, true);
     });
 
     this.client.on(
-      Events.GuildMemberUpdate,
-      async (
-        oldMember: GuildMember | PartialGuildMember,
-        newMember: GuildMember,
-      ) => {
-        // TODO index roles
-        const key = formatRedisKey(STORAGE_KEYS.USER, 'PEPA');
-        const hasEvent = Boolean(await this.redisService.exists(key));
-        if (hasEvent) {
-          this.logger.warn(`${oldMember.id} has been triggered already!`);
-          return;
-        }
+      Events.InteractionCreate,
+      async (interaction): Promise<void> => {
+        const isChatInputCommand = interaction.isChatInputCommand();
+        if (!isChatInputCommand) return;
 
-        await this.redisService.set(key, oldMember.id, 'EX', 10);
-      },
-    );
-
-    this.client.on(Events.InteractionCreate, async (interaction) => {
-      try {
-        if (interaction.isCommand()) {
+        try {
           const command = this.commandsMessage.get(interaction.commandName);
           if (!command) return;
 
           await command.executeInteraction({
             interaction,
+            models: {},
+            redis: this.redisService,
             logger: this.logger,
+            rabbit: this.amqpConnection,
           });
-        }
-
-        if (interaction.isButton()) {
-          const votingId = interaction.message.id;
-          const isVotingStorages = this.votingStorage.has(votingId);
-          const currentVote = isVotingStorages
-            ? this.votingStorage.get(votingId)
-            : { yes: 0, no: 0, voters: new Set<string>() };
-
-          if (isVotingStorages) {
-            const isUserVote = currentVote.voters.has(interaction.user.id);
-            if (isUserVote) {
-              await interaction.reply({
-                content: 'Вы уже участвовали в данном голосовании!',
-                ephemeral: true,
-              });
-
-              return;
-            }
-          }
-
-          const isYes = interaction.customId === 'Yes';
-          const currentVoteCount = isYes
-            ? (currentVote.yes = currentVote.yes + 1)
-            : (currentVote.no = currentVote.no + 1);
-
-          currentVote.voters.add(interaction.user.id);
-
-          this.votingStorage.set(votingId, currentVote);
-
-          const [embed] = interaction.message.embeds;
-
-          const [index, name, space] = isYes
-            ? [0, 'За', '⠀⠀⠀⠀⠀']
-            : [-1, 'Против', '⠀⠀⠀'];
-
-          const updatedEmbed = new EmbedBuilder(embed).spliceFields(index, 1, {
-            name: `───────────────`,
-            value: `${space}${name}: ${currentVoteCount}\n───────────────`,
-            inline: true,
-          });
-
-          await interaction.update({ embeds: [updatedEmbed] });
-          await interaction.reply({
-            content: 'Ваш голос был учтен!',
-            ephemeral: true,
-          });
-        }
-      } catch (errorException) {
-        this.logger.error(errorException);
-        if (interaction.isCommand()) {
+        } catch (errorException) {
+          this.logger.error(errorException);
           await interaction.reply({
             content: 'There was an error while executing this command!',
             ephemeral: true,
           });
         }
-      }
-    });
+      },
+    );
+  }
 
-    this.client.on(Events.MessageCreate, async (message: Message<true>) => {
-      let isIgnore: boolean;
-      let isMentioned: boolean;
+  async renameGuildMember(guildMember: GuildMember, isFromUpdate: boolean) {
+    let username = guildMember.user.username;
+    if (isFromUpdate) {
+      const [splitName] = guildMember.displayName.split(' ');
 
-      try {
-        /**
-         * @description Form dto from message
-         * @description and pass it to queue
-         */
-        const chatMessage = MessageDto.fromDiscordMessage(
-          message,
-          this.chatUser,
-        );
-        /**
-         * @description create channel message storage
-         * @description and extract messages is it exists
-         */
-        const channelId = message.channel.id;
-        const isChannelExists = this.messageStorage.has(channelId);
-        const messageStorage = isChannelExists
-          ? this.messageStorage.get(channelId)
-          : new Collection<Snowflake, MessageDto>([
-              [message.author.id, chatMessage],
-            ]);
+      const cyrillic = splitName.replace(/[^a-zA-Z]/g, '').length;
+      const latin = splitName.replace(/[^а-яА-Я]/g, '').length;
 
-        if (!isChannelExists) {
-          this.messageStorage.set(message.channel.id, messageStorage);
-        }
+      latin >= cyrillic
+        ? (username = username.replace(/[^а-яА-Я]/g, ''))
+        : (username = username.replace(/[^a-zA-Z]/g, ''));
 
-        const { isBot, isSelf, isGuild } = this.chatService.isIgnore(
-          message,
-          this.client,
-        );
-        if (isSelf || isBot) return;
-        // TODO isMultipleQuestions, isCertainQuestion
-        // const { isMultipleQuestions, isCertainQuestion } = await this.chatService.isQuestion(message);
+      username = splitName;
+    }
 
-        // isIgnore = await this.chatService.isIgnoreTriggered(this.chatUser.name);
-        // if (isIgnore) return;
-
-        // await this.chatService.setChannelLastActive(message.channelId);
-
-        const { content } = message;
-
-        isMentioned = await this.chatService.isUserMentioned(
-          message.mentions,
-          message.mentions.users,
-          this.client.user.id,
-          content,
-        );
-
-        const isText = Boolean(content);
-        const hasAttachment = Boolean(message.attachments.size);
-
-        const { flag } = await this.chatService.rollDiceFullHouse({
-          isText,
-          hasAttachment,
-          isMentioned,
-        });
-
-        // TODO throw prompt personality flag length context (channel | user)
-        const now = DateTime.now().setZone('Europe/Moscow');
-        await this.amqpConnection.publish<MessageDto>(
-          ORACULUM_QUEUE.MESSAGES,
-          'v4',
-          chatMessage,
-        );
-
-        const n = randomMixMax(1, 7);
-        if (n < 6) return;
-
-        const messageCollection = this.messageStorage.get(channelId);
-        const dialogFrom = messageCollection
-          .last(n)
-          .map((message) =>
-            ChatFlowDto.fromMessageDto(message, this.client.user.id),
-          );
-
-        const response = await this.amqpConnection.request<string>({
-          exchange: chatQueue.name,
-          routingKey: 'v4',
-          payload: dialogFrom,
-          timeout: 60 * 1000,
-        });
-
-        console.log(response);
-
-        await message.channel.send({ content: response });
-      } catch (errorOrException) {
-        this.logger.error(errorOrException);
-      }
-    });
+    const displayName = capitalizeFirstLetter(username.toLowerCase());
+    await guildMember.setNickname(displayName);
+    this.logger.log(`User | ${username} => ${displayName}`);
   }
 
   @Interval(10_000)

@@ -7,10 +7,10 @@ export class Prompts extends Document {
   @Prop({ type: Types.ObjectId, ref: 'Profiles' })
   profileId: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId })
+  @Prop({ type: Types.ObjectId, ref: 'Prompts' })
   previousPrompt?: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId })
+  @Prop({ type: Types.ObjectId, ref: 'Prompts' })
   nextPrompt?: Types.ObjectId;
 
   @Prop({ type: String })
@@ -36,12 +36,6 @@ export class Prompts extends Document {
 
   @Prop({ type: Boolean })
   isGenerated: boolean;
-
-  @Prop({ type: Boolean })
-  isUsed: boolean;
-
-  @Prop({ type: Boolean })
-  isLast: boolean;
 
   @Prop({ type: Number })
   temperature?: number;

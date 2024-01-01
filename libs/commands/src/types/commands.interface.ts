@@ -13,6 +13,7 @@ import {
   Prompts,
   Guilds,
   Contests,
+  Profiles,
 } from '@cmnw/mongo';
 
 export interface IModels {
@@ -24,6 +25,7 @@ export interface IModels {
   promptsModel: Model<Prompts>;
   guildsModel: Model<Guilds>;
   contestModel: Model<Contests>;
+  profilesModel: Model<Profiles>;
 }
 
 export interface ISlashCommandArgs {

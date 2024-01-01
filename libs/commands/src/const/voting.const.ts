@@ -32,6 +32,11 @@ export enum VOTING_NOMINATION_ENUM {
   NAME_OPTION = 'участник',
 }
 
+export enum VOTING_PROPOSAL_ENUM {
+  NAME = 'vote-proposal',
+  DESCRIPTION = 'Представить предложение к общественной оценке',
+}
+
 export const VOTING_NOMINATION = new SlashCommandBuilder()
   .setName(VOTING_NOMINATION_ENUM.NAME)
   .setDescription(VOTING_NOMINATION_ENUM.DESCRIPTION)
@@ -47,3 +52,7 @@ export const VOTING_NOMINATION = new SlashCommandBuilder()
       .setDescription('участник сообщества')
       .setRequired(true),
   );
+
+export const VOTING_PROPOSAL = new SlashCommandBuilder()
+  .setName(VOTING_PROPOSAL_ENUM.NAME)
+  .setDescription(VOTING_PROPOSAL_ENUM.DESCRIPTION);

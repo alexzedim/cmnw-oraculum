@@ -75,29 +75,3 @@ export enum VOTING_ACTION_PARAMS {
   UNBAN = 'Разбанить',
   UNMUTE = 'Размутать',
 }
-
-export enum CRYPTO_PARAMS {
-  MESSAGE_ID = 'message',
-  VECTOR = 'vector',
-  CIPHER = 'cipher',
-  KEY = 'key',
-}
-
-export enum CRYPTO_DESCRIPTION_PARAMS {
-  MESSAGE_ID = 'ID сообщения',
-  VECTOR = 'Шифровать / Дешифровать',
-  CIPHER = 'Тип шифрования',
-  KEY = 'Ключ',
-}
-
-export enum CRYPTO_VECTOR_ENUMS {
-  ENCRYPT = 'encrypt',
-  DECRYPT = 'decrypt',
-}
-
-export enum CRYPTO_CIPHER_ENUMS {
-  AES_128_ECB = 'aes-128-ecb',
-  RABBIT = 'rabbit',
-  RC4 = 'rc4',
-  DES = 'des',
-}

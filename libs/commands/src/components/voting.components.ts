@@ -25,14 +25,7 @@ export const votingEmbed = (
   new EmbedBuilder()
     .setTitle(title)
     .setDescription(
-      `
-        ${description}
-        Инициировано: <@${initiatedBy}>
-        Доступно для ${memberVoters} участников
-        Необходимо для кворума: 70% | ${memberVoters}
-        
-        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀**${status}**
-        `,
+      `${description}\nИнициировано: <@${initiatedBy}>\nДоступно для ${memberVoters} участников\nНеобходимо для кворума: 70% | ${memberVoters}\n\t\t**${status}**`,
     )
     .setColor('#00FF98')
     .addFields([

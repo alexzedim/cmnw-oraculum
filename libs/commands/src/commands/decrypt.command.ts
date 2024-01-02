@@ -14,7 +14,8 @@ export const decryptCommand: ISlashCommand = {
   async executeInteraction({ interaction, logger }) {
     if (!interaction.isChatInputCommand()) return;
     try {
-      const { options, channel } = interaction;
+      const { options, channel, user } = interaction;
+      logger.log(`${DECRYPT_ENUM.NAME} triggered by ${user.id}`);
 
       const [messageId, cipher, key, ephemeral] = [
         options.getString(DECRYPT_ENUM.MESSAGE_OPTION, true),

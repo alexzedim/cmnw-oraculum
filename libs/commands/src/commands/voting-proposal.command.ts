@@ -14,9 +14,8 @@ export const votingProposalCommand: SlashCommand = {
   }): Promise<void> {
     if (!interaction.isChatInputCommand()) return;
     try {
-      logger.log(
-        `${VOTING_PROPOSAL_ENUM.NAME} triggered by ${interaction.user.id}`,
-      );
+      const { options, user } = interaction;
+      logger.log(`${VOTING_PROPOSAL_ENUM.NAME} triggered by ${user.id}`);
       // TODO logic
     } catch (errorOrException) {
       logger.error(errorOrException);

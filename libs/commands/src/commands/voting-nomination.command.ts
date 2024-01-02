@@ -22,14 +22,13 @@ export const votingNominationCommand: SlashCommand = {
   }): Promise<void> {
     if (!interaction.isChatInputCommand()) return;
     try {
-      logger.log(
-        `${VOTING_NOMINATION_ENUM.NAME} triggered by ${interaction.user.id}`,
-      );
+      const { options, user } = interaction;
 
-      const [user, role, initiateUser] = [
-        interaction.options.getUser(VOTING_NOMINATION_ENUM.NAME_OPTION, true),
-        interaction.options.getRole(VOTING_NOMINATION_ENUM.ROLE_OPTION, true),
-        interaction.user,
+      logger.log(`${VOTING_NOMINATION_ENUM.NAME} triggered by ${user.id}`);
+
+      const [userCandidate, role] = [
+        options.getUser(VOTING_NOMINATION_ENUM.NAME_OPTION, true),
+        options.getRole(VOTING_NOMINATION_ENUM.ROLE_OPTION, true),
       ];
 
       const isTextBased = interaction.channel.isTextBased();
@@ -40,12 +39,12 @@ export const votingNominationCommand: SlashCommand = {
       // t.mapValues((m) => console.log(m.user.username));
       // TODO base on channelIdCategory = bind voting pull
 
-      const initiatedBy = initiateUser.id;
-      const isSelfTriggered = initiatedBy === user.id;
+      const initiatedBy = user.id;
+      const isSelfTriggered = initiatedBy === userCandidate.id;
 
-      const guildMember = interaction.guild.members.cache.get(user.id);
+      const guildMember = interaction.guild.members.cache.get(userCandidate.id);
       const guildMemberInitiate = interaction.guild.members.cache.get(
-        initiateUser.id,
+        user.id,
       );
       const hasRole = guildMember.roles.cache.has(role.id);
       const hasPermission = guildMemberInitiate.roles.cache.has(role.id);
@@ -68,7 +67,7 @@ export const votingNominationCommand: SlashCommand = {
       ).toHuman();
 
       const { title, description } = buildVotingAction(
-        user.id,
+        userCandidate.id,
         role.id,
         isDemoted,
       );

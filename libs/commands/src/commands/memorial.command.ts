@@ -13,6 +13,8 @@ export const memorialCommand: SlashCommand = {
   async executeInteraction({ interaction, models, logger }): Promise<void> {
     if (!interaction.isChatInputCommand()) return;
     try {
+      logger.log(`${MEMORIAL_ENUM.NAME} triggered by ${interaction.user.id}`);
+
       const octokit = new Octokit({
         auth: githubConfig.token,
       });

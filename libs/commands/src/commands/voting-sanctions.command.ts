@@ -55,9 +55,12 @@ export const votingSanctionsCommand: SlashCommand = {
   }): Promise<void> {
     if (!interaction.isChatInputCommand()) return;
     try {
-      const [action, user] = [
-        interaction.options.getString(VOTING_SANCTIONS_PARAMS.ACTION, true),
-        interaction.options.getUser(VOTING_SANCTIONS_PARAMS.USER, true),
+      const { options, user } = interaction;
+      logger.log(`${COMMAND_ENUMS.VOTING_SANCTIONS} triggered by ${user.id}`);
+
+      const [action, userSantioned] = [
+        options.getString(VOTING_SANCTIONS_PARAMS.ACTION, true),
+        options.getUser(VOTING_SANCTIONS_PARAMS.USER, true),
       ];
 
       const buttons = new ActionRowBuilder().addComponents(
@@ -91,7 +94,7 @@ export const votingSanctionsCommand: SlashCommand = {
 
       const embed = new EmbedBuilder()
         .setTitle(
-          `Количественное голосование за **${votingAction}** к ${user.username}`,
+          `Количественное голосование за **${votingAction}** к ${userSantioned.username}`,
         )
         .setDescription(
           `

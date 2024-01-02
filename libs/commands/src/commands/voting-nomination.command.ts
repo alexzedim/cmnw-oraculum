@@ -1,10 +1,8 @@
 import { SlashCommand } from '@cmnw/commands/types';
-import { MessageActionRowComponentBuilder } from '@discordjs/builders';
-import { ActionRowBuilder, ButtonBuilder, EmbedBuilder } from 'discord.js';
-import { ButtonStyle } from 'discord-api-types/v10';
+import { TextChannel } from 'discord.js';
 import { DateTime, Duration } from 'luxon';
 import {
-  COMMAND_ENUMS,
+  buildVotingAction,
   VOTING_NOMINATION,
   VOTING_NOMINATION_ENUM,
   votingButtons,
@@ -24,7 +22,9 @@ export const votingNominationCommand: SlashCommand = {
   }): Promise<void> {
     if (!interaction.isChatInputCommand()) return;
     try {
-      logger.log(`${VOTING_NOMINATION_ENUM.NAME} has been triggered`);
+      logger.log(
+        `${VOTING_NOMINATION_ENUM.NAME} triggered by ${interaction.user.id}`,
+      );
 
       const [user, role, initiateUser] = [
         interaction.options.getUser(VOTING_NOMINATION_ENUM.NAME_OPTION, true),
@@ -32,13 +32,27 @@ export const votingNominationCommand: SlashCommand = {
         interaction.user,
       ];
 
-      console.log(interaction.channel);
+      const isTextBased = interaction.channel.isTextBased();
+      if (!isTextBased) return;
+
+      const t = (interaction.channel as TextChannel).members;
+      console.log((interaction.channel as TextChannel).members.size);
+      // t.mapValues((m) => console.log(m.user.username));
+      // TODO base on channelIdCategory = bind voting pull
 
       const initiatedBy = initiateUser.id;
       const isSelfTriggered = initiatedBy === user.id;
 
       const guildMember = interaction.guild.members.cache.get(user.id);
+      const guildMemberInitiate = interaction.guild.members.cache.get(
+        initiateUser.id,
+      );
       const hasRole = guildMember.roles.cache.has(role.id);
+      const hasPermission = guildMemberInitiate.roles.cache.has(role.id);
+      const isRankHigher =
+        guildMemberInitiate.roles.highest.position > role.position;
+      const isEqual = guildMemberInitiate.roles.cache.has(role.id);
+      // TODO your role is ok for nomination
       // TODO check initiateBy not in cd
       // TODO no self nominated
       const isRetired = isSelfTriggered && hasRole;
@@ -53,12 +67,11 @@ export const votingNominationCommand: SlashCommand = {
         { locale: 'ru' },
       ).toHuman();
 
-      // TODO if role is exists, then demote
-      const titleAction = isDemoted
-        ? 'освобождение от указанной'
-        : 'назначение';
-      const title = `Голосование за ${titleAction} роли`;
-      const description = `Назначить <@${user.id}> на роль <@&${role.id}>`;
+      const { title, description } = buildVotingAction(
+        user.id,
+        role.id,
+        isDemoted,
+      );
 
       // TODO get members
       const memberVoters = 5;

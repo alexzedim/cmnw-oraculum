@@ -1,0 +1,38 @@
+import { SlashCommandBuilder } from '@discordjs/builders';
+
+export enum CONTEST_BIND_ENUM {
+  NAME = 'bind',
+  DESCRIPTION = 'Прикрепи подарочную роль для победителя',
+  ROLE_OPTION = 'роль',
+  TROPHY_OPTION = 'описание',
+}
+
+export enum CONTEST_BIND_DESCRIPTION_PARAMS {
+  TROPHY = 'Опционально, напиши что разыгрываем, так будет смешнее)',
+}
+
+export enum CONTEST_START_ENUM {
+  NAME = 'start',
+  DESCRIPTION = 'Выбрать победителя дня',
+}
+
+export enum CONTEST_TOP_ENUM {
+  NAME = 'top',
+  DESCRIPTION = 'Показать топ',
+}
+
+export const CONTEST_BIND = new SlashCommandBuilder()
+  .setName(CONTEST_BIND_ENUM.NAME)
+  .setDescription(CONTEST_BIND_ENUM.DESCRIPTION)
+  .addRoleOption((option) =>
+    option
+      .setName(CONTEST_BIND_ENUM.ROLE_OPTION)
+      .setDescription(CONTEST_BIND_ENUM.ROLE_OPTION)
+      .setRequired(true),
+  )
+  .addStringOption((option) =>
+    option
+      .setName(CONTEST_BIND_ENUM.TROPHY_OPTION)
+      .setDescription(CONTEST_BIND_DESCRIPTION_PARAMS.TROPHY)
+      .setRequired(false),
+  );

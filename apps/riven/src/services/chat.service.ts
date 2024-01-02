@@ -1,6 +1,7 @@
 import Redis from 'ioredis';
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRedis } from '@nestjs-modules/ioredis';
+import { Prompts } from '@cmnw/mongo';
 import {
   ChannelType,
   Client,
@@ -18,7 +19,7 @@ import {
   STORAGE_KEYS,
   ACTION_TRIGGER_FLAG,
 } from '@cmnw/core';
-import { Prompts } from '@cmnw/mongo';
+
 
 @Injectable()
 export class ChatService {

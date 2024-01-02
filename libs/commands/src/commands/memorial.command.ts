@@ -1,17 +1,14 @@
 import { SlashCommand } from '@cmnw/commands/types';
-import { COMMAND_DESCRIPTION_ENUMS, COMMAND_ENUMS } from '@cmnw/commands/const';
-import { SlashCommandBuilder } from '@discordjs/builders';
+import { MEMORIAL, MEMORIAL_ENUM } from '@cmnw/commands/const';
 import { Octokit } from 'octokit';
 import { githubConfig } from '@cmnw/config';
-import { EmbedBuilder } from 'discord.js';
 import { CMNW_MEMORIAL_DEDICATIONS } from '@cmnw/core';
+import { memorialBoardEmbed } from '@cmnw/commands/components';
 
 export const memorialCommand: SlashCommand = {
-  name: COMMAND_ENUMS.MEMORIAL,
-  description: COMMAND_DESCRIPTION_ENUMS.MEMORIAL,
-  slashCommand: new SlashCommandBuilder()
-    .setName(COMMAND_ENUMS.MEMORIAL)
-    .setDescription(COMMAND_ENUMS.MEMORIAL),
+  name: MEMORIAL_ENUM.NAME,
+  description: MEMORIAL_ENUM.DESCRIPTION,
+  slashCommand: MEMORIAL,
 
   async executeInteraction({ interaction, models, logger }): Promise<void> {
     if (!interaction.isChatInputCommand()) return;
@@ -31,25 +28,20 @@ export const memorialCommand: SlashCommand = {
         }),
       ]);
 
-      const embed = new EmbedBuilder()
-        .setColor(0x0099ff)
-        .setTitle(repo.full_name)
-        .setURL(repo.html_url)
-        .setDescription(repo.description)
-        .setTimestamp(new Date(repo.created_at))
-        .setFooter({
-          text: 'Managed & operated by CMNW',
-          iconURL: 'https://i.imgur.com/OBDcu7K.png',
-        });
-
-      embed.setThumbnail(interaction.user.avatar);
+      const memorialBoard = memorialBoardEmbed(
+        repo.full_name,
+        repo.html_url,
+        repo.description,
+        new Date(repo.created_at),
+        interaction.user.avatar,
+      );
 
       const memorials = CMNW_MEMORIAL_DEDICATIONS.get(
         interaction.user.username,
       );
 
       for (const { name, value } of memorials) {
-        embed.addFields({
+        memorialBoard.addFields({
           name: name,
           value: value,
           inline: true,
@@ -57,14 +49,14 @@ export const memorialCommand: SlashCommand = {
       }
 
       for (const { login, url, contributions } of contributors) {
-        embed.addFields({
+        memorialBoard.addFields({
           name: `${contributions}`,
           value: `[${login}](${url})`,
           inline: true,
         });
       }
 
-      interaction.reply({ embeds: [embed], ephemeral: false });
+      interaction.reply({ embeds: [memorialBoard], ephemeral: false });
     } catch (errorOrException) {
       this.logger.error(errorOrException);
       await interaction.reply({

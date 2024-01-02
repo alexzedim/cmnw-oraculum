@@ -1,6 +1,6 @@
-export * from './top.command';
+export * from './contest-top.command';
 export * from './identity.command';
-export * from './trophy-contest.command';
+export * from './contest-start.command';
 export * from './binding.command';
 export * from './memorial.command';
 

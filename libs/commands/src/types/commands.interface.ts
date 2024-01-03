@@ -15,6 +15,7 @@ import {
   Contests,
   Profiles,
 } from '@cmnw/mongo';
+import { SlashCommandBuilder } from '@discordjs/builders';
 
 export interface IModels {
   fefenyaModel: Model<Fefenya>;
@@ -39,7 +40,10 @@ export interface ISlashCommandArgs {
 export interface ISlashCommand {
   name: string;
   description: string;
-  slashCommand: any; // TODO SlashCommandBuilder
+  slashCommand: Omit<
+    SlashCommandBuilder,
+    'addSubcommand' | 'addSubcommandGroup'
+  >;
   executeInteraction(args: ISlashCommandArgs): Promise<unknown>;
 }
 

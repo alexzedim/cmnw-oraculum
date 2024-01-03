@@ -9,7 +9,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Keys } from '@cmnw/mongo';
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import {
-  cryptoCommand,
   messageEmbed,
   SlashCommand,
   votingNominationCommand,
@@ -21,6 +20,7 @@ import {
   waitForDelay,
   VotingCounter,
   messageQueue,
+  chatQueue, ReplyV4Dto,
 } from '@cmnw/core';
 
 import {
@@ -68,8 +68,8 @@ export class RivenService implements OnApplicationBootstrap {
   async onApplicationBootstrap() {
     // await this.storageService.get();
     await this.loadBot();
-    await this.loadCommands();
-    await this.bot();
+    //await this.loadCommands();
+    //await this.bot();
   }
 
   private async loadCommands(): Promise<void> {
@@ -77,11 +77,11 @@ export class RivenService implements OnApplicationBootstrap {
       votingNominationCommand.name,
       votingNominationCommand,
     );
-    this.commandsMessage.set(cryptoCommand.name, cryptoCommand);
+    // this.commandsMessage.set(cryptoCommand.name, cryptoCommand);
 
     const commandsBody = [
       votingNominationCommand.slashCommand.toJSON(),
-      cryptoCommand.slashCommand.toJSON(),
+      // cryptoCommand.slashCommand.toJSON(),
     ];
 
     await this.rest.put(Routes.applicationCommands(this.client.user.id), {
@@ -90,6 +90,31 @@ export class RivenService implements OnApplicationBootstrap {
   }
 
   private async loadBot(resetContext = false) {
+    const response = await this.amqpConnection.request<ReplyV4Dto>({
+      exchange: chatQueue.name,
+      routingKey: 'v4',
+      payload: {
+        prompt: { version: 4 },
+        chatFlow: [
+          {
+            role: 'system',
+            content:
+              'Представь что ты зовут Фефеня, и что ты неформально общаешься в чате. Сегодня тебе надо разыграть среди участников дискорда приз котик дня.',
+          },
+          {
+            role: 'user',
+            content:
+              'Придумай четыре или пять фраз которые покажут процесс как ты определишь кому достанется звание котик дня в дискорде.',
+          },
+        ],
+      },
+      timeout: 60 * 1000,
+    });
+
+    console.log(response);
+
+    return;
+
     this.client = new Client({
       partials: [Partials.User, Partials.Channel, Partials.GuildMember],
       intents: [

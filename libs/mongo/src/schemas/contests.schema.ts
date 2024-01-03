@@ -3,9 +3,6 @@ import { Document, Types } from 'mongoose';
 
 @Schema({ timestamps: true })
 export class Contests extends Document {
-  @Prop({ type: String })
-  codename: string;
-
   @Prop({ type: String, ref: 'Guilds' })
   guildId: string;
 
@@ -27,11 +24,17 @@ export class Contests extends Document {
   @Prop({ type: [String], ref: 'Users' })
   winnerHistory: Types.Array<string>;
 
+  @Prop({ type: String })
+  blockId: string;
+
   @Prop({ type: Types.ObjectId, ref: 'Prompts' })
   promptId: Types.ObjectId;
 
+  @Prop({ type: Number })
+  promptNextPositionCursor: number;
+
   @Prop({ type: [Types.ObjectId], ref: 'Prompts' })
-  promptsHistory: Types.Array<Types.ObjectId>;
+  promptsHistory: Types.Array<Types.ObjectId>; // TODO full flow?
 
   @Prop({ type: Date })
   winnerAt: Date;
@@ -44,3 +47,4 @@ export class Contests extends Document {
 }
 
 export const ContestsSchema = SchemaFactory.createForClass(Contests);
+ContestsSchema.index({ guildId: -1, roleId: -1 }, { name: 'IdxUniqueContest', unique: true });

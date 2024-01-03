@@ -1,8 +1,3 @@
-import {
-  topStatsCommand,
-  SlashCommand,
-  trophyContestCommand,
-} from '@cmnw/commands';
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { from, lastValueFrom, mergeMap } from 'rxjs';
@@ -12,6 +7,12 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
 import { DateTime } from 'luxon';
+import {
+  SlashCommand,
+  contestStatsCommand,
+  contestStartCommand,
+  contestBindCommand,
+} from '@cmnw/commands';
 
 import { Contests, Fefenya, Keys, Profiles, Prompts } from '@cmnw/mongo';
 
@@ -37,6 +38,7 @@ import {
   setContestUserActive,
   TAGS_ENUM,
   getRandomReplyByEvent,
+  ReplyV4Dto,
 } from '@cmnw/core';
 
 import {
@@ -48,6 +50,7 @@ import {
   Partials,
   PermissionsBitField,
   REST,
+  Role,
   Routes,
   TextChannel,
 } from 'discord.js';
@@ -133,16 +136,16 @@ export class FefenyaService implements OnApplicationBootstrap {
   }
 
   private async loadCommands(): Promise<void> {
-    this.commandsMessage.set(topStatsCommand.name, topStatsCommand);
-    this.commandsMessage.set(trophyContestCommand.name, trophyContestCommand);
-
-    const commands = [
-      trophyContestCommand.slashCommand.toJSON(),
-      topStatsCommand.slashCommand.toJSON(),
-    ];
+    this.commandsMessage.set(contestBindCommand.name, contestBindCommand);
+    this.commandsMessage.set(contestStatsCommand.name, contestStatsCommand);
+    this.commandsMessage.set(contestStartCommand.name, contestStartCommand);
 
     await this.rest.put(Routes.applicationCommands(this.client.user.id), {
-      body: commands,
+      body: [
+        contestStartCommand.slashCommand.toJSON(),
+        contestStatsCommand.slashCommand.toJSON(),
+        contestBindCommand.slashCommand.toJSON(),
+      ],
     });
 
     this.logger.log('Commands updated');
@@ -255,7 +258,6 @@ export class FefenyaService implements OnApplicationBootstrap {
         {
           type: fefenyaPrompt.type,
           role: CHAT_ROLE_ENUM.USER,
-          position: 1,
         },
         fefenyaPrompt,
         {
@@ -280,7 +282,7 @@ export class FefenyaService implements OnApplicationBootstrap {
       }
 
       const chatFlow = ChatFlowDto.fromPromptsFlow([systemCorePrompt, prompt]);
-      const response = await this.amqpConnection.request<string>({
+      const response = await this.amqpConnection.request<ReplyV4Dto>({
         exchange: chatQueue.name,
         routingKey: 'v4',
         payload: chatFlow,
@@ -290,30 +292,21 @@ export class FefenyaService implements OnApplicationBootstrap {
       const isContest = fefenyaPrompt.type === PROMPT_TYPE_ENUM.CONTEST;
 
       const prompts = isContest
-        ? prettyContestReply(response)
-            .map(
-              (text, i) =>
-                new this.promptsModel({
-                  profileId: this.fefenyaProfile._id,
-                  event: fefenyaPrompt.event,
-                  type: fefenyaPrompt.type,
-                  text,
-                  role: CHAT_ROLE_ENUM.ASSISTANT,
-                  isGenerated: true,
-                  version: 4,
-                  position: i + 1,
-                  tags: fefenyaPrompt.tags,
-                  model: OPENAI_MODEL.ChatGPT_4,
-                }),
-            )
-            .map((document, index, array) => {
-              const isPrevious = array[index - 1];
-              if (isPrevious) document.previousPrompt = isPrevious._id;
-              const isNext = array[index + 1];
-              if (isNext) document.nextPrompt = isNext._id;
-              if (!isNext) document.isLast = true;
-              return document;
-            })
+        ? prettyContestReply(response.reply).map(
+            (text, i) =>
+              new this.promptsModel({
+                profileId: this.fefenyaProfile._id,
+                event: fefenyaPrompt.event,
+                type: fefenyaPrompt.type,
+                text,
+                role: CHAT_ROLE_ENUM.ASSISTANT,
+                isGenerated: true,
+                version: 4,
+                position: i + 1,
+                tags: fefenyaPrompt.tags,
+                model: OPENAI_MODEL.ChatGPT_4,
+              }),
+          )
         : [
             new this.promptsModel({
               profileId: this.fefenyaProfile._id,
@@ -342,9 +335,6 @@ export class FefenyaService implements OnApplicationBootstrap {
       from(this.client.guilds.cache.values()).pipe(
         mergeMap(async (guild) => {
           try {
-            const isProcNegative = randomMixMax(0, 1);
-            if (isProcNegative > 0) return;
-
             await resetContestByGuildId(this.fefenyasModel, guild.id);
 
             const isGuildBig = guild.memberCount > 1000;
@@ -376,54 +366,116 @@ export class FefenyaService implements OnApplicationBootstrap {
     );
   }
 
+  async endContestWinnerFlow(guild: Guild, contest: Contests) {
+    let role: Role;
+    let hasPermissions = false;
+    const winnerAt = new Date();
+
+    if (contest.roleId) {
+      role = guild.roles.cache.get(contest.roleId);
+      hasPermissions = guild.members.me.permissions.has(
+        PermissionsBitField.Flags.ManageRoles,
+      );
+    }
+
+    const isRoleExists = role && hasPermissions;
+    const isOldWinner = isRoleExists && contest.winnerUserId;
+    if (isOldWinner) {
+      await guild.members.cache.get(contest.winnerUserId).roles.remove(role.id);
+    }
+
+    // TODO winner as a random user from guild members not bot++
+
+    if (isRoleExists) {
+      await guild.members.cache.get(trophyWinner.userId).roles.add(role.id);
+    }
+
+    // TODO reset status
+    const promptsStaring = await this.promptsModel.find<Prompts>({
+      // TODO from current profile generated
+      blockId: { $ne: contest.blockId },
+      position: 1,
+      isGenerated: true,
+      event: PROMPT_TYPE_ENUM.TROPHY,
+      type: PROMPT_TYPE_ENUM.CONTEST,
+      role: CHAT_ROLE_ENUM.ASSISTANT,
+    });
+
+    const startingContestPrompt =
+      promptsStaring[randomMixMax(0, promptsStaring.length - 1)];
+
+    contest.promptId = startingContestPrompt._id;
+    contest.winnerHistory.push(trophyWinner.userId);
+    contest.winnerUserId = trophyWinner.userId;
+    contest.winnerAt = winnerAt;
+    await contest.save();
+
+    const promoPrompt = await getRandomReplyByEvent(
+      this.promptsModel,
+      PROMPT_TYPE_ENUM.PROMO,
+    );
+
+    return prettyContestPrompt(promoPrompt.text, name, contest.trophy, winner);
+  }
+
   async contestFlow(guild: Guild) {
-    const contest = await this.contestsModel.findOne<Contests>({
-      codename: CMNW_ORACULUM_PROJECTS.FEFENYA,
+    const guildContests = await this.contestsModel.find<Contests>({
       guildId: guild.id,
     });
 
-    const isNextPromptSet = Boolean(contest.promptId);
+    await lastValueFrom(
+      from(guildContests).pipe(
+        mergeMap(async (contest) => {
+          const isProcNegative = randomMixMax(0, 1);
+          if (isProcNegative > 0) return;
 
-    const prompt = isNextPromptSet
-      ? await this.promptsModel.findById<Prompts>(contest.promptId)
-      : await this.promptsModel.findOne<Prompts>({
-          event: PROMPT_TYPE_ENUM.TROPHY,
-          type: PROMPT_TYPE_ENUM.CONTEST,
-          role: CHAT_ROLE_ENUM.ASSISTANT,
-          position: 1,
-        });
+          const isNextPromptSet = Boolean(contest.promptId);
+          // TODO find bucket of prompts for contest
+          // TODO current prompts and next prompt
+          const contestPrompts = await this.promptsModel
+            .find<Prompts>({
+              blockId: contest.blockId,
+              position: { gte: contest.promptNextPositionCursor },
+            })
+            .sort({ position: 1 });
 
-    if (prompt.nextPrompt) {
-      contest.promptId = prompt.nextPrompt;
-    }
+          const [currentPrompt, nextPrompt] = contestPrompts;
 
-    const name = FEFENYA_NAMING.random();
-    const isCapPromptsHistory = contest.promptsHistory.length >= 10;
-    const isCapWinnerHistory = contest.winnerHistory.length >= 10;
-    if (isCapWinnerHistory) {
-      contest.winnerHistory.pop();
-    }
+          const isLast = Boolean(currentPrompt) && !Boolean(nextPrompt);
+          if (isLast) {
+            // TODO find next new bucket & bind to contest
+            await this.endContestWinnerFlow(guild, contest);
+          }
 
-    if (isCapPromptsHistory) {
-      contest.promptsHistory.pop();
-    }
+          const promptNextPositionCursor = isLast
+            ? 1
+            : contest.promptNextPositionCursor + 1;
 
-    let winner = '';
-    let promoContent = '';
+          const name = FEFENYA_NAMING.random();
+          const isCapPromptsHistory = contest.promptsHistory.length >= 10;
+          const isCapWinnerHistory = contest.winnerHistory.length >= 10;
+          if (isCapWinnerHistory) {
+            contest.winnerHistory.pop();
+          }
+
+          if (isCapPromptsHistory) {
+            contest.promptsHistory.pop();
+          }
+
+          const winner = '';
+          const promoContent = '';
+
+          const channel = this.client.channels.cache.get(contest.channelId);
+          if (!channel) {
+            throw new Error(`Channel ${contest.channelId} not found!`);
+          }
+
+          await (channel as TextChannel).send({ content });
+        }, 5),
+      ),
+    );
 
     if (prompt.isLast) {
-      const winnerAt = new Date();
-
-      let role;
-      let hasPermissions = false;
-
-      if (contest.roleId) {
-        role = guild.roles.cache.get(contest.roleId);
-        hasPermissions = guild.members.me.permissions.has(
-          PermissionsBitField.Flags.ManageRoles,
-        );
-      }
-
       const isRoleExists = role && hasPermissions;
       if (isRoleExists) {
         const oldTrophyUser = guild.members.cache.get(contest.winnerUserId);

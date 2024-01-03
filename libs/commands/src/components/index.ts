@@ -3,3 +3,4 @@ export * from './message.components';
 export * from './voting.components';
 export * from './crypto.components';
 export * from './memorial.components';
+export * from './contest.components';

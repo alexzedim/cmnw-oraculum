@@ -4,6 +4,7 @@ import {
   COMMAND_ENUMS,
   CONTEST_TOP,
   CONTEST_TOP_ENUM,
+  contestEmbed,
   SlashCommand,
 } from '@cmnw/commands';
 
@@ -62,15 +63,7 @@ export const contestStatsCommand: SlashCommand = {
         guildId,
       });
 
-      const embed = new EmbedBuilder()
-        .setColor(0x0099ff)
-        .setTitle(contest.trophy)
-        .setDescription('Топ')
-        .setTimestamp(now)
-        .setFooter({
-          text: 'CMNW',
-          iconURL: 'https://i.imgur.com/OBDcu7K.png',
-        });
+      const embed = contestEmbed(contest.title);
 
       for (const fefenya of fefenyas) {
         embed.addFields({

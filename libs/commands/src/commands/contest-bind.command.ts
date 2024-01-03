@@ -10,27 +10,24 @@ export const contestBindCommand: SlashCommand = {
   async executeInteraction({ interaction, models, logger }): Promise<unknown> {
     if (!interaction.isChatInputCommand()) return;
     try {
-      const { contestModel } = models;
+      const { contestModel, rolesModel } = models;
       const { options, user, guildId, channelId } = interaction;
 
       logger.log(`${CONTEST_BIND_ENUM.NAME} triggered by ${user.id}`);
-      // TODO only owner
+      // TODO else show embed with contest?
       const [role, title] = [
         options.getRole(CONTEST_BIND_ENUM.ROLE_OPTION, true),
         options.getString(CONTEST_BIND_ENUM.TITLE_OPTION, false),
       ];
 
-      const roleEntity = await models.rolesModel.findByIdAndUpdate<Roles>(
-        role.id,
-        {
-          name: role.name,
-          guildId: interaction.guildId,
-          description: title,
-          role: role.mentionable,
-          position: role.position,
-          updatedBy: interaction.client.user.id,
-        },
-      );
+      const roleEntity = await rolesModel.findByIdAndUpdate<Roles>(role.id, {
+        name: role.name,
+        guildId: interaction.guildId,
+        description: title,
+        role: role.mentionable,
+        position: role.position,
+        updatedBy: interaction.client.user.id,
+      });
 
       roleEntity.tags.addToSet('title');
 
@@ -45,7 +42,7 @@ export const contestBindCommand: SlashCommand = {
         role.id,
       );
 
-      // TODO baxnem chto-nit smeshnoe
+      // TODO baxnem chto-nit smeshnoe + embed
       const text = 'Погнали бахнем что-нить смешное';
       await interaction.reply({ content: text, ephemeral: true });
     } catch (errorOrException) {

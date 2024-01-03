@@ -24,11 +24,11 @@ export class Contests extends Document {
   @Prop({ type: String, ref: 'Users' })
   winnerUserId: string;
 
-  @Prop({ type: Types.ObjectId, ref: 'Prompts' })
-  promptId: Types.ObjectId;
-
   @Prop({ type: [String], ref: 'Users' })
   winnerHistory: Types.Array<string>;
+
+  @Prop({ type: Types.ObjectId, ref: 'Prompts' })
+  promptId: Types.ObjectId;
 
   @Prop({ type: [Types.ObjectId], ref: 'Prompts' })
   promptsHistory: Types.Array<Types.ObjectId>;

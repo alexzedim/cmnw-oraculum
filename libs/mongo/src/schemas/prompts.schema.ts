@@ -7,11 +7,8 @@ export class Prompts extends Document {
   @Prop({ type: Types.ObjectId, ref: 'Profiles' })
   profileId: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'Prompts' })
-  previousPrompt?: Types.ObjectId;
-
-  @Prop({ type: Types.ObjectId, ref: 'Prompts' })
-  nextPrompt?: Types.ObjectId;
+  @Prop({ type: String })
+  blockId: string;
 
   @Prop({ type: String })
   name: string;
@@ -26,16 +23,19 @@ export class Prompts extends Document {
   role: Role;
 
   @Prop({ type: Number })
-  version: number;
-
-  @Prop({ type: Number })
   position: number;
 
   @Prop({ type: String, enum: PROMPT_TYPE_ENUM })
   type: PROMPT_TYPE_ENUM;
 
   @Prop({ type: Boolean })
+  isBasePrompt: boolean;
+
+  @Prop({ type: Boolean })
   isGenerated: boolean;
+
+  @Prop({ type: Types.ObjectId, ref: 'Prompts' })
+  isGeneratedBy: Types.ObjectId;
 
   @Prop({ type: Number })
   temperature?: number;

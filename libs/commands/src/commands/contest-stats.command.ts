@@ -1,8 +1,9 @@
-import { EmbedBuilder, SlashCommandBuilder } from 'discord.js';
+import { EmbedBuilder } from 'discord.js';
 import { Contests, Fefenya } from '@cmnw/mongo';
 import {
-  COMMAND_DESCRIPTION_ENUMS,
   COMMAND_ENUMS,
+  CONTEST_TOP,
+  CONTEST_TOP_ENUM,
   SlashCommand,
 } from '@cmnw/commands';
 
@@ -12,12 +13,10 @@ import {
   randomMixMax,
 } from '@cmnw/core';
 
-export const topStatsCommand: SlashCommand = {
-  name: COMMAND_ENUMS.FEFENYA_TOP,
-  description: COMMAND_DESCRIPTION_ENUMS.FEFENYA_TOP,
-  slashCommand: new SlashCommandBuilder()
-    .setName(COMMAND_ENUMS.FEFENYA_TOP)
-    .setDescription(COMMAND_DESCRIPTION_ENUMS.FEFENYA_TOP),
+export const contestStatsCommand: SlashCommand = {
+  name: CONTEST_TOP_ENUM.NAME,
+  description: CONTEST_TOP_ENUM.DESCRIPTION,
+  slashCommand: CONTEST_TOP,
 
   executeInteraction: async function ({ interaction, models, logger, redis }) {
     if (!interaction.isChatInputCommand()) return;

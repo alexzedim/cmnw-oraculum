@@ -53,7 +53,7 @@ export const contestStartCommand: SlashCommand = {
       const errorContent = prettyContestPrompt(
         errorPrompt.text,
         fefenyaOwnNaming,
-        contest.trophy,
+        contest.title,
         '',
       );
 
@@ -71,7 +71,7 @@ export const contestStartCommand: SlashCommand = {
       const errorContent = prettyContestPrompt(
         errorPrompt.text,
         fefenyaOwnNaming,
-        contest.trophy,
+        contest.title,
         '',
       );
 

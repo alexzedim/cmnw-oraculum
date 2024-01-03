@@ -5,12 +5,12 @@ export enum CONTEST_BIND_ENUM {
   DESCRIPTION = 'Прикрепи подарочную роль для победителя',
   CHANNEL_OPTION = 'канал',
   ROLE_OPTION = 'роль',
-  TROPHY_OPTION = 'описание',
+  TITLE_OPTION = 'описание',
 }
 
 export enum CONTEST_BIND_DESCRIPTION_PARAMS {
   CHANNEL = 'Текстовый канал для анонсментов',
-  TROPHY = 'Опционально, назови его как-нибудь, ну например котик-дня, так будет смешнее)',
+  TITLE = "Назови что разыгрываем, ну например 'котик дня', так будет смешнее)",
 }
 
 export enum CONTEST_START_ENUM {
@@ -40,9 +40,9 @@ export const CONTEST_BIND = new SlashCommandBuilder()
   )
   .addStringOption((option) =>
     option
-      .setName(CONTEST_BIND_ENUM.TROPHY_OPTION)
-      .setDescription(CONTEST_BIND_DESCRIPTION_PARAMS.TROPHY)
-      .setRequired(false),
+      .setName(CONTEST_BIND_ENUM.TITLE_OPTION)
+      .setDescription(CONTEST_BIND_DESCRIPTION_PARAMS.TITLE)
+      .setRequired(true),
   );
 
 export const CONTEST_START = new SlashCommandBuilder()

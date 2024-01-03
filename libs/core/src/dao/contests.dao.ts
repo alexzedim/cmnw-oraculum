@@ -17,6 +17,8 @@ export const buildContest = async (
       title,
       roleId,
       gameMakerId,
+      // TODO blockId
+      position: 1,
     },
     { upsert: true, new: true },
   );

@@ -31,10 +31,7 @@ export class Contests extends Document {
   promptId: Types.ObjectId;
 
   @Prop({ type: Number })
-  promptNextPositionCursor: number;
-
-  @Prop({ type: [Types.ObjectId], ref: 'Prompts' })
-  promptsHistory: Types.Array<Types.ObjectId>; // TODO full flow?
+  promptPosition: number;
 
   @Prop({ type: Date })
   winnerAt: Date;
@@ -47,4 +44,7 @@ export class Contests extends Document {
 }
 
 export const ContestsSchema = SchemaFactory.createForClass(Contests);
-ContestsSchema.index({ guildId: -1, roleId: -1 }, { name: 'IdxUniqueContest', unique: true });
+ContestsSchema.index(
+  { guildId: -1, roleId: -1 },
+  { name: 'IdxUniqueContest', unique: true },
+);

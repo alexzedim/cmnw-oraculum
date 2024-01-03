@@ -1,4 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
+import { PermissionFlagsBits } from 'discord-api-types/v10';
 
 export enum CONTEST_BIND_ENUM {
   NAME = 'bind',
@@ -43,7 +44,9 @@ export const CONTEST_BIND = new SlashCommandBuilder()
       .setName(CONTEST_BIND_ENUM.TITLE_OPTION)
       .setDescription(CONTEST_BIND_DESCRIPTION_PARAMS.TITLE)
       .setRequired(true),
-  );
+  )
+  .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+  .setDMPermission(false);
 
 export const CONTEST_START = new SlashCommandBuilder()
   .setName(CONTEST_START_ENUM.NAME)

@@ -7,7 +7,7 @@ export const buildContest = async (
   channelId: string,
   trophy: string,
   gameMakerId: string,
-  roleId?: string,
+  roleId: string,
 ) =>
   await model.findOneAndUpdate<Contests>(
     { guildId },

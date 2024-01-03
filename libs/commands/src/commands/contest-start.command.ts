@@ -32,6 +32,8 @@ export const contestStartCommand: SlashCommand = {
       interaction.channel as TextChannel,
     ];
 
+    // TODO index every user command triggered
+
     const contest = await getContest(contestModel, guildId);
     const fefenyaOwnNaming = FEFENYA_NAMING.random();
     const { guildKey, commandKey } = generateKey({

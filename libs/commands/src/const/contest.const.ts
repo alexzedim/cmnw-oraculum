@@ -10,7 +10,7 @@ export enum CONTEST_BIND_ENUM {
 
 export enum CONTEST_BIND_DESCRIPTION_PARAMS {
   CHANNEL = 'Текстовый канал для анонсментов',
-  TROPHY = 'Опционально, напиши что разыгрываем, так будет смешнее)',
+  TROPHY = 'Опционально, назови его как-нибудь, ну например котик-дня, так будет смешнее)',
 }
 
 export enum CONTEST_START_ENUM {

@@ -13,7 +13,7 @@ export class Contests extends Document {
   channelId: string;
 
   @Prop({ type: String })
-  trophy: string;
+  title: string;
 
   @Prop({ type: String, ref: 'Users' })
   gameKeeperId: string;

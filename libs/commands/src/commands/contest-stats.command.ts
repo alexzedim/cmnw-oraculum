@@ -58,7 +58,6 @@ export const contestStatsCommand: SlashCommand = {
         .limit(10)
         .sort({ count: -1 });
 
-      const now = new Date();
       const contest = await contestModel.findOne<Contests>({
         guildId,
       });

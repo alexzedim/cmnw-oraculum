@@ -5,7 +5,7 @@ export const buildContest = async (
   model: Model<Contests>,
   guildId: string,
   channelId: string,
-  trophy: string,
+  title: string,
   gameMakerId: string,
   roleId: string,
 ) =>
@@ -14,7 +14,7 @@ export const buildContest = async (
     {
       guildId,
       channelId,
-      trophy,
+      title,
       roleId,
       gameMakerId,
     },

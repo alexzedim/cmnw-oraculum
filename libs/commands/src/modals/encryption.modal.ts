@@ -1,8 +1,8 @@
-import { CRYPTO_CIPHER_ENUM, ENCRYPT_ENUM } from '@cmnw/commands/const';
+import { ALGO, ENCRYPT_ENUM, isAlgo } from '@cmnw/commands/const';
 import { SlashModel } from '@cmnw/commands/types';
-import CryptoJS from 'crypto-js';
+import { encryptAES256, toBase64, toHex } from '@cmnw/core';
 
-export const encryptionModel: SlashModel = {
+export const encryptionModal: SlashModel = {
   name: ENCRYPT_ENUM.NAME,
   description: ENCRYPT_ENUM.DESCRIPTION,
   async executeInteraction({ interaction, logger }) {
@@ -10,34 +10,20 @@ export const encryptionModel: SlashModel = {
     try {
       const { fields } = interaction;
 
-      const cipher = CRYPTO_CIPHER_ENUM.AES_128_ECB;
+      const algoInput = fields.getTextInputValue('algoInput');
       const textInput = fields.getTextInputValue('textInput');
       const keyInput = fields.getTextInputValue('keyInput');
-      console.log({ textInput, keyInput });
 
-      const cypher = {
-        [CRYPTO_CIPHER_ENUM.AES_128_ECB]: CryptoJS.AES,
-        [CRYPTO_CIPHER_ENUM.RABBIT]: CryptoJS.Rabbit,
-        [CRYPTO_CIPHER_ENUM.RC4]: CryptoJS.RC4,
-        [CRYPTO_CIPHER_ENUM.DES]: CryptoJS.DES,
-      };
+      const isInAlgo = isAlgo(algoInput);
+      if (!isInAlgo) throw new Error(`Choose valid cipher: ${ALGO}`);
 
-      const text = cypher[cipher]
-        .encrypt(
-          textInput,
-          keyInput,
-          cipher === CRYPTO_CIPHER_ENUM.AES_128_ECB
-            ? {
-                mode: CryptoJS.mode.ECB,
-                padding: CryptoJS.pad.NoPadding,
-              }
-            : {
-                padding: CryptoJS.pad.NoPadding,
-              },
-        )
-        .toString();
+      let content = textInput;
 
-      await interaction.reply({ content: text, ephemeral: false });
+      if (algoInput === 'hex') content = toHex(textInput);
+      if (algoInput === 'base64') content = toBase64(textInput);
+      if (algoInput === 'aes-256') content = encryptAES256(textInput, keyInput);
+
+      await interaction.reply({ content, ephemeral: false });
     } catch (errorOrException) {
       logger.error(errorOrException);
       await interaction.reply({

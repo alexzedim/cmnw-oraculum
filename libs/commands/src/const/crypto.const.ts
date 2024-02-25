@@ -13,14 +13,13 @@ export enum DECRYPT_ENUM {
   MESSAGE_OPTION = 'message',
   CIPHER_OPTION = 'cipher',
   KEY_OPTION = 'key',
-  PUBLIC_OPTION = 'is_public',
+  PUBLIC_OPTION = 'public',
 }
 
 export enum CRYPTO_CIPHER_ENUM {
-  AES_128_ECB = 'aes-128-ecb',
-  RABBIT = 'rabbit',
-  RC4 = 'rc4',
-  DES = 'des',
+  AES_256_CBC = 'aes-256',
+  HEX = 'hex',
+  BASE64 = 'base64',
 }
 
 export enum CRYPTO_DESCRIPTION_PARAMS {
@@ -29,6 +28,10 @@ export enum CRYPTO_DESCRIPTION_PARAMS {
   KEY = 'Ключ',
   PUBLIC = 'Публично?',
 }
+
+export const ALGO = ['hex', 'base64', 'aes-256'].join(' | ');
+
+export const isAlgo = (str: string) => ALGO.includes(str.toLowerCase());
 
 export const DECRYPT = new SlashCommandBuilder()
   .setName(DECRYPT_ENUM.NAME)
@@ -46,20 +49,16 @@ export const DECRYPT = new SlashCommandBuilder()
       .setRequired(true)
       .addChoices(
         {
-          name: CRYPTO_CIPHER_ENUM.AES_128_ECB,
-          value: CRYPTO_CIPHER_ENUM.AES_128_ECB,
+          name: CRYPTO_CIPHER_ENUM.AES_256_CBC,
+          value: CRYPTO_CIPHER_ENUM.AES_256_CBC,
         },
         {
-          name: CRYPTO_CIPHER_ENUM.RABBIT,
-          value: CRYPTO_CIPHER_ENUM.RABBIT,
+          name: CRYPTO_CIPHER_ENUM.HEX,
+          value: CRYPTO_CIPHER_ENUM.HEX,
         },
         {
-          name: CRYPTO_CIPHER_ENUM.RC4,
-          value: CRYPTO_CIPHER_ENUM.RC4,
-        },
-        {
-          name: CRYPTO_CIPHER_ENUM.DES,
-          value: CRYPTO_CIPHER_ENUM.DES,
+          name: CRYPTO_CIPHER_ENUM.BASE64,
+          value: CRYPTO_CIPHER_ENUM.BASE64,
         },
       ),
   )
@@ -77,34 +76,4 @@ export const DECRYPT = new SlashCommandBuilder()
 
 export const ENCRYPT = new SlashCommandBuilder()
   .setName(ENCRYPT_ENUM.NAME)
-  .setDescription(ENCRYPT_ENUM.DESCRIPTION)
-  .addStringOption((option) =>
-    option
-      .setName(ENCRYPT_ENUM.CIPHER_OPTION)
-      .setDescription(CRYPTO_DESCRIPTION_PARAMS.CIPHER)
-      .setRequired(true)
-      .addChoices(
-        {
-          name: CRYPTO_CIPHER_ENUM.AES_128_ECB,
-          value: CRYPTO_CIPHER_ENUM.AES_128_ECB,
-        },
-        {
-          name: CRYPTO_CIPHER_ENUM.RABBIT,
-          value: CRYPTO_CIPHER_ENUM.RABBIT,
-        },
-        {
-          name: CRYPTO_CIPHER_ENUM.RC4,
-          value: CRYPTO_CIPHER_ENUM.RC4,
-        },
-        {
-          name: CRYPTO_CIPHER_ENUM.DES,
-          value: CRYPTO_CIPHER_ENUM.DES,
-        },
-      ),
-  )
-  .addStringOption((option) =>
-    option
-      .setName(ENCRYPT_ENUM.KEY_OPTION)
-      .setDescription(CRYPTO_DESCRIPTION_PARAMS.KEY)
-      .setRequired(true),
-  );
+  .setDescription(ENCRYPT_ENUM.DESCRIPTION);

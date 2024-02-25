@@ -1,12 +1,7 @@
-import CryptoJS from 'crypto-js';
-import {
-  CRYPTO_CIPHER_ENUM,
-  DECRYPT,
-  DECRYPT_ENUM,
-  ISlashCommand,
-} from '@cmnw/commands';
+import { DECRYPT, DECRYPT_ENUM, ISlashInteraction } from '@cmnw/commands';
+import { decryptAES256, fromBase64, fromHex } from '@cmnw/core';
 
-export const decryptCommand: ISlashCommand = {
+export const decryptCommand: ISlashInteraction = {
   name: DECRYPT_ENUM.NAME,
   description: DECRYPT_ENUM.DESCRIPTION,
   slashCommand: DECRYPT,
@@ -17,7 +12,7 @@ export const decryptCommand: ISlashCommand = {
       const { options, channel, user } = interaction;
       logger.log(`${DECRYPT_ENUM.NAME} triggered by ${user.id}`);
 
-      const [messageId, cipher, key, ephemeral] = [
+      const [messageId, cipher, cipherKey, ephemeral] = [
         options.getString(DECRYPT_ENUM.MESSAGE_OPTION, true),
         options.getString(DECRYPT_ENUM.CIPHER_OPTION, true),
         options.getString(DECRYPT_ENUM.KEY_OPTION, true),
@@ -31,29 +26,13 @@ export const decryptCommand: ISlashCommand = {
         );
       }
 
-      const cypher = {
-        [CRYPTO_CIPHER_ENUM.AES_128_ECB]: CryptoJS.AES,
-        [CRYPTO_CIPHER_ENUM.RABBIT]: CryptoJS.Rabbit,
-        [CRYPTO_CIPHER_ENUM.RC4]: CryptoJS.RC4,
-        [CRYPTO_CIPHER_ENUM.DES]: CryptoJS.DES,
-      };
+      let content = message.content;
 
-      const text = cypher[cipher]
-        .decrypt(
-          message.content,
-          key,
-          cipher === CRYPTO_CIPHER_ENUM.AES_128_ECB
-            ? {
-                mode: CryptoJS.mode.ECB,
-                padding: CryptoJS.pad.NoPadding,
-              }
-            : {
-                padding: CryptoJS.pad.NoPadding,
-              },
-        )
-        .toString(CryptoJS.enc.Utf8);
+      if (cipher === 'hex') content = fromBase64(content);
+      if (cipher === 'base64') content = fromHex(content);
+      if (cipher === 'aes-256') content = decryptAES256(content, cipherKey);
 
-      await interaction.reply({ content: text, ephemeral: ephemeral });
+      await interaction.reply({ content: content, ephemeral: !ephemeral });
     } catch (errorOrException) {
       logger.error(errorOrException);
       await interaction.reply({

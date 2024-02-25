@@ -1,5 +1,10 @@
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
-import { decryptCommand, encryptCommand, SlashCommand } from '@cmnw/commands';
+import {
+  decryptCommand,
+  encryptCommand,
+  encryptionModal,
+  SlashCommand,
+} from '@cmnw/commands';
 import {
   Client,
   Collection,
@@ -14,7 +19,8 @@ import {
 export class TestService implements OnApplicationBootstrap {
   private client: Client;
   private readonly rest = new REST({ version: '10' });
-  private commandsMessage: Collection<string, SlashCommand> = new Collection();
+  private commands: Collection<string, SlashCommand> = new Collection();
+  private modals: Collection<string, any> = new Collection();
   private readonly logger = new Logger(TestService.name, {
     timestamp: true,
   });
@@ -23,6 +29,7 @@ export class TestService implements OnApplicationBootstrap {
   async onApplicationBootstrap(): Promise<void> {
     await this.loadBot();
     await this.loadCommands();
+    await this.bot();
   }
 
   private async loadBot() {
@@ -43,21 +50,22 @@ export class TestService implements OnApplicationBootstrap {
         GatewayIntentBits.MessageContent,
       ],
       presence: {
-        status: 'invisible',
+        status: 'online',
       },
     });
 
     await this.client.login(
-      'token',
+      'MTEyNTg2NDAzNTI4ODYyMTEzNg.GIh8lc.UUX6SvVf_6Ja3y-nHysB_E0LcejSNe5a4d5efc',
     );
     this.rest.setToken(
-      'token',
+      'MTEyNTg2NDAzNTI4ODYyMTEzNg.GIh8lc.UUX6SvVf_6Ja3y-nHysB_E0LcejSNe5a4d5efc',
     );
   }
 
   private async loadCommands(): Promise<void> {
-    this.commandsMessage.set(encryptCommand.name, encryptCommand);
-    this.commandsMessage.set(decryptCommand.name, decryptCommand);
+    this.commands.set(encryptCommand.name, encryptCommand);
+    this.commands.set(decryptCommand.name, decryptCommand);
+    this.modals.set(encryptionModal.name, encryptionModal);
 
     await this.rest.put(Routes.applicationCommands(this.client.user.id), {
       body: [
@@ -71,8 +79,30 @@ export class TestService implements OnApplicationBootstrap {
 
   async bot(): Promise<void> {
     try {
-      this.client.on(Events.ClientReady, async () => {
-        this.logger.log(`Logged in as ${this.client.user.tag}!`);
+      this.client.on(Events.ClientReady, () => {
+        this.logger.log(`${this.client.user.tag} signals ready!`);
+      });
+
+      this.client.on(Events.InteractionCreate, async (interaction) => {
+        if (!interaction.isModalSubmit()) return;
+        try {
+          const modal = this.modals.get(interaction.customId);
+          if (!modal) return;
+
+          await modal.executeInteraction({
+            interaction,
+            models: {},
+            // redis: this.redisService,
+            logger: this.logger,
+            // rabbit: this.amqpConnection,
+          });
+        } catch (errorException) {
+          this.logger.error(errorException);
+          await interaction.reply({
+            content: 'There was an error while executing this command!',
+            ephemeral: true,
+          });
+        }
       });
 
       this.client.on(
@@ -82,7 +112,7 @@ export class TestService implements OnApplicationBootstrap {
           if (!isChatInputCommand) return;
 
           try {
-            const command = this.commandsMessage.get(interaction.commandName);
+            const command = this.commands.get(interaction.commandName);
             if (!command) return;
 
             await command.executeInteraction({

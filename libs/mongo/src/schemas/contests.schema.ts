@@ -45,6 +45,6 @@ export class Contests extends Document {
 
 export const ContestsSchema = SchemaFactory.createForClass(Contests);
 ContestsSchema.index(
-  { guildId: -1, roleId: -1 },
+  { guildId: 1 },
   { name: 'IdxUniqueContest', unique: true },
 );

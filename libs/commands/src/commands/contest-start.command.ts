@@ -13,7 +13,10 @@ import {
   getContest,
   prettyContestPrompt,
   FEFENYA_NAMING,
+  randomMixMax,
+  waitForDelay,
 } from '@cmnw/core';
+import { Prompts } from '@cmnw/mongo';
 
 export const contestStartCommand: SlashCommand = {
   name: CONTEST_START_ENUM.NAME,
@@ -25,17 +28,13 @@ export const contestStartCommand: SlashCommand = {
 
     const { fefenyaModel, promptsModel, contestModel } = models;
 
-    const [guildId, client, user, channel] = [
-      interaction.guildId,
-      interaction.client,
-      interaction.user,
-      interaction.channel as TextChannel,
-    ];
+    const { guild, client, user } = interaction;
+    let { channel } = interaction;
 
     // TODO index every user command triggered
-
-    const contest = await getContest(contestModel, guildId);
-    const fefenyaOwnNaming = FEFENYA_NAMING.random();
+    const guildId = guild.id;
+    const contestEntity = await getContest(contestModel, guildId);
+    const fefenyaName = FEFENYA_NAMING.random();
     const { guildKey, commandKey } = generateKey({
       command: COMMAND_ENUMS.FEFENYA_TROPHY,
       guildId,
@@ -43,7 +42,42 @@ export const contestStartCommand: SlashCommand = {
     });
 
     try {
+      const contestPrompts = await promptsModel
+        .find<Prompts>({
+          blockId: contestEntity.blockId,
+          position: 1,
+        })
+        .sort({ position: 1 });
+
+      const isChannelContest =
+        channel.id === contestEntity.channelId && channel.isTextBased();
+
+      if (!isChannelContest) {
+        channel = guild.channels.cache.get(
+          contestEntity.channelId,
+        ) as TextChannel;
+      }
+
+      for (const contestPrompt of contestPrompts) {
+        const contestText = prettyContestPrompt(
+          contestPrompt.text,
+          fefenyaName,
+          contestEntity.title,
+        );
+
+        const delayTime = randomMixMax(1, 10);
+        await waitForDelay(delayTime);
+
+        await channel.send({ content: contestText });
+      }
+    } catch (e) {
+
+    }
+
+    try {
       logger.log(`${COMMAND_ENUMS.FEFENYA_TROPHY} triggered by ${user.id}`);
+
+      // TODO contest
 
       const errorPrompt = await getRandomReplyByEvent(
         promptsModel,
@@ -52,8 +86,8 @@ export const contestStartCommand: SlashCommand = {
 
       const errorContent = prettyContestPrompt(
         errorPrompt.text,
-        fefenyaOwnNaming,
-        contest.title,
+        fefenyaName,
+        contestEntity.title,
         '',
       );
 
@@ -70,8 +104,8 @@ export const contestStartCommand: SlashCommand = {
 
       const errorContent = prettyContestPrompt(
         errorPrompt.text,
-        fefenyaOwnNaming,
-        contest.title,
+        fefenyaName,
+        contestEntity.title,
         '',
       );
 

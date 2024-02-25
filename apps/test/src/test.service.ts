@@ -60,6 +60,8 @@ export class TestService implements OnApplicationBootstrap {
     this.rest.setToken(
       'MTEyNTg2NDAzNTI4ODYyMTEzNg.GIh8lc.UUX6SvVf_6Ja3y-nHysB_E0LcejSNe5a4d5efc',
     );
+    await this.client.login(token);
+    this.rest.setToken(token);
   }
 
   private async loadCommands(): Promise<void> {

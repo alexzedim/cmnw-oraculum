@@ -29,7 +29,7 @@ export interface IModels {
   profilesModel: Model<Profiles>;
 }
 
-export interface ISlashCommandArgs {
+export interface ISlashArgs {
   interaction: Interaction;
   logger: Logger;
   models?: Partial<IModels>;
@@ -37,14 +37,14 @@ export interface ISlashCommandArgs {
   rabbit?: AmqpConnection;
 }
 
-export interface ISlashCommand {
+export interface ISlashInteraction {
   name: string;
   description: string;
   slashCommand: Omit<
     SlashCommandBuilder,
     'addSubcommand' | 'addSubcommandGroup'
   >;
-  executeInteraction(args: ISlashCommandArgs): Promise<unknown>;
+  executeInteraction(args: ISlashArgs): Promise<unknown>;
 }
 
 export interface ICacheArgs {

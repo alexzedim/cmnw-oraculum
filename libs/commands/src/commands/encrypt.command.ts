@@ -12,14 +12,9 @@ export const encryptCommand: SlashCommand = {
   async executeInteraction({ interaction, logger }) {
     if (!interaction.isChatInputCommand()) return;
     try {
-      const { options, user } = interaction;
+      const { user } = interaction;
 
       logger.log(`${ENCRYPT_ENUM.NAME} triggered by ${user.id}`);
-
-      const [key, cipher] = [
-        options.getString(ENCRYPT_ENUM.KEY_OPTION, true),
-        options.getString(ENCRYPT_ENUM.CIPHER_OPTION, true),
-      ];
 
       await interaction.showModal(encCryptoModal);
     } catch (errorOrException) {

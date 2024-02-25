@@ -5,7 +5,9 @@ import {
   STATUS_ENUM,
 } from '@cmnw/core/enums';
 
-export const CIPHER_ALGO_AES = 'aes-128-ecb';
+export const CIPHER_AES_128 = 'aes-128-ecb';
+
+export const CIPHER_AES_256 = 'aes-256-cbc';
 
 export const KEY_STATUS_ARRAY = Object.values(STATUS_ENUM);
 

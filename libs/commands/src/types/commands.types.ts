@@ -1,5 +1,5 @@
-import { ISlashCommand } from '@cmnw/commands/types/commands.interface';
+import { ISlashInteraction } from '@cmnw/commands/types/commands.interface';
 
-export type SlashCommand = Readonly<ISlashCommand>;
+export type SlashCommand = Readonly<ISlashInteraction>;
 
-export type SlashModel = Omit<ISlashCommand, 'slashCommand'>;
+export type SlashModel = Omit<ISlashInteraction, 'slashCommand'>;

@@ -28,8 +28,8 @@ export const decryptCommand: ISlashInteraction = {
 
       let content = message.content;
 
-      if (cipher === 'hex') content = fromBase64(content);
-      if (cipher === 'base64') content = fromHex(content);
+      if (cipher === 'hex') content = fromHex(content);
+      if (cipher === 'base64') content = fromBase64(content);
       if (cipher === 'aes-256') content = decryptAES256(content, cipherKey);
 
       await interaction.reply({ content: content, ephemeral: !ephemeral });

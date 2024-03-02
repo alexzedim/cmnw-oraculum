@@ -1,9 +1,7 @@
-import { GuildMember, SnowflakeUtil, User } from 'discord.js';
+import { SnowflakeUtil, User } from 'discord.js';
 import { DateTime } from 'luxon';
-import { Users, Fefenya } from '@cmnw/mongo';
+import { Users } from '@cmnw/mongo';
 import { Model } from 'mongoose';
-import { randomMixMax } from '@cmnw/core/utils';
-import { STATUS_ENUM } from '@cmnw/core/enums';
 
 export const indexUser = async (
   usersModel: Model<Users>,

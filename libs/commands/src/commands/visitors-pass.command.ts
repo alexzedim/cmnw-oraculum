@@ -47,11 +47,9 @@ export const visitorsPassCommand: ISlashInteraction = {
         },
       );
 
-      // TODO write to redis or invite;
-
       const toJson = invite.toString();
-
-      await redis.set(`${REDIS_KEYS.INGRESS}#${userId}`, toJson, 'EX', maxAge);
+      // TODO write to redis or invite;
+      await redis.set(`I:${userId}`, toJson, 'EX', maxAge);
     } catch (errorOrException) {
       logger.error(errorOrException);
       await interaction.reply({

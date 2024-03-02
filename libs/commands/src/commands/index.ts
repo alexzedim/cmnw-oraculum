@@ -10,5 +10,7 @@ export * from './contest-start.command';
 export * from './contest-stats.command';
 export * from './contest-bind.command';
 
+export * from './visitors-pass.command';
+
 export * from './decrypt.command';
 export * from './encrypt.command';

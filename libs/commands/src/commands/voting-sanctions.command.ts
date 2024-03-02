@@ -1,51 +1,20 @@
 import { SlashCommand } from '@cmnw/commands/types';
-import { ButtonStyle } from 'discord-api-types/v10';
 import { DateTime, Duration } from 'luxon';
-import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  Collection,
-  EmbedBuilder,
-} from 'discord.js';
+import { EmbedBuilder } from 'discord.js';
 
 import {
-  COMMAND_DESCRIPTION_ENUMS,
-  COMMAND_ENUMS,
-  VOTING_ACTION_PARAMS,
-  VOTING_SANCTIONS_DESCRIPTION,
-  VOTING_SANCTIONS_PARAMS,
+  VOTING_SANCTIONS,
+  VOTING_SANCTIONS_ACTION,
+  VOTING_SANCTIONS_ENUM,
 } from '@cmnw/commands/const';
 
-import {
-  MessageActionRowComponentBuilder,
-  SlashCommandBuilder,
-} from '@discordjs/builders';
+import { votingButtons } from '@cmnw/commands/components';
+import { isVotingActive } from '@cmnw/core';
 
 export const votingSanctionsCommand: SlashCommand = {
-  name: COMMAND_ENUMS.VOTING_SANCTIONS,
-  description: COMMAND_DESCRIPTION_ENUMS.VOTING_SANCTIONS,
-  slashCommand: new SlashCommandBuilder()
-    .setName(COMMAND_ENUMS.VOTING_SANCTIONS)
-    .setDescription(COMMAND_ENUMS.VOTING_SANCTIONS)
-    .addStringOption((option) =>
-      option
-        .setName(VOTING_SANCTIONS_PARAMS.ACTION)
-        .setDescription(VOTING_SANCTIONS_DESCRIPTION.ACTION_DESCRIPTION)
-        .setRequired(true)
-        .addChoices(
-          { name: VOTING_ACTION_PARAMS.MUTE, value: 'mute' },
-          { name: VOTING_ACTION_PARAMS.BAN, value: 'ban' },
-          { name: VOTING_ACTION_PARAMS.KICK, value: 'kick' },
-          { name: VOTING_ACTION_PARAMS.UNBAN, value: 'unban' },
-          { name: VOTING_ACTION_PARAMS.UNMUTE, value: 'unmute' },
-        ),
-    )
-    .addUserOption((option) =>
-      option
-        .setName(VOTING_SANCTIONS_PARAMS.USER)
-        .setDescription(VOTING_SANCTIONS_DESCRIPTION.USER_DESCRIPTION)
-        .setRequired(true),
-    ),
+  name: VOTING_SANCTIONS_ENUM.NAME,
+  description: VOTING_SANCTIONS_ENUM.DESCRIPTION,
+  slashCommand: VOTING_SANCTIONS,
 
   async executeInteraction({
     interaction,
@@ -56,45 +25,69 @@ export const votingSanctionsCommand: SlashCommand = {
     if (!interaction.isChatInputCommand()) return;
     try {
       const { options, user } = interaction;
-      logger.log(`${COMMAND_ENUMS.VOTING_SANCTIONS} triggered by ${user.id}`);
+      logger.log(`${VOTING_SANCTIONS_ENUM.NAME} triggered by ${user.id}`);
 
-      const [action, userSantioned] = [
-        options.getString(VOTING_SANCTIONS_PARAMS.ACTION, true),
-        options.getUser(VOTING_SANCTIONS_PARAMS.USER, true),
+      const [action, userSanctioned, allowedRole] = [
+        options.getString(VOTING_SANCTIONS_ENUM.ACTION_OPTION, true),
+        options.getUser(VOTING_SANCTIONS_ENUM.USER_OPTION, true),
+        options.getRole(VOTING_SANCTIONS_ENUM.ROLE_OPTION, false),
+        // TODO time
+        // TODO is anonymous
       ];
 
-      const buttons = new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
-          .setCustomId('Yes')
-          .setLabel('✅ За')
-          .setStyle(ButtonStyle.Success),
-        new ButtonBuilder()
-          .setCustomId('No')
-          .setLabel('✖️ Против')
-          .setStyle(ButtonStyle.Danger),
-      ) as ActionRowBuilder<MessageActionRowComponentBuilder>;
+      const interactionResponse = await interaction.deferReply();
 
-      const userId = interaction.user.username;
-      const actionMapper = new Collection([
-        ['mute', 'мут'],
-        ['kick', 'изгнание'],
-        ['ban', 'бан'],
-        ['unmute', 'снять мут'],
-        ['unban', 'разбан'],
-      ]);
-      const votingAction = actionMapper.get(action);
+      const buttons = votingButtons();
+
+      const { votingModel } = models;
+      // TODo initiatedBy
+      const initiatedById = interaction.user.id;
+
+      const votingAction = VOTING_SANCTIONS_ACTION.get(action);
+
+      let membersCount;
+
+      // TODO last members from channel
+      // TODO only in channel
+      // TODO only in role
+
+      if (allowedRole) {
+        const r = allowedRole.position;
+        const guild = interaction.guild;
+        membersCount = guild.memberCount;
+
+        await guild.members.fetch();
+
+        const t = guild.roles.cache
+          .get(allowedRole.id)
+          .members.map((m) => m.user.tag);
+      }
+
       const until = DateTime.now().plus({ minutes: 3 });
       const remains = Duration.fromObject(
         { seconds: 180 },
         { locale: 'ru' },
       ).toHuman();
+
+      const activeVoting = await isVotingActive(
+        models.votingModel,
+        interactionResponse.id,
+        // TODO date
+      );
+
+      const t = new votingModel({
+        id: interactionResponse.id,
+        initiatedBy: initiatedById,
+        type: VOTING_SANCTIONS_ENUM.NAME,
+      });
+
       const memberVoters = 5;
       const quorum = Math.ceil(memberVoters * 0.7);
       const status = 'РЕШЕНИЕ НЕ ПРИНЯТО';
 
       const embed = new EmbedBuilder()
         .setTitle(
-          `Количественное голосование за **${votingAction}** к ${userSantioned.username}`,
+          `Количественное голосование за **${votingAction}** к ${userSanctioned.username}`,
         )
         .setDescription(
           `
@@ -127,7 +120,10 @@ export const votingSanctionsCommand: SlashCommand = {
         ])
         .setThumbnail(interaction.guild.iconURL());
 
-      await interaction.reply({
+      // TODO interactionResponse.id
+      await votingModel.findOneAndUpdate();
+
+      await interaction.editReply({
         embeds: [embed],
         components: [buttons],
       });

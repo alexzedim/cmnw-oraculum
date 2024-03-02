@@ -61,17 +61,11 @@ export enum VOTING_NOMINATION_DESCRIPTION {
 export enum VOTING_SANCTIONS_PARAMS {
   ACTION = 'санкции',
   USER = 'участник',
+  ROLE = 'роль',
 }
 
 export enum VOTING_SANCTIONS_DESCRIPTION {
   ACTION_DESCRIPTION = 'санкционированное действие',
   USER_DESCRIPTION = 'участник сообщества',
-}
-
-export enum VOTING_ACTION_PARAMS {
-  MUTE = 'Мут',
-  KICK = 'Изгнать',
-  BAN = 'Забанить',
-  UNBAN = 'Разбанить',
-  UNMUTE = 'Размутать',
+  ROLE_DESCRIPTION = 'голосуют только те, кто выше',
 }

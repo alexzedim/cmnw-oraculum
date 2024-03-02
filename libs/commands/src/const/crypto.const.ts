@@ -4,7 +4,6 @@ export enum ENCRYPT_ENUM {
   NAME = 'encrypt',
   DESCRIPTION = 'Зашифровать выбранный текст',
   CIPHER_OPTION = 'cipher',
-  KEY_OPTION = 'key',
 }
 
 export enum DECRYPT_ENUM {

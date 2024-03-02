@@ -26,7 +26,7 @@ export const decryptCommand: ISlashInteraction = {
         );
       }
 
-      let content = message.content;
+      let content = message.content.replace(/\s/g, '');
 
       if (cipher === 'hex') content = fromHex(content);
       if (cipher === 'base64') content = fromBase64(content);

@@ -8,3 +8,4 @@ export * from './roles.dao';
 export * from './prompts.dao';
 export * from './fefenyas.dao';
 export * from './contests.dao';
+export * from './voting.dao';

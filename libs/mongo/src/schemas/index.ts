@@ -14,3 +14,4 @@ export * from './mentions.schema';
 export * from './profiles.schema';
 export * from './prompts.schema';
 export * from './contests.schema';
+export * from './voting.schema';

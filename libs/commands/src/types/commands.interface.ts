@@ -14,6 +14,7 @@ import {
   Guilds,
   Contests,
   Profiles,
+  Voting,
 } from '@cmnw/mongo';
 import { SlashCommandBuilder } from '@discordjs/builders';
 
@@ -27,6 +28,7 @@ export interface IModels {
   guildsModel: Model<Guilds>;
   contestModel: Model<Contests>;
   profilesModel: Model<Profiles>;
+  votingModel: Model<Voting>;
 }
 
 export interface ISlashArgs {

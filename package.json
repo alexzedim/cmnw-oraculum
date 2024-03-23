@@ -3,16 +3,16 @@
   "version": "2.0.0",
   "description": "Open your eyes",
   "author": {
-    "name": "AlexZeDim",
-    "email": "907696+AlexZeDim@users.noreply.github.com"
+    "name": "alexzedim",
+    "email": "907696+alexzedim@users.noreply.github.com"
   },
   "bugs": {
-    "url": "https://github.com/AlexZeDim/cmnw-oraculum/issues",
-    "discord": "AlexZeDim#2645"
+    "url": "https://github.com/alexzedim/cmnw-oraculum/issues",
+    "discord": "alexzedim"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/AlexZeDim/cmnw-oraculum.git"
+    "url": "https://github.com/alexzedim/cmnw-oraculum.git"
   },
   "languageName": "node",
   "private": true,

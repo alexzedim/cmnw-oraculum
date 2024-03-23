@@ -32,7 +32,7 @@ COPY . .
 
 RUN nest build fefenya
 
-CMD wait && ["node", "dist/apps/fefenya/main.js"]
+CMD ["node", "dist/apps/fefenya/main.js"]
 
 
 

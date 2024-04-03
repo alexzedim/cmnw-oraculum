@@ -9,3 +9,7 @@ export * from './prompts.dao';
 export * from './fefenyas.dao';
 export * from './contests.dao';
 export * from './voting.dao';
+
+export * from './storage.dao';
+
+export * from './chat.dao';

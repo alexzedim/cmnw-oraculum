@@ -1,25 +1,27 @@
 import { MessageDto } from '@cmnw/core/dto';
-import { IAgent, IChatFlow } from '@cmnw/core/types';
+import { IAgent, IChatMessages } from '@cmnw/core/types';
 import { isArrayPropertyGuard } from '@cmnw/core/guards';
 import { Prompts } from '@cmnw/mongo';
 
-export class ChatFlowDto {
+export class ChatDto {
   baselinePrompt: Prompts;
 
   agent: IAgent;
 
-  chatFlow: Array<IChatFlow>;
+  chatMessages: Array<IChatMessages>;
 
   static fromMessages(
     messages: Array<MessageDto>,
     prompt: Prompts,
     selfId: string,
-  ): ChatFlowDto {
-    const chatDto = new ChatFlowDto();
+  ): ChatDto {
+    const chatDto = new ChatDto();
     chatDto.baselinePrompt = prompt;
+
     chatDto.agent.agentId = selfId;
     chatDto.agent.vectorId = messages.at(0).guildId;
-    chatDto.chatFlow = messages.map((message) => ({
+
+    chatDto.chatMessages = messages.map((message) => ({
       role: message.userId === selfId ? 'assistant' : 'user',
       name: message.userId === selfId ? undefined : message.username,
       content: isArrayPropertyGuard(message.attachments)
@@ -30,14 +32,12 @@ export class ChatFlowDto {
     return chatDto;
   }
 
-  static fromPrompts(prompts: Array<Prompts>): ChatFlowDto {
-    const dto = new ChatFlowDto();
-
-    const sortedPrompts = prompts.sort((a, b) => a.position - b.position);
-    const [promptModel] = sortedPrompts;
+  static fromPrompts(prompts: Array<Prompts>): ChatDto {
+    const dto = new ChatDto();
+    const [promptModel] = prompts;
 
     dto.baselinePrompt = promptModel;
-    dto.chatFlow = sortedPrompts.map((prompt) => ({
+    dto.chatMessages = prompts.map((prompt) => ({
       role: prompt.role,
       content: prompt.text,
     }));

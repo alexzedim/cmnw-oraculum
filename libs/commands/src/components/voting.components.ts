@@ -70,9 +70,9 @@ export const votingSanctionsEmbed = (
       `
         Инициировано: ${initiatedBy}
         Доступно для ${memberVoters} участников
-        Необходимо для кворума: 70% | ${quorum}
+        Необходимо для кворума: 70% |
         
-        ⠀⠀⠀⠀⠀⠀⠀⠀⠀*голосование активно ещё ${remains}*
+        ⠀⠀⠀⠀⠀⠀⠀⠀⠀*голосование активно ещё*
         
         ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀**${status}**
         `,
@@ -85,7 +85,7 @@ export const votingSanctionsEmbed = (
       },
       {
         name: `───────────────`,
-        value: `Решение будет принято *только* при\n${quorum} из ${memberVoters} голосах\n───────────────`,
+        value: `Решение будет принято *только* при\n из ${memberVoters} голосах\n───────────────`,
         inline: true,
       },
       {
@@ -93,5 +93,4 @@ export const votingSanctionsEmbed = (
         value: `⠀⠀⠀Против: 0\n───────────────`,
         inline: true,
       },
-    ])
-    .setThumbnail(interaction.guild.iconURL());;
+    ]);

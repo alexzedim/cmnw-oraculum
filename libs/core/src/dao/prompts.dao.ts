@@ -1,13 +1,23 @@
 import { Model } from 'mongoose';
 import { Prompts } from '@cmnw/mongo';
-import { CHAT_ROLE_ENUM, PROMPT_TYPE_ENUM } from '@cmnw/core/enums';
-import { randomMixMax } from '@cmnw/core/utils';
+import { CHAT_ROLE_ENUM } from '@cmnw/core/enums';
+import { random } from '@cmnw/core/utils';
 
 export const getSystemPrompt = async (model: Model<Prompts>, name: string) =>
   await model.findOne<Prompts>({
     name,
     role: CHAT_ROLE_ENUM.SYSTEM,
   });
+
+export const getPrompt = async (model: Model<Prompts>, searchBy: string) => {
+  // TODO probably aggregate pipeline
+  return model
+    .findOne<Prompts>(
+      { $text: { $search: searchBy } },
+      { score: { $meta: 'textScore' } },
+    )
+    .sort({ score: { $meta: 'textScore' } });
+};
 
 export const buildDialogFlow = async (
   model: Model<Prompts>,
@@ -21,7 +31,7 @@ export const buildDialogFlow = async (
     }),
     model
       .find<Prompts>({
-        event,
+        onEvent: event,
         isUsed: false,
       })
       .sort({ position: 1 }),
@@ -49,49 +59,18 @@ export const getRandomReplyByEvent = async (
   event: string,
 ) => {
   const max = await model.count({
-    event,
+    onEvent: event,
     isGenerated: true,
     role: CHAT_ROLE_ENUM.ASSISTANT,
   });
 
-  const skip = randomMixMax(0, max);
+  const skip = random(0, max);
 
   return model
     .findOne<Prompts>({
-      event,
+      onEvent: event,
       isGenerated: true,
       role: CHAT_ROLE_ENUM.ASSISTANT,
     })
     .skip(skip);
 };
-
-export const getLastDialogFlow = async (model: Model<Prompts>, event: string) =>
-  await model.findOneAndUpdate<Prompts>(
-    {
-      event,
-      isUsed: false,
-      type: PROMPT_TYPE_ENUM.DIALOG,
-    },
-    {
-      isUsed: true,
-    },
-    {
-      sort: { position: 1 },
-      new: true,
-    },
-  );
-
-export const setLastDialog = async (model: Model<Prompts>, event: string) =>
-  await model.findOneAndUpdate<Prompts>(
-    {
-      event,
-      isUsed: false,
-      type: PROMPT_TYPE_ENUM.DIALOG,
-    },
-    {
-      isLast: true,
-    },
-    {
-      sort: { position: -1 },
-    },
-  );

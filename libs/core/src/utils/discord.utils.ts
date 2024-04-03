@@ -5,11 +5,8 @@ import { setTimeout } from 'node:timers/promises';
 /**
  * @description Gives a random int number in-between requested values
  */
-export const randomMixMax = (
-  min = 0,
-  max = 100,
-  divider?: number | undefined,
-) => (divider ? randomInt(min, max + 1) / divider : randomInt(min, max + 1));
+export const random = (min = 0, max = 100, divider?: number | undefined) =>
+  divider ? randomInt(min, max) / divider : randomInt(min, max);
 
 export const formatRedisKey = (key: string, formatter = 'PEPA') =>
   `${formatter}:${key}`;
@@ -21,7 +18,7 @@ export const isDurationNotPass = (sinceDate: Date, unitNumber = 6) => {
   return diff.hours < unitNumber;
 };
 
-export const waitForDelay = async (seconds: number) =>
+export const wait = async (seconds: number) =>
   await setTimeout(seconds * 1000);
 
 export const operationStatus = (isNew: boolean) =>

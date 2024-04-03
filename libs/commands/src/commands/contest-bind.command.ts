@@ -1,10 +1,12 @@
 import { CONTEST_BIND, CONTEST_BIND_ENUM, SlashCommand } from '@cmnw/commands';
-import { Prompts, Roles } from '@cmnw/mongo';
+import { ChannelType } from 'discord-api-types/payloads/v10/channel';
+import { Prompts } from '@cmnw/mongo';
 import {
+  bindRoleContest,
   buildContest,
   CHAT_ROLE_ENUM,
-  PROMPT_TYPE_ENUM,
-  randomMixMax,
+  EVENT_PROMPT_ENUM,
+  random,
 } from '@cmnw/core';
 
 export const contestBindCommand: SlashCommand = {
@@ -16,45 +18,50 @@ export const contestBindCommand: SlashCommand = {
     if (!interaction.isChatInputCommand()) return;
     try {
       const { contestModel, rolesModel, promptsModel } = models;
-      const { options, user, guildId, channelId } = interaction;
+      const { options, user, guildId } = interaction;
 
       logger.log(`${CONTEST_BIND_ENUM.NAME} triggered by ${user.id}`);
       // TODO else show embed with contest?
-      const [role, title] = [
+      const [role, channel, title] = [
         options.getRole(CONTEST_BIND_ENUM.ROLE_OPTION, true),
+        options.getChannel(CONTEST_BIND_ENUM.CHANNEL_OPTION, true),
         options.getString(CONTEST_BIND_ENUM.TITLE_OPTION, false),
       ];
+
+      const isGuildText = channel.type === ChannelType.GuildText;
+      if (!isGuildText) {
+        throw new Error('pisya');
+      }
+
       // TODO find and update
-      const roleEntity = await rolesModel.findByIdAndUpdate<Roles>(role.id, {
+      const roleEntity = await bindRoleContest(rolesModel, {
+        _id: role.id,
         name: role.name,
         guildId: interaction.guildId,
         description: title,
-        role: role.mentionable,
+        isMentionable: role.mentionable,
         position: role.position,
         updatedBy: interaction.client.user.id,
       });
 
-      roleEntity.tags.addToSet('title');
-
-      await roleEntity.save();
-
+      // TODO random starting prompt on bind
       const promptsStaring = await promptsModel.find<Prompts>({
         // TODO from current profile generated
         position: 1,
         isGenerated: true,
         // TODO reset status
-        event: PROMPT_TYPE_ENUM.TROPHY,
-        type: PROMPT_TYPE_ENUM.CONTEST,
+        onEvent: EVENT_PROMPT_ENUM.TROPHY,
+        type: EVENT_PROMPT_ENUM.CONTEST,
         role: CHAT_ROLE_ENUM.ASSISTANT,
       });
 
       const startingContestPrompt =
-        promptsStaring[randomMixMax(0, promptsStaring.length - 1)];
+        promptsStaring[random(0, promptsStaring.length - 1)];
 
-      await buildContest(
+      const contestEntity = await buildContest(
         contestModel,
         guildId,
-        channelId,
+        channel.id,
         title,
         user.id,
         role.id,

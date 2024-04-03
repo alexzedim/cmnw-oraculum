@@ -16,6 +16,20 @@ export const getRoleByTags = async (
     },
   });
 
+export const bindRoleContest = async (
+  model: Model<Roles>,
+  role: Partial<Roles>,
+) => {
+  const roleEntity = await model.findByIdAndUpdate<Roles>(role._id, role, {
+    upsert: true,
+    new: true,
+  });
+
+  roleEntity.tags.addToSet('contest-title');
+
+  return await roleEntity.save();
+};
+
 export const bindRoleTags = async (
   model: Model<Roles>,
   guildId: string,

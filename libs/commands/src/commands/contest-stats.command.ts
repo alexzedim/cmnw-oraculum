@@ -1,4 +1,3 @@
-import { EmbedBuilder } from 'discord.js';
 import { Contests, Fefenya } from '@cmnw/mongo';
 import {
   COMMAND_ENUMS,
@@ -8,11 +7,7 @@ import {
   SlashCommand,
 } from '@cmnw/commands';
 
-import {
-  getRandomReplyByEvent,
-  PROMPT_TYPE_ENUM,
-  randomMixMax,
-} from '@cmnw/core';
+import { getRandomReplyByEvent, EVENT_PROMPT_ENUM, random } from '@cmnw/core';
 
 export const contestStatsCommand: SlashCommand = {
   name: CONTEST_TOP_ENUM.NAME,
@@ -26,7 +21,7 @@ export const contestStatsCommand: SlashCommand = {
     const { fefenyaModel, contestModel } = models;
 
     try {
-      const ignoreSeconds = randomMixMax(60 * 30, 60 * 60);
+      const ignoreSeconds = random(60 * 30, 60 * 60);
       const guildIgnoreKey = `${COMMAND_ENUMS.FEFENYA_TOP}:${guildId}`;
       const userIgnoreKey = `${COMMAND_ENUMS.FEFENYA_TOP}:${guildId}:${userId}`;
 
@@ -44,7 +39,7 @@ export const contestStatsCommand: SlashCommand = {
       if (isIgnore) {
         const ignorePrompt = await getRandomReplyByEvent(
           models.promptsModel,
-          PROMPT_TYPE_ENUM.IGNORE,
+          EVENT_PROMPT_ENUM.IGNORE,
         );
 
         return await interaction.reply({
@@ -81,8 +76,9 @@ export const contestStatsCommand: SlashCommand = {
 
       const errorPrompt = await getRandomReplyByEvent(
         models.promptsModel,
-        PROMPT_TYPE_ENUM.ERROR,
+        EVENT_PROMPT_ENUM.ERROR,
       );
+
       return await interaction.reply({
         content: errorPrompt.text,
         ephemeral: false,

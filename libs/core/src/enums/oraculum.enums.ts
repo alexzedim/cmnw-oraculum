@@ -48,7 +48,7 @@ export enum TAGS_ENUM {
   GOTD = 'gotd',
 }
 
-export enum PROMPT_TYPE_ENUM {
+export enum EVENT_PROMPT_ENUM {
   DIALOG = 'dialog',
   PROMPT = 'prompt',
   PROMO = 'promo',
@@ -85,10 +85,12 @@ export enum VECTOR_TAGS_ENUM {
   EVOKER = 'evoker',
 }
 
-export enum OPENAI_MODEL {
+export enum PROVIDER_KEYS {
   ChatGPT_3 = 'text-davinci-003',
   ChatGPT_3_5 = 'gpt-3.5-turbo',
   ChatGPT_4 = 'gpt-4',
+  YandexGPT = 'yandex',
+  YandexGPT_Lite = 'yandexgpt-lite',
 }
 
 export enum PERMISSIONS_ENUM {

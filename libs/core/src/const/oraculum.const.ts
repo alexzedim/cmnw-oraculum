@@ -16,7 +16,7 @@ export const ROUTING_KEY = [
   ACTION_TRIGGER_FLAG.MESSAGE_REPLY,
 ];
 
-export const CMNW_MEMORIAL_DEDICATIONS = new Map<string, Memorials>([
+export const MEMORIAL_DEDICATIONS = new Map<string, Memorials>([
   [
     CMNW_ORACULUM_PROJECTS.RAINY,
     [
@@ -35,7 +35,7 @@ export const CMNW_MEMORIAL_DEDICATIONS = new Map<string, Memorials>([
     [
       {
         name: '*Designed by*',
-        value: '.nims',
+        value: 'alexzeim | .nims',
       },
       {
         name: '*Inspired by*',

@@ -12,14 +12,13 @@ import {
 } from 'discord.js';
 
 import {
-  randomMixMax,
+  random,
   formatRedisKey,
   CHAT_KEYS,
-  PEPA_ROLL_CHANCE,
+  PEPA_REACT_CHANCE,
   STORAGE_KEYS,
   ACTION_TRIGGER_FLAG,
 } from '@cmnw/core';
-
 
 @Injectable()
 export class ChatService {
@@ -35,8 +34,8 @@ export class ChatService {
     min: number,
     max: number,
   ) {
-    const anchorRandomElement = randomMixMax(min, max);
-    const rangeAnchorElement = randomMixMax(min, 4);
+    const anchorRandomElement = random(min, max);
+    const rangeAnchorElement = random(min, 4);
     const emojiPepeArrayId = await this.redisService.lrange(
       formatRedisKey(STORAGE_KEYS.EMOJIS, 'PEPA'),
       anchorRandomElement - rangeAnchorElement,
@@ -48,8 +47,7 @@ export class ChatService {
     }
   }
   /**
-   * @description This is vegas, baby
-   * @description Don't try tp understand it@feel it
+   * @description This is vegas, baby | Don't try tp understand it @ feel it
    */
   async rollDiceFullHouse({
     isText = false,
@@ -63,9 +61,9 @@ export class ChatService {
     }
 
     try {
-      const triggerChance = randomMixMax(0, 100);
+      const triggerChance = random(0, 100);
 
-      if (isMedia && triggerChance > PEPA_ROLL_CHANCE.IS_MEDIA) {
+      if (isMedia && triggerChance > PEPA_REACT_CHANCE.IS_MEDIA) {
         return {
           flag: ACTION_TRIGGER_FLAG.POST_MEME,
         };
@@ -74,7 +72,7 @@ export class ChatService {
       if (
         !isText &&
         hasAttachment &&
-        triggerChance > PEPA_ROLL_CHANCE.ATTACHMENT_ONLY_EMOJI
+        triggerChance > PEPA_REACT_CHANCE.ATTACHMENT_ONLY_EMOJI
       ) {
         return { flag: ACTION_TRIGGER_FLAG.EMOJI };
       }
@@ -83,11 +81,11 @@ export class ChatService {
         return { flag: ACTION_TRIGGER_FLAG.MESSAGE_REPLY };
       }
 
-      if (isText && triggerChance <= PEPA_ROLL_CHANCE.TEXT_ONLY_PROVOKE) {
+      if (isText && triggerChance <= PEPA_REACT_CHANCE.TEXT_ONLY_PROVOKE) {
         return { flag: ACTION_TRIGGER_FLAG.MESSAGE_PROVOKE };
       }
 
-      if (isText && triggerChance >= PEPA_ROLL_CHANCE.TEXT_ONLY_EMOJI) {
+      if (isText && triggerChance >= PEPA_REACT_CHANCE.TEXT_ONLY_EMOJI) {
         return { flag: ACTION_TRIGGER_FLAG.EMOJI };
       }
 
@@ -132,7 +130,7 @@ export class ChatService {
   }
 
   public async setTriggerIgnore(): Promise<void> {
-    const timeout = randomMixMax(30, 600);
+    const timeout = random(30, 600);
     const key = formatRedisKey(CHAT_KEYS.FULL_TILT_IGNORE, 'CHAT');
     await this.redisService.set(key, 1, 'EX', timeout);
     this.logger.debug(`Pepa will ignore everything for ${timeout} seconds`);
@@ -168,7 +166,7 @@ export class ChatService {
 
     if (isMentioned) {
       const key = formatRedisKey(CHAT_KEYS.MENTIONED, 'PEPA');
-      await this.redisService.set(key, 1, 'EX', randomMixMax(7, 10));
+      await this.redisService.set(key, 1, 'EX', random(7, 10));
     }
 
     return isMentioned;

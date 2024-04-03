@@ -1,4 +1,4 @@
 export * from './message.dto';
-export * from './chat-flow.dto';
+export * from './chat.dto';
 export * from './event.dto';
-export * from './reply-v4.dto';
+export * from './reply.dto';

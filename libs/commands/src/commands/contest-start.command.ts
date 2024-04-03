@@ -1,4 +1,5 @@
 import { TextChannel } from 'discord.js';
+import { Prompts } from '@cmnw/mongo';
 import {
   COMMAND_ENUMS,
   generateKey,
@@ -9,14 +10,13 @@ import {
 
 import {
   getRandomReplyByEvent,
-  PROMPT_TYPE_ENUM,
+  EVENT_PROMPT_ENUM,
   getContest,
   prettyContestPrompt,
   FEFENYA_NAMING,
-  randomMixMax,
-  waitForDelay,
+  random,
+  wait,
 } from '@cmnw/core';
-import { Prompts } from '@cmnw/mongo';
 
 export const contestStartCommand: SlashCommand = {
   name: CONTEST_START_ENUM.NAME,
@@ -27,7 +27,6 @@ export const contestStartCommand: SlashCommand = {
     if (!interaction.isChatInputCommand()) return;
 
     const { fefenyaModel, promptsModel, contestModel } = models;
-
     const { guild, client, user } = interaction;
     let { channel } = interaction;
 
@@ -65,14 +64,12 @@ export const contestStartCommand: SlashCommand = {
           contestEntity.title,
         );
 
-        const delayTime = randomMixMax(1, 10);
-        await waitForDelay(delayTime);
+        const delayTime = random(1, 10);
+        await wait(delayTime);
 
         await channel.send({ content: contestText });
       }
-    } catch (e) {
-
-    }
+    } catch (e) {}
 
     try {
       logger.log(`${COMMAND_ENUMS.FEFENYA_TROPHY} triggered by ${user.id}`);
@@ -81,7 +78,7 @@ export const contestStartCommand: SlashCommand = {
 
       const errorPrompt = await getRandomReplyByEvent(
         promptsModel,
-        PROMPT_TYPE_ENUM.ERROR,
+        EVENT_PROMPT_ENUM.ERROR,
       );
 
       const errorContent = prettyContestPrompt(
@@ -99,7 +96,7 @@ export const contestStartCommand: SlashCommand = {
 
       const errorPrompt = await getRandomReplyByEvent(
         promptsModel,
-        PROMPT_TYPE_ENUM.ERROR,
+        EVENT_PROMPT_ENUM.ERROR,
       );
 
       const errorContent = prettyContestPrompt(

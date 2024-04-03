@@ -17,10 +17,11 @@ import {
 import {
   MessageDto,
   loadKey,
-  waitForDelay,
+  wait,
   VotingCounter,
   messageQueue,
-  chatQueue, ReplyV4Dto,
+  chatQueue,
+  ReplyDto,
 } from '@cmnw/core';
 
 import {
@@ -50,7 +51,8 @@ export class RivenService implements OnApplicationBootstrap {
   private client: Client;
   private chatUser: Keys;
   private votingStorage = new Collection<string, VotingCounter>();
-  private commandsMessage = new Collection<string, SlashCommand>();
+  private commands = new Collection<string, SlashCommand>();
+  private modals: Collection<string, any> = new Collection();
   private messageStorage = new Collection<
     Snowflake,
     Collection<Snowflake, MessageDto>
@@ -65,6 +67,7 @@ export class RivenService implements OnApplicationBootstrap {
     @InjectModel(Keys.name)
     private readonly keysModel: Model<Keys>,
   ) {}
+
   async onApplicationBootstrap() {
     // await this.storageService.get();
     await this.loadBot();
@@ -73,10 +76,7 @@ export class RivenService implements OnApplicationBootstrap {
   }
 
   private async loadCommands(): Promise<void> {
-    this.commandsMessage.set(
-      votingNominationCommand.name,
-      votingNominationCommand,
-    );
+    this.commands.set(votingNominationCommand.name, votingNominationCommand);
     // this.commandsMessage.set(cryptoCommand.name, cryptoCommand);
 
     const commandsBody = [
@@ -90,7 +90,7 @@ export class RivenService implements OnApplicationBootstrap {
   }
 
   private async loadBot(resetContext = false) {
-    const response = await this.amqpConnection.request<ReplyV4Dto>({
+    const response = await this.amqpConnection.request<ReplyDto>({
       exchange: chatQueue.name,
       routingKey: 'v4',
       payload: {
@@ -110,10 +110,6 @@ export class RivenService implements OnApplicationBootstrap {
       },
       timeout: 60 * 1000,
     });
-
-    console.log(response);
-
-    return;
 
     this.client = new Client({
       partials: [Partials.User, Partials.Channel, Partials.GuildMember],
@@ -147,7 +143,7 @@ export class RivenService implements OnApplicationBootstrap {
     createQueueIfNotExists: true,
   })
   private async putInQueue(message: MessageDto) {
-    await waitForDelay(10);
+    await wait(10);
     const channel = this.client.channels.cache.get(
       '1100433314101338202',
     ) as TextChannel;
@@ -173,6 +169,28 @@ export class RivenService implements OnApplicationBootstrap {
       await this.renameGuildMember(message.member, true);
     });
 
+    this.client.on(Events.InteractionCreate, async (interaction) => {
+      if (!interaction.isModalSubmit()) return;
+      try {
+        const modal = this.modals.get(interaction.customId);
+        if (!modal) return;
+
+        await modal.executeInteraction({
+          interaction,
+          models: {},
+          // redis: this.redisService,
+          logger: this.logger,
+          // rabbit: this.amqpConnection,
+        });
+      } catch (errorException) {
+        this.logger.error(errorException);
+        await interaction.reply({
+          content: 'There was an error while executing this command!',
+          ephemeral: true,
+        });
+      }
+    });
+
     this.client.on(
       Events.InteractionCreate,
       async (interaction): Promise<void> => {
@@ -180,7 +198,7 @@ export class RivenService implements OnApplicationBootstrap {
         if (!isChatInputCommand) return;
 
         try {
-          const command = this.commandsMessage.get(interaction.commandName);
+          const command = this.commands.get(interaction.commandName);
           if (!command) return;
 
           await command.executeInteraction({

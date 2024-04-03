@@ -2,7 +2,7 @@ import { SlashCommand } from '@cmnw/commands/types';
 import { MEMORIAL, MEMORIAL_ENUM } from '@cmnw/commands/const';
 import { Octokit } from 'octokit';
 import { githubConfig } from '@cmnw/config';
-import { CMNW_MEMORIAL_DEDICATIONS } from '@cmnw/core';
+import { MEMORIAL_DEDICATIONS } from '@cmnw/core';
 import { memorialBoardEmbed } from '@cmnw/commands/components';
 
 export const memorialCommand: SlashCommand = {
@@ -38,7 +38,7 @@ export const memorialCommand: SlashCommand = {
         interaction.user.avatar,
       );
 
-      const memorials = CMNW_MEMORIAL_DEDICATIONS.get(
+      const memorials = MEMORIAL_DEDICATIONS.get(
         interaction.user.username,
       );
 

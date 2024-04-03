@@ -10,14 +10,14 @@ import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import {
   ACTION_TRIGGER_FLAG,
   CHAT_ROLE_ENUM,
-  ChatFlowDto,
+  ChatDto,
   chatQueue,
   getProfile,
   loadKey,
   MessageDto,
   messageQueue,
-  PEPA_ROLL_CHANCE,
-  randomMixMax,
+  PEPA_REACT_CHANCE,
+  random,
 } from '@cmnw/core';
 
 import {
@@ -157,19 +157,15 @@ export class PepaService implements OnApplicationBootstrap {
   }
 
   async messageReply(message: Message, channelId: string) {
-    const n = randomMixMax(1, 7);
+    const n = random(1, 7);
     if (n < 6) return;
 
     const messageCollection = this.messageStorage.get(channelId);
-    const dialogFrom = messageCollection
-      .last(n)
-      .map((message) =>
-        ChatFlowDto.fromMessageDto(
-          message,
-          this.pepaPrompt,
-          this.client.user.id,
-        ),
-      );
+    const dialogFrom = ChatDto.fromMessages(
+      messageCollection.last(n),
+      this.pepaPrompt,
+      this.client.user.id,
+    );
 
     const response = await this.amqpConnection.request<string>({
       exchange: chatQueue.name,
@@ -193,9 +189,9 @@ export class PepaService implements OnApplicationBootstrap {
     }
 
     try {
-      const triggerChance = randomMixMax(0, 100);
+      const triggerChance = random(0, 100);
 
-      if (isMedia && triggerChance > PEPA_ROLL_CHANCE.IS_MEDIA) {
+      if (isMedia && triggerChance > PEPA_REACT_CHANCE.IS_MEDIA) {
         return {
           flag: ACTION_TRIGGER_FLAG.MESSAGE_REPLY,
         };
@@ -204,16 +200,16 @@ export class PepaService implements OnApplicationBootstrap {
       if (
         !isText &&
         hasAttachment &&
-        triggerChance > PEPA_ROLL_CHANCE.ATTACHMENT_ONLY_EMOJI
+        triggerChance > PEPA_REACT_CHANCE.ATTACHMENT_ONLY_EMOJI
       ) {
         return { flag: ACTION_TRIGGER_FLAG.EMOJI };
       }
 
-      if (isMentioned && triggerChance > PEPA_ROLL_CHANCE.IS_SOFT_MENTIONED) {
+      if (isMentioned && triggerChance > PEPA_REACT_CHANCE.IS_SOFT_MENTIONED) {
         return { flag: ACTION_TRIGGER_FLAG.MESSAGE_REPLY };
       }
 
-      if (isText && triggerChance >= PEPA_ROLL_CHANCE.TEXT_ONLY_EMOJI) {
+      if (isText && triggerChance >= PEPA_REACT_CHANCE.TEXT_ONLY_EMOJI) {
         return { flag: ACTION_TRIGGER_FLAG.EMOJI };
       }
 

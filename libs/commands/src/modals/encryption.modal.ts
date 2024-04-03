@@ -22,7 +22,7 @@ export const encryptionModal: SlashModel = {
       if (algoInput === 'hex') content = toHex(textInput);
       if (algoInput === 'base64') content = toBase64(textInput);
       if (algoInput === 'aes-256') content = encryptAES256(textInput, keyInput);
-
+      // TODO split 2000+ symbols
       await interaction.reply({ content, ephemeral: false });
     } catch (errorOrException) {
       logger.error(errorOrException);

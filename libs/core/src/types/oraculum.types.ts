@@ -24,7 +24,12 @@ export interface Memorial {
   value: string;
 }
 
-export interface IChatFlow {
+export interface IAgent {
+  agentId: string;
+  vectorId: string;
+}
+
+export interface IChatMessages {
   role: 'user' | 'assistant' | 'system';
   name?: string;
   content: string;

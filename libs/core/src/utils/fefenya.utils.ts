@@ -1,4 +1,4 @@
-import { randomMixMax } from '@cmnw/core/utils/discord.utils';
+import { random } from '@cmnw/core/utils/discord.utils';
 
 export const prettyContestReply = (replyBack: string) => {
   const [r, s] = [new RegExp('"', 'g'), new RegExp('\\s\\d.', 'g')];
@@ -22,7 +22,7 @@ export const prettyContestPrompt = (
     .replace(new RegExp(`{winner}`, 'g'), winner);
 
 export const randomStyleReply = (replyBack: string) => {
-  const i = randomMixMax(0, 3);
+  const i = random(0, 3);
   const trimmed = replyBack.trim();
   if (i > 2) return `***${trimmed}***`;
   if (i > 1) return `**${trimmed}**`;

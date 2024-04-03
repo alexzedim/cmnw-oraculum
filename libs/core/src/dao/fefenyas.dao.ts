@@ -2,7 +2,7 @@ import { Model } from 'mongoose';
 import { Fefenya } from '@cmnw/mongo';
 import { STATUS_ENUM } from '@cmnw/core/enums';
 import { GuildMember } from 'discord.js';
-import { randomMixMax } from '@cmnw/core/utils';
+import { random } from '@cmnw/core/utils';
 
 export const resetContestByGuildId = async (
   model: Model<Fefenya>,
@@ -70,7 +70,7 @@ export const pickRandomFefenya = async (
     guildId: guildId,
   });
 
-  const randomInt = randomMixMax(0, int - 2);
+  const randomInt = random(0, int - 2);
 
   const userFefenya = await usersFefenyaModel
     .findOne<Fefenya>({

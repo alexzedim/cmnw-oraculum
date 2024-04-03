@@ -1,11 +1,20 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { PROMPT_TYPE_ENUM, Role } from '@cmnw/core';
+import { EVENT_PROMPT_ENUM, Role } from '@cmnw/core';
 
 @Schema({ timestamps: true })
 export class Prompts extends Document {
   @Prop({ type: Types.ObjectId, ref: 'Profiles' })
   profileId: Types.ObjectId;
+
+  @Prop({ type: Types.ObjectId, ref: 'Prompts' })
+  isGeneratedBy: Types.ObjectId;
+
+  @Prop({ type: Boolean })
+  isGenerated: boolean;
+
+  @Prop({ type: Boolean })
+  isBasePrompt: boolean;
 
   @Prop({ type: String })
   blockId: string;
@@ -17,25 +26,13 @@ export class Prompts extends Document {
   model: string;
 
   @Prop({ type: String })
-  event: string;
+  onEvent: string | EVENT_PROMPT_ENUM;
 
   @Prop({ type: String })
   role: Role;
 
   @Prop({ type: Number })
   position: number;
-
-  @Prop({ type: String, enum: PROMPT_TYPE_ENUM })
-  type: PROMPT_TYPE_ENUM;
-
-  @Prop({ type: Boolean })
-  isBasePrompt: boolean;
-
-  @Prop({ type: Boolean })
-  isGenerated: boolean;
-
-  @Prop({ type: Types.ObjectId, ref: 'Prompts' })
-  isGeneratedBy: Types.ObjectId;
 
   @Prop({ type: Number })
   temperature?: number;
@@ -54,3 +51,21 @@ export class Prompts extends Document {
 }
 
 export const PromptsSchema = SchemaFactory.createForClass(Prompts);
+PromptsSchema.index(
+  {
+    onEvent: 'text',
+    tags: 'text',
+    name: 'text',
+    text: 'text',
+  },
+  {
+    default_language: 'english',
+    weights: {
+      onEvent: 10,
+      tags: 5,
+      name: 2,
+      text: 1,
+    },
+    name: 'TEXT',
+  },
+);

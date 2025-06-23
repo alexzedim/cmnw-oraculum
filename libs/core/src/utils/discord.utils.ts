@@ -18,8 +18,7 @@ export const isDurationNotPass = (sinceDate: Date, unitNumber = 6) => {
   return diff.hours < unitNumber;
 };
 
-export const wait = async (seconds: number) =>
-  await setTimeout(seconds * 1000);
+export const wait = async (seconds: number) => await setTimeout(seconds * 1000);
 
 export const operationStatus = (isNew: boolean) =>
   isNew ? 'created' : 'updated';

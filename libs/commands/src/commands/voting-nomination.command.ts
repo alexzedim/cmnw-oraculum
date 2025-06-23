@@ -43,9 +43,7 @@ export const votingNominationCommand: SlashCommand = {
       const isSelfTriggered = initiatedBy === userCandidate.id;
 
       const guildMember = interaction.guild.members.cache.get(userCandidate.id);
-      const guildMemberInitiate = interaction.guild.members.cache.get(
-        user.id,
-      );
+      const guildMemberInitiate = interaction.guild.members.cache.get(user.id);
       const hasRole = guildMember.roles.cache.has(role.id);
       const hasPermission = guildMemberInitiate.roles.cache.has(role.id);
       const isRankHigher =

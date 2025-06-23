@@ -38,9 +38,7 @@ export const memorialCommand: SlashCommand = {
         interaction.user.avatar,
       );
 
-      const memorials = MEMORIAL_DEDICATIONS.get(
-        interaction.user.username,
-      );
+      const memorials = MEMORIAL_DEDICATIONS.get(interaction.user.username);
 
       for (const { name, value } of memorials) {
         memorialBoard.addFields({

@@ -117,11 +117,7 @@ export class RainyService implements OnApplicationBootstrap {
 
       this.client.on(Events.GuildCreate, async (guild) => {
         try {
-          await indexGuild(
-            this.guildsModel,
-            guild,
-            this.client.user.id,
-          );
+          await indexGuild(this.guildsModel, guild, this.client.user.id);
         } catch (errorOrException) {
           this.logger.error(`${Events.GuildCreate}: ${errorOrException}`);
         }

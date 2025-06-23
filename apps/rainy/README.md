@@ -24,7 +24,6 @@ If you want to add Rainy to your discord server, please use the following link:
 
 [![Badge]](https://discord.com/oauth2/authorize?client_id=760782052986978335&scope=bot)
 
-
 <!---------------------------------[ Badges ]---------------------------------->
 
 [Badge]: https://img.shields.io/badge/discord-INVITE-blue/Buttons?style=for-the-badge&labelColor=blue&color=blue&logoColor=white&logo=Discord

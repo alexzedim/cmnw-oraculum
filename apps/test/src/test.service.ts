@@ -111,8 +111,7 @@ export class TestService implements OnApplicationBootstrap {
       },
     });
 
-    const token =
-      '';
+    const token = '';
 
     await this.client.login(token);
     this.rest.setToken(token);

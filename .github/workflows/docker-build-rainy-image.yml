@@ -30,7 +30,7 @@ jobs:
         with:
           # list of Docker images to use as base name for tags
           images: |
-            ghcr.io/alexzedim/rainy
+            ghcr.io/${{ github.repository_owner }}/rainy
           # generate Docker tags based on the following events/attributes
           tags: |
             type=semver,pattern={{raw}}
@@ -52,7 +52,7 @@ jobs:
         with:
           file: ./apps/rainy/Dockerfile
           push: true
-          tags: ghcr.io/alexzedim/rainy:latest
+          tags: ghcr.io/${{ github.repository_owner }}/rainy:latest
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             CR_PAT=${{ secrets.CR_PAT }}

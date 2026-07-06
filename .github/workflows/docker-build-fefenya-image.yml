@@ -30,7 +30,7 @@ jobs:
         with:
           # list of Docker images to use as base name for tags
           images: |
-            ghcr.io/alexzedim/fefenya
+            ghcr.io/${{ github.repository_owner }}/fefenya
           # generate Docker tags based on the following events/attributes
           tags: |
             type=semver,pattern={{raw}}
@@ -52,7 +52,7 @@ jobs:
         with:
           file: ./apps/fefenya/Dockerfile
           push: true
-          tags: ghcr.io/alexzedim/fefenya:latest
+          tags: ghcr.io/${{ github.repository_owner }}/fefenya:latest
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             CR_PAT=${{ secrets.CR_PAT }}
